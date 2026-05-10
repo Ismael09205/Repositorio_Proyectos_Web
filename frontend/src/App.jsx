@@ -1,23 +1,37 @@
-import {useState} from 'react';
+import { useState } from 'react';
 import './App.css';
-import iconoLogin from './assets/acceso-de-usuario.png'
-import iconoGmail from './assets/gmail.png'
-import iconoApple from './assets/apple.png'
-import iconoLinkedin from './assets/linkedin.png'
+import iconoLogin from './assets/acceso-de-usuario.png';
+import iconoGmail from './assets/gmail.png';
+import iconoApple from './assets/apple.png';
+import iconoLinkedin from './assets/linkedin.png';
+import { login } from './services/authService';
 
 function App() {
-  const [usuario, setUsuario] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [cargando, setCargando] = useState(false);
 
-  const manejarLogin = (e) => {
+  const manejarLogin = async (e) => {
     e.preventDefault();
-    console.log('Login:', { usuario, password });
+    setError('');
+    setCargando(true);
+
+    const { data, error } = await login(email, password);
+    setCargando(false);
+
+    if (error) {
+      setError('Correo o contraseña incorrectos');
+      return;
+    }
+
+    alert(`Bienvenido, ${data.user.email}`);
   };
 
   return (
     <div className="pagina-login">
       <div className="contenedor-login">
-        
+
         <div className="seccion-logo-principal">
           <img src={iconoLogin} alt="Logo" className="icono-principal" />
         </div>
@@ -26,44 +40,40 @@ function App() {
 
         <form className="formulario-login" onSubmit={manejarLogin}>
           <div className="grupo-entrada">
-            <label>Username</label>
-            <input 
-              type="text" 
-              value={usuario}
-              onChange={(e) => setUsuario(e.target.value)}
-              required
-            />
+            <label>Email</label>
+            <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="correo@ejemplo.com"/>
           </div>
 
           <div className="grupo-entrada">
             <label>Password</label>
-            <input 
-              type="password" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
 
-          <button type="submit" className="boton-login">INICIAR SESION</button>
+          {error && (
+            <p style={{ color: 'red', fontSize: '0.85rem' }}>{error}</p>
+          )}
+
+          <button type="submit" className="boton-login" disabled={cargando}>
+            {cargando ? 'Cargando...' : 'INICIAR SESION'}
+          </button>
         </form>
 
         <div className="seccion-login-social">
           <p className="texto-social">Iniciar sesion con:</p>
           <div className="iconos-sociales">
             <button className="boton-icono-social">
-              <a href="https://gmail.com" target="_blank" rel="noreferrer" className="boton-icono-social">
-              <img src={iconoGmail} alt="Gmail" />
+              <a href="https://gmail.com" target="_blank" rel="noreferrer">
+                <img src={iconoGmail} alt="Gmail" />
               </a>
             </button>
             <button className="boton-icono-social">
-              <a href="https://apple.com" target="_blank" rel="noreferrer" className="boton-icono-social">
-              <img src={iconoApple} alt="Apple" />
+              <a href="https://apple.com" target="_blank" rel="noreferrer">
+                <img src={iconoApple} alt="Apple" />
               </a>
             </button>
             <button className="boton-icono-social">
-              <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="boton-icono-social">
-              <img src={iconoLinkedin} alt="Linkedin" />
+              <a href="https://linkedin.com" target="_blank" rel="noreferrer">
+                <img src={iconoLinkedin} alt="Linkedin" />
               </a>
             </button>
           </div>
