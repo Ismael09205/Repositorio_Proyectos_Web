@@ -1,27 +1,13 @@
-import { supabase } from '../supabaseClient';
+import axios from "axios"
 
-export async function registrar(email, password) {
-  return await supabase.auth.signUp({ email, password });
-}
+const API_URL = "http://localhost:3000/api/auth"
 
-export async function login(email, password) {
-  return await supabase.auth.signInWithPassword({ email, password });
-}
+export const registerUser = async (userData) => {
 
-export async function logout() {
-  return await supabase.auth.signOut();
-}
+  const response = await axios.post(
+    `${API_URL}/register`,
+    userData
+  )
 
-export async function obtenerSesion() {
-  const { data } = await supabase.auth.getSession();
-  return data.session;
-}
-
-export function escucharSesion(callback) {
-  return supabase.auth.onAuthStateChange((_event, session) => callback(session));
-}
-
-export async function obtenerToken() {
-  const session = await obtenerSesion();
-  return session?.access_token || null;
+  return response.data
 }
