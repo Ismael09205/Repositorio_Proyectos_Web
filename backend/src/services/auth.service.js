@@ -2,10 +2,13 @@ const { supabaseAnon } = require('../config/supabase');
 
 // Funcion para registrar un nuevo usuario donde se recibe el email, password y metadata
 const registerUser = async (email, password, metadata = {}) => {
-    const { data, error } = await supabaseAnon.auth.signUp(
-        { email, password },
-        { data: metadata }
-    );
+    const { data, error } = await supabaseAnon.auth.signUp({
+        email,
+        password,
+        options: {
+            data: metadata
+        }
+    });
 
     if (error) {
         throw new Error(error.message);
@@ -41,12 +44,21 @@ const recoverPassword = async (email) => {
     return data;
 }
 
-// Funcion para actualizar la contraseña de un usuario autenticado o con token de recuperación
+// Funcion para actualizar la contraseña de un usuario autenticado o con token de recuperacion.
+// Primero se establece la sesion con el token de recuperacion, luego se actualiza la contraseña.
 const updatePassword = async (token, newPassword) => {
-    const { data, error } = await supabaseAnon.auth.updateUser(
-        { password: newPassword },
-        { accessToken: token }
-    );
+    const { data: sessionData, error: sessionError } = await supabaseAnon.auth.setSession({
+        access_token: token,
+        refresh_token: token,
+    });
+
+    if (sessionError) {
+        throw new Error(sessionError.message);
+    }
+
+    const { data, error } = await supabaseAnon.auth.updateUser({
+        password: newPassword,
+    });
 
     if (error) {
         throw new Error(error.message);
@@ -61,4 +73,3 @@ module.exports = {
     recoverPassword,
     updatePassword
 };
-
