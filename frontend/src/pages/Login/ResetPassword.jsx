@@ -15,16 +15,26 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
+  // Captura reactiva del token desde la URL (Soporta query params ? y hash params # de Supabase)
   useEffect(() => {
-    const accessToken = searchParams.get('access_token') || ''
+    // 1. Intentar leer desde Query Params (?access_token=...)
+    const accessToken = searchParams.get('access_token')
+    
+    // 2. Intentar leer desde Hash Params (#access_token=...) que es el formato nativo de Supabase
     const hashParams = new URLSearchParams(location.hash.replace('#', ''))
-    const hashToken = hashParams.get('access_token') || hashParams.get('token') || ''
-    setToken(accessToken || hashToken)
-  }, [searchParams, location.hash])
+    const hashToken = hashParams.get('access_token') || hashParams.get('token')
+
+    const finalToken = accessToken || hashToken || ''
+    
+    if (finalToken) {
+      setToken(finalToken)
+    }
+  }, [searchParams, location.hash]) // Escucha activamente cualquier cambio en los parámetros o en el hash
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!token.trim()) {
+    
+    if (!token || !token.trim()) {
       setError('No se encontró el token de recuperación. Usa el enlace enviado por correo o pégalo manualmente.')
       return
     }
@@ -42,11 +52,13 @@ export default function ResetPassword() {
     setMessage('')
 
     try {
-      await changePassword(token, password)
-      setMessage('Contraseña actualizada correctamente. Ahora puedes iniciar sesión.')
+      await changePassword(token.trim(), password)
+      setMessage('Contraseña actualizada correctamente. Redirigiéndote para iniciar sesión...')
       setPassword('')
       setConfirmPassword('')
-      setTimeout(() => navigate('/login'), 1500)
+      
+      // Esperamos 2 segundos para que el usuario visualice el mensaje de éxito
+      setTimeout(() => navigate('/login'), 2000)
     } catch (err) {
       const errorMsg = err.response?.data?.error || err.message || 'Error al actualizar la contraseña.'
       setError(translateError(errorMsg))
@@ -63,7 +75,7 @@ export default function ResetPassword() {
         <div className="auth-panel__content">
           <h2 className="auth-panel__heading">Cambia tu contraseña</h2>
           <p className="auth-panel__sub">
-            Usa el enlace recibido en tu correo o pega el token aquí para crear una nueva contraseña.
+            Hemos procesado el código de seguridad de tu correo institucional. Tu acceso está listo para ser actualizado en PoliConnect.
           </p>
         </div>
       </div>
@@ -79,17 +91,27 @@ export default function ResetPassword() {
           {message && <div className="auth-success">{message}</div>}
 
           <form className="auth-form" onSubmit={handleSubmit} noValidate>
+            
+            {/* Campo de Token Automatizado */}
             <div className="auth-field">
               <label className="auth-label">Token de recuperación</label>
               <input
                 name="token"
                 type="text"
-                placeholder="Pega aquí tu token si no se cargó automáticamente"
+                placeholder="Esperando token del enlace..."
                 className="auth-input"
+                style={token ? { backgroundColor: '#eef0fb', color: '#475569', cursor: 'not-allowed' } : {}}
                 value={token}
+                disabled={!!token} // Deshabilita el campo si el token ya se inyectó desde la URL
                 onChange={(e) => setToken(e.target.value)}
               />
+              {token && (
+                <p style={{ color: '#16a34a', fontSize: '0.8rem', marginTop: '0.4rem', fontWeight: '600' }}>
+                  ✓ Código de seguridad cargado de forma automática.
+                </p>
+              )}
             </div>
+
             <div className="auth-field">
               <label className="auth-label">Contraseña nueva</label>
               <input
@@ -101,6 +123,7 @@ export default function ResetPassword() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
+
             <div className="auth-field">
               <label className="auth-label">Confirmar contraseña</label>
               <input

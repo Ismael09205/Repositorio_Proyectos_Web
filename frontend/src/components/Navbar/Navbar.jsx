@@ -16,6 +16,10 @@ export default function Navbar() {
   const dropRef = useRef(null)
   const searchRef = useRef(null)
 
+  // Extraemos el nombre real mapeando la metadata de Supabase o las propiedades del contexto
+  const displayNombre = user?.user_metadata?.nombre_completo || user?.name || "Estudiante";
+  const displayEmail = user?.email || "";
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12)
     window.addEventListener('scroll', onScroll)
@@ -41,6 +45,11 @@ export default function Navbar() {
     setDropOpen(false)
     navigate('/')
   }
+
+  const generateInitials = (name) => {
+    if (!name) return "U";
+    return name.split(" ").map(word => word[0]).slice(0, 2).join("").toUpperCase();
+  };
 
   return (
     <header className={`navbar${scrolled ? ' navbar--scrolled' : ''}`}>
@@ -95,10 +104,10 @@ export default function Navbar() {
               <div className="navbar__user-menu" ref={dropRef}>
                 <button className="navbar__avatar-btn" onClick={() => setDropOpen(d => !d)}>
                   <div className="navbar__avatar">
-                    {user?.name ? user.name.charAt(0).toUpperCase() : "?"}
+                    {generateInitials(displayNombre)}
                   </div>
                   <span className="navbar__username">
-                    {user?.name ? user.name.split(' ')[0] : "Invitado"}
+                    {displayNombre.split(' ')[0]}
                   </span>
                   <ChevronDown size={14} className={dropOpen ? 'rotated' : ''} />
                 </button>
@@ -107,11 +116,11 @@ export default function Navbar() {
                   <div className="navbar__dropdown">
                     <div className="navbar__dropdown-header">
                       <div className="navbar__avatar navbar__avatar--lg">
-                        {user?.name ? user.name.charAt(0).toUpperCase() : "?"}
+                        {generateInitials(displayNombre)}
                       </div>
                       <div>
-                        <p className="navbar__dd-name">{user?.name ?? "Invitado"}</p>
-                        <p className="navbar__dd-email">{user?.email ?? ""}</p>
+                        <p className="navbar__dd-name">{displayNombre}</p>
+                        <p className="navbar__dd-email">{displayEmail}</p>
                       </div>
                     </div>
                     <div className="navbar__dropdown-divider" />

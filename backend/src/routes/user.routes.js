@@ -1,9 +1,13 @@
-const express = require("express")
-const router = express.Router()
+const express = require("express");
+const router = express.Router();
 
-const userController = require("../controllers/user.controller")
-const authMiddleware = require("../middlewares/auth.middleware")
+const userController = require("../controllers/user.controller");
+const authMiddleware = require("../middlewares/auth.middleware");
 
-router.get("/profile", authMiddleware, userController.getProfile)
+// Ruta para obtener el perfil del estudiante (Protegida)
+router.get("/profile", authMiddleware, userController.getProfile);
 
-module.exports = router
+// Nueva ruta para actualizar los datos del perfil (Protegida)
+router.put("/profile", authMiddleware, userController.updateProfile);
+
+module.exports = router;

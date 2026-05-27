@@ -1,8 +1,13 @@
 import axios from 'axios'
 
-const AUTH_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/auth'
-const USER_URL = AUTH_URL.replace('/auth', '/users')
+// Usamos rutas relativas para que el proxy de Vite (vite.config.js)
+// intercepte las peticiones y las desvíe automáticamente al backend (puerto 3000).
+const AUTH_URL = '/api/auth'
+const USER_URL = '/api/users'
 
+/**
+ * Registra un nuevo estudiante en la plataforma PoliConnect.
+ */
 export const registerUser = async (userData) => {
   const response = await axios.post(`${AUTH_URL}/register`, {
     name: userData.name,
@@ -16,6 +21,9 @@ export const registerUser = async (userData) => {
   return response.data
 }
 
+/**
+ * Inicia sesión validando credenciales y el estado de verificación de correo institucional.
+ */
 export const loginUser = async (email, password) => {
   const response = await axios.post(`${AUTH_URL}/login`, {
     email,
@@ -25,11 +33,17 @@ export const loginUser = async (email, password) => {
   return response.data
 }
 
+/**
+ * Solicita el enlace de recuperación de contraseña a Supabase a través del servidor Express.
+ */
 export const recoverPassword = async (email) => {
   const response = await axios.post(`${AUTH_URL}/recover`, { email })
   return response.data
 }
 
+/**
+ * Actualiza la contraseña del usuario utilizando el token de recuperación recibido por correo.
+ */
 export const changePassword = async (token, password) => {
   const response = await axios.post(
     `${AUTH_URL}/change-password`,
@@ -44,6 +58,9 @@ export const changePassword = async (token, password) => {
   return response.data
 }
 
+/**
+ * Obtiene los datos extendidos de la ficha del estudiante desde la tabla de perfiles.
+ */
 export const fetchProfile = async (token) => {
   const response = await axios.get(`${USER_URL}/profile`, {
     headers: {

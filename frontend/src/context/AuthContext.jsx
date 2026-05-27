@@ -33,11 +33,12 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     try {
       const response = await loginUser(email, password)
-      const payload = response?.data?.data || response?.data
-      const accessToken = payload?.session?.access_token || payload?.access_token || null
-      const userData = payload?.user || payload?.session?.user || payload || null
+      // El servicio puede devolver `response` (axios) o `response.data` directamente.
+      const data = response?.data ?? response
+      const accessToken = data?.token ?? data?.session?.access_token ?? data?.access_token ?? null
+      const userData = data?.user ?? data?.session?.user ?? null
       if (!userData) {
-        throw new Error(response?.data?.error || 'Credenciales incorrectas')
+        throw new Error(data?.error || 'Credenciales incorrectas')
       }
       saveAuth(userData, accessToken)
       return userData
@@ -50,11 +51,11 @@ export function AuthProvider({ children }) {
   const register = async (data) => {
     try {
       const response = await registerUser(data)
-      const payload = response?.data?.data || response?.data
-      const accessToken = payload?.session?.access_token || payload?.access_token || null
-      const userData = payload?.user || payload?.session?.user || payload || null
+      const resData = response?.data ?? response
+      const accessToken = resData?.token ?? resData?.session?.access_token ?? resData?.access_token ?? null
+      const userData = resData?.user ?? resData?.session?.user ?? null
       if (!userData) {
-        throw new Error(response?.data?.error || 'No se pudo registrar el usuario')
+        throw new Error(resData?.error || 'No se pudo registrar el usuario')
       }
       saveAuth(userData, accessToken)
       return userData

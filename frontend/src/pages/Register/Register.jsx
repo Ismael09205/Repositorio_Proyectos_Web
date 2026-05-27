@@ -78,7 +78,9 @@ export default function Register() {
     setLoading(true)
     try {
       await register(form)
-      navigate('/')
+      // Avisamos al usuario del flujo de verificación institucional antes de redirigir
+      alert('¡Registro exitoso! Por favor, revisa tu correo institucional de la EPN y confirma tu cuenta antes de iniciar sesión.')
+      navigate('/login')
     } catch (err) {
       setError(err.message || 'Error al registrarse.')
     } finally {
