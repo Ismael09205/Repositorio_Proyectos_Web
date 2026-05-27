@@ -142,10 +142,7 @@ export default function Login() {
             <Link to="/register" className="auth-switch-link">Regístrate gratis</Link>
           </p>
 
-          {/* Demo hint */}
-          <div className="auth-demo-hint">
-            <strong>Demo:</strong> usa <code>alex@epn.edu.ec</code> / <code>1234</code>
-          </div>
+        
         </div>
       </div>
     </div>

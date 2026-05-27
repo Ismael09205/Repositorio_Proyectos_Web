@@ -23,6 +23,7 @@ const register = async (req, res) => {
             data,
         });
     } catch (error) {
+        
         res.status(400).json({ error: error.message });
     }
 }
@@ -115,3 +116,5 @@ module.exports = {
     recover,
     changePassword,
 };
+
+

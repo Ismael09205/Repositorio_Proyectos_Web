@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import logoPoliconnect from "../../assets/logo.png"
 import './Footer.css'
 
 const LINKS = {
@@ -29,7 +30,8 @@ export default function Footer() {
         {/* Brand */}
         <div className="footer__brand">
           <Link to="/" className="footer__logo">
-            <div className="footer__logo-icon" />
+            
+            <img src={logoPoliconnect} alt="Logo Policonnect" className="logo-image"/>
             <span className="footer__logo-text">poli<strong>connect</strong></span>
           </Link>
           <p className="footer__tagline">

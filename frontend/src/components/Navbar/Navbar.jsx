@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { Search, Menu, X, ChevronDown, Bell, BookOpen, LogOut, User, Settings } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import logoPoli from '../../assets/logo.png'
 import './Navbar.css'
 
 export default function Navbar() {
@@ -46,9 +47,10 @@ export default function Navbar() {
       <div className="navbar__inner container">
         {/* Logo */}
         <Link to="/" className="navbar__logo">
-          <div className="navbar__logo-icon">
-            <BookOpen size={18} strokeWidth={2.5} />
-          </div>
+          
+          
+          
+          <img src={logoPoli} alt="Logo PoliConnect" className="logo-image" />
           <span className="navbar__logo-text">poli<strong>connect</strong></span>
         </Link>
 

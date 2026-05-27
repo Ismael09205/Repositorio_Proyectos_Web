@@ -1,7 +1,7 @@
 .footer {
   background: var(--primary-dark);
   color: #e2e8f0;
-  margin-top: auto;
+  margin-top: 80px; 
 }
 
 .footer__main {
@@ -45,6 +45,10 @@
   max-width: 280px;
 }
 
+.footer__newsletter {
+  margin-top: 16px;
+}
+
 .footer__nl-label {
   font-size: 0.8rem;
   font-weight: 600;
@@ -57,12 +61,13 @@
 .footer__nl-form {
   display: flex;
   gap: 8px;
+  max-width: 320px; /* Evita que el input del newsletter se estire indefinidamente */
 }
 
 .footer__nl-input {
   flex: 1;
   padding: 9px 14px;
-  border-radius: var(--r-pill);
+  border-radius: var(--r-pill, 9999px);
   border: 1px solid rgba(255,255,255,.15);
   background: rgba(255,255,255,.07);
   color: #fff;
@@ -92,6 +97,8 @@
 
 .footer__col-list {
   list-style: none;
+  padding: 0;
+  margin: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -109,7 +116,7 @@
 /* Bottom */
 .footer__bottom {
   border-top: 1px solid rgba(255,255,255,.08);
-  padding: 18px 0;
+  padding: 18px 24px; /* Añadido padding lateral para alinearse con footer__main */
 }
 
 .footer__bottom-inner {
@@ -135,24 +142,26 @@
 }
 .footer__legal a:hover { color: #fff; }
 
+/* Redes Sociales Corregidas */
 .footer__socials {
   display: flex;
-  gap: 6px;
+  gap: 16px; /* 👈 Separación real entre los enlaces de texto */
+  align-items: center;
 }
 
 .footer__social-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--r-sm);
-  display: flex;
+  /* Se elimina el width y height fijo de 32px para que el texto de la red social no se desborde */
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   color: #64748b;
-  transition: all var(--t-fast) var(--ease);
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: color var(--t-fast) var(--ease);
 }
 
 .footer__social-btn:hover {
-  background: rgba(255,255,255,.08);
+  background: transparent; 
   color: #fff;
 }
 
@@ -160,7 +169,29 @@
   font-size: 0.8rem;
   color: #64748b;
 }
+.footer__brand{
+  padding-top: 40px;
 
+}
+.footer__col{
+  padding-top: 40px;
+
+}
+.footer__newsletter{
+  padding-bottom: 20px;
+}
+.logo-image {
+  width: auto;        
+  height: 50px;       
+  object-fit: contain; 
+  border-radius: 7px;
+}
+
+.footer__logo {
+  display: flex;
+  align-items: center; 
+  gap: 12px;           
+}
 /* Responsive */
 @media (max-width: 900px) {
   .footer__main {
@@ -172,5 +203,6 @@
 
 @media (max-width: 580px) {
   .footer__main { grid-template-columns: 1fr; }
-  .footer__bottom-inner { flex-direction: column; text-align: center; }
+  .footer__bottom-inner { flex-direction: column; text-align: center; gap: 20px; }
+  .footer__socials { justify-content: center; }
 }

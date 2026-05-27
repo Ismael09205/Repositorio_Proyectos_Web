@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, Mail, Lock, User, BookOpen, AlertCircle, AtSign, GraduationCap } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, User, BookOpen, AlertCircle, AtSign } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
-import { translateError } from '../../utils/errorMessages.js'
 import '../Login/Auth.css'
 import './Register.css'
 
@@ -174,20 +173,22 @@ export default function Register() {
                   </div>
                 </div>
                 <div className="auth-field">
-                  <label className="auth-label">Universidad <span style={{color:'var(--text-muted)',fontWeight:400}}>(opcional)</span></label>
+                  <label className="auth-label">Universidad <span className="auth-label-optional">(opcional)</span></label>
                   <select name="university" className="auth-input auth-select" value={form.university} onChange={handleChange}>
                     <option value="">Selecciona tu universidad</option>
                     {UNIVERSITIES.map(u => <option key={u} value={u}>{u}</option>)}
                   </select>
                 </div>
                 <div className="auth-field">
-                  <label className="auth-label">Carrera <span style={{color:'var(--text-muted)',fontWeight:400}}>(opcional)</span></label>
+                  <label className="auth-label">Carrera <span className="auth-label-optional">(opcional)</span></label>
                   <select name="career" className="auth-input auth-select" value={form.career} onChange={handleChange}>
                     <option value="">Selecciona tu carrera</option>
                     {CAREERS.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
-                <button type="submit" className="auth-submit">Continuar →</button>
+                <div className="register__actions">
+                  <button type="submit" className="register__btn-submit">Continuar →</button>
+                </div>
               </>
             ) : (
               <>
@@ -223,11 +224,11 @@ export default function Register() {
                     <Link to="/privacidad">Política de privacidad</Link> de PoliConnect.
                   </span>
                 </label>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button type="button" className="auth-submit" style={{ background: 'var(--bg-subtle)', color: 'var(--text-secondary)', flex: '0 0 auto', padding: '13px 20px' }} onClick={() => setStep(1)}>
+                <div className="register__actions">
+                  <button type="button" className="register__btn-back" onClick={() => setStep(1)}>
                     ← Volver
                   </button>
-                  <button type="submit" className={`auth-submit${loading ? ' loading' : ''}`} disabled={loading} style={{ flex: 1 }}>
+                  <button type="submit" className={`register__btn-submit${loading ? ' loading' : ''}`} disabled={loading}>
                     {loading ? <span className="auth-spinner" /> : 'Crear cuenta'}
                   </button>
                 </div>
