@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { loginUser, registerUser } from '../services/authService.js'
+import { supabase } from '../supabaseClient'
 import { translateError } from '../utils/errorMessages.js'
 
 const AuthContext = createContext(null)
@@ -15,11 +16,25 @@ export function AuthProvider({ children }) {
     if (storedUser) {
       try { setUser(JSON.parse(storedUser)) } catch {}
     }
-    if (storedToken) {
-      setToken(storedToken)
+    if (storedToken) setToken(storedToken)
+  setLoading(false)
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    (event, session) => {
+      if (session) {
+        // Token renovado — actualizamos todo
+        setToken(session.access_token)
+        setUser(session.user)
+        localStorage.setItem('pc_token', session.access_token)
+        localStorage.setItem('pc_user', JSON.stringify(session.user))
+      } else if (event === 'SIGNED_OUT') {
+        logout()
+      }
     }
-    setLoading(false)
-  }, [])
+  )
+
+  return () => subscription.unsubscribe() // limpieza al desmontar
+}, [])
 
   const saveAuth = (userData, accessToken) => {
     setUser(userData)
@@ -27,6 +42,13 @@ export function AuthProvider({ children }) {
     localStorage.setItem('pc_user', JSON.stringify(userData))
     if (accessToken) {
       localStorage.setItem('pc_token', accessToken)
+      try {
+        // Intentamos establecer la sesión en el cliente Supabase para mantener consistencia
+        // (si el SDK acepta solo access_token, lo usará; si requiere refresh, puede ignorarlo)
+        supabase.auth.setSession({ access_token: accessToken, refresh_token: accessToken })
+      } catch (err) {
+        console.warn('No se pudo setear sesión en Supabase client:', err.message || err)
+      }
     }
   }
 

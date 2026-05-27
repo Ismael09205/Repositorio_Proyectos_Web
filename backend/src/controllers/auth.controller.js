@@ -3,7 +3,7 @@ const authService = require('../services/auth.service');
 // Función para registrar un nuevo usuario con metadata adicional
 const register = async (req, res) => {
     try {
-        const { name, username, email, password, university, career } = req.body;
+        const { name, username, email, password, university, career, facultad, semestre, biografia, ciudad, intereses, github_url, linkedin_url } = req.body;
 
         if (!email || !password) {
             return res.status(400).json({ error: 'Email y contraseña son requeridos.' });
@@ -14,6 +14,13 @@ const register = async (req, res) => {
             username: username || '',
             university: university || 'Escuela Politécnica Nacional',
             career: career || '',
+            facultad: facultad || '',
+            semestre: semestre || null,
+            biografia: biografia || '',
+            ciudad: ciudad || '',
+            intereses: intereses || null,
+            github_url: github_url || '',
+            linkedin_url: linkedin_url || ''
         };
 
         const data = await authService.registerUser(email, password, metadata);
