@@ -74,12 +74,6 @@ export default function Navbar() {
           <NavLink to="/categorias" className={({isActive}) => isActive ? 'navbar__link navbar__link--active' : 'navbar__link'}>
             Categorías
           </NavLink>
-          <NavLink to="/blog" className={({isActive}) => isActive ? 'navbar__link navbar__link--active' : 'navbar__link'}>
-            Blog
-          </NavLink>
-          <NavLink to="/nosotros" className={({isActive}) => isActive ? 'navbar__link navbar__link--active' : 'navbar__link'}>
-            Sobre nosotros
-          </NavLink>
         </nav>
 
         {/* Right actions */}
@@ -127,10 +121,10 @@ export default function Navbar() {
                     <Link to="/perfil" className="navbar__dd-item" onClick={() => setDropOpen(false)}>
                       <User size={15} /> Mi perfil
                     </Link>
-                    <Link to="/workspace" className="navbar__dd-item" onClick={() => setDropOpen(false)}>
+                    <Link to="/explorar" className="navbar__dd-item" onClick={() => setDropOpen(false)}>
                       <BookOpen size={15} /> Mis proyectos
                     </Link>
-                    <Link to="/configuracion" className="navbar__dd-item" onClick={() => setDropOpen(false)}>
+                    <Link to="/perfil" className="navbar__dd-item" onClick={() => setDropOpen(false)}>
                       <Settings size={15} /> Configuración
                     </Link>
                     <div className="navbar__dropdown-divider" />
@@ -183,7 +177,7 @@ export default function Navbar() {
       {menuOpen && (
         <div className="navbar__mobile-menu">
           <nav className="container">
-            {['/', '/explorar', '/categorias', '/blog', '/nosotros'].map((path, i) => (
+            {['/', '/explorar', '/categorias'].map((path, i) => (
               <NavLink
                 key={i}
                 to={path}
@@ -191,7 +185,7 @@ export default function Navbar() {
                 onClick={() => setMenuOpen(false)}
                 end={path === '/'}
               >
-                {['Inicio', 'Explorar', 'Categorías', 'Blog', 'Sobre nosotros'][i]}
+                {['Inicio', 'Explorar', 'Categorías'][i]}
               </NavLink>
             ))}
             {!user && (

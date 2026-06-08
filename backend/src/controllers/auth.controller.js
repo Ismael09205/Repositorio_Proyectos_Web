@@ -3,28 +3,39 @@ const authService = require('../services/auth.service');
 // Función para registrar un nuevo usuario con metadata adicional
 const register = async (req, res) => {
     try {
+        // Desestructuramos los campos enviados desde el formulario del Frontend
         const { name, username, email, password, university, career } = req.body;
 
-        if (!email || !password) {
+        if (!name || !name.trim()) {
+            return res.status(400).json({ error: 'Nombre completo es requerido.' });
+        }
+        if (!username || !username.trim()) {
+            return res.status(400).json({ error: 'Nombre de usuario es requerido.' });
+        }
+        if (!email || !email.trim() || !password) {
             return res.status(400).json({ error: 'Email y contraseña son requeridos.' });
         }
+        if (String(password).length < 6) {
+            return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres.' });
+        }
 
+    
         const metadata = {
-            nombre_completo: name || '', // Sincronizado con el trigger de tu tabla 'profiles'
+            nombre_completo: name || '', 
             username: username || '',
-            university: university || 'Escuela Politécnica Nacional',
-            career: career || '',
+            university: university || 'No especificada', // <-- Totalmente dinámico ahora
+            career: career || 'No especificada',
         };
 
+        // Enviamos la metadata real a Supabase Auth a través del servicio
         const data = await authService.registerUser(email, password, metadata);
 
-        res.status(201).json({
+        return res.status(201).json({
             message: 'Usuario registrado correctamente',
             data,
         });
     } catch (error) {
-        
-        res.status(400).json({ error: error.message });
+        return res.status(400).json({ error: error.message });
     }
 }
 
@@ -105,27 +116,35 @@ const recover = async (req, res) => {
 
 const changePassword = async (req, res) => {
     try {
+        // 1. Capturamos el password y el token que envía Axios en el cuerpo (body) desde React
         const { password, token: bodyToken } = req.body;
         const authHeader = req.headers.authorization;
+        
+        // 2. Extraemos el token del header Bearer si existe
         let token = authHeader ? authHeader.split(' ')[1] : null;
-        token = token || bodyToken;
+        
+        // 3. Priorizamos el token: usamos el del header o el que viene en el cuerpo
+        const finalToken = token || bodyToken;
 
         if (!password || password.length < 6) {
             return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres.' });
         }
 
-        if (!token) {
-            return res.status(401).json({ error: 'Token de recuperación requerido.' });
+        if (!finalToken) {
+            return res.status(401).json({ error: 'Token de recuperación requerido o expirado.' });
         }
 
-        const data = await authService.updatePassword(token, password);
+        // SOLUCIÓN AQUÍ: Pasamos los parámetros en el orden exacto que espera tu auth.service.js:
+        // Primero el token para montar la sesión de Supabase, luego la nueva contraseña.
+        const data = await authService.updatePassword(finalToken.trim(), password);
 
-        res.status(200).json({
+        return res.status(200).json({
             message: 'Contraseña actualizada correctamente',
             data,
         });
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        console.error("Error en changePassword controlador:", error.message);
+        return res.status(400).json({ error: error.message });
     }
 }
 

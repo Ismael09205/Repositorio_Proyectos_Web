@@ -1,52 +1,88 @@
-const { supabaseAnon } = require('../config/supabase');
+const { supabaseService } = require('../config/supabase');
 
-/**
- * Obtener el perfil extendido de la tabla 'profiles' usando el UUID del usuario
- */
-async function getProfileById(userId) {
-  const { data, error } = await supabaseAnon
+
+async function getProfileById(userId, userMetadata = {}) {
+  const { data, error } = await supabaseService
     .from('profiles')
     .select('*')
     .eq('id', userId)
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
+
+
+  if (!data) {
+    const initialProfile = {
+      id: userId,
+      nombre_completo: userMetadata?.nombre_completo || '',
+      universidad: userMetadata?.university || userMetadata?.universidad || '',
+      carrera: userMetadata?.career || userMetadata?.carrera || '',
+      facultad: userMetadata?.facultad || '',
+      semestre: userMetadata?.semestre || '',
+      biografia: userMetadata?.biografia || '',
+      ciudad: userMetadata?.ciudad || '',
+      intereses: [],
+      github_url: userMetadata?.github_url || '',
+      linkedin_url: userMetadata?.linkedin_url || '',
+    };
+
+    const { data: upsertData, error: upsertError } = await supabaseService
+      .from('profiles')
+      .upsert(initialProfile, { onConflict: 'id' })
+      .select('*');
+
+    if (upsertError) throw upsertError;
+
+    return upsertData?.[0] ?? initialProfile;
+  }
+
   return data;
 }
 
-/**
- * Actualizar los datos modificados por el estudiante en PoliConnect
- */
-// Actualizar los datos modificados por el estudiante en PoliConnect
 async function updateProfileById(userId, profileData) {
-  const { data, error } = await supabaseAnon
+  const intereses = Array.isArray(profileData?.intereses)
+    ? profileData.intereses
+    : typeof profileData?.intereses === 'string'
+      ? profileData.intereses
+          .split(',')
+          .map(t => t.trim())
+          .filter(Boolean)
+      : [];
+
+
+  const universidad = profileData?.universidad ?? profileData?.university ?? '';
+  const carrera = profileData?.carrera ?? profileData?.career ?? '';
+
+  const payload = {
+    id: userId,
+    nombre_completo: profileData?.nombre_completo ?? '',
+    universidad,
+    facultad: profileData?.facultad ?? '',
+    carrera,
+    semestre: profileData?.semestre ?? '',
+    biografia: profileData?.biografia ?? '',
+    ciudad: profileData?.ciudad ?? '',
+    intereses: intereses,
+    github_url: profileData?.github_url ?? '',
+    linkedin_url: profileData?.linkedin_url ?? '',
+  };
+
+  
+  const { data, error } = await supabaseService
     .from('profiles')
-    .update({
-      nombre_completo: profileData.nombre_completo,
-      facultad: profileData.facultad,
-      carrera: profileData.carrera,
-      semestre: profileData.semestre,
-      biografia: profileData.biografia,
-      ciudad: profileData.ciudad,
-      intereses: profileData.intereses,
-      github_url: profileData.github_url,
-      linkedin_url: profileData.linkedin_url
-    })
-    .eq('id', userId)
-    .select('*'); // 1. Quitamos .single() de aquí para evitar el error de coerción
+    .upsert(payload, { onConflict: 'id' })
+    .select('*');
 
   if (error) throw error;
 
-  // 2. Si la base de datos devolvió un arreglo con la fila modificada, extraemos el primer elemento
-  if (data && data.length > 0) {
-    return data[0];
+  if (!data || data.length === 0) {
+    throw new Error('No se pudo persistir el perfil en Supabase.');
   }
 
-  // Si por alguna razón devolvió vacío, retornamos un objeto base con lo que envió el cliente
-  return { id: userId, ...profileData };
+  return data[0];
 }
 
-// Exportamos los métodos de forma limpia para que los consuma el controlador
+
 module.exports = {
   getProfileById,
   updateProfileById

@@ -1,16 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { supabase } from "../../supabaseClient";
+import { useAuth } from '../../context/AuthContext';
 import './Profile.css'; // ¡IMPORTANTE! Agregada la importación de tus estilos reales
 import { 
   User, 
-  Mail, 
-  BookOpen, 
   GraduationCap, 
-  MapPin, 
-  Calendar,
-  Layers,    
-  FileText, 
   Compass, 
   AlertCircle,
   Edit2, 
@@ -21,6 +15,7 @@ import {
 } from 'lucide-react';
 
 export default function Profile() {
+  const { token, logout } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -32,43 +27,32 @@ export default function Profile() {
   const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
-    getStudentProfile();
-  }, []);
+    const run = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-  // 1. Obtener los datos del perfil desde el Backend (Ruta modular /api/users/profile)
-  async function getStudentProfile() {
-    try {
-      setLoading(true);
-      setError(null);
+        if (!token) {
+          setError("Inicia sesión en PoliConnect para acceder a tu perfil.");
+          return;
+        }
 
-      let { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) throw sessionError;
+        // Petición al backend modular
+        const response = await axios.get('/api/users/profile', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
 
-      // Espera un momento a que el almacenamiento local responda si está vacío de entrada
-      if (!session) {
-        await new Promise((resolve) => setTimeout(resolve, 200));
-        const retry = await supabase.auth.getSession();
-        session = retry.data.session;
+        setProfile(response.data);
+        setFormData(response.data);
+      } catch (err) {
+        setError(err.response?.data?.error || "Error al conectar con PoliConnect.");
+      } finally {
+        setLoading(false);
       }
-
-      if (!session) {
-        setError("Inicia sesión en PoliConnect para acceder a tu perfil.");
-        return;
-      }
-
-      // Petición al backend modular
-      const response = await axios.get('/api/users/profile', {
-        headers: { Authorization: `Bearer ${session.access_token}` }
-      });
-
-      setProfile(response.data);
-      setFormData(response.data); 
-    } catch (err) {
-      setError(err.response?.data?.error || "Error al conectar con PoliConnect.");
-    } finally {
-      setLoading(false);
     }
-  }
+
+    run();
+  }, [token]);
 
   // 2. Enviar las actualizaciones del formulario al Backend (Método PUT)
   async function handleSaveChanges(e) {
@@ -77,10 +61,8 @@ export default function Profile() {
       setUpdateLoading(true);
       setSuccessMessage("");
 
-      const { data: { session } } = await supabase.auth.getSession();
-      
       const response = await axios.put('/api/users/profile', formData, {
-        headers: { Authorization: `Bearer ${session.access_token}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       setProfile(response.data);
@@ -100,8 +82,8 @@ export default function Profile() {
   async function handleLogout() {
     const confirmar = window.confirm("¿Seguro que deseas cerrar sesión en PoliConnect?");
     if (confirmar) {
-      await supabase.auth.signOut();
-      window.location.reload(); 
+      logout();
+      window.location.href = '/';
     }
   }
 

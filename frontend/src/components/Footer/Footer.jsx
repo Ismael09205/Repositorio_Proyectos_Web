@@ -7,19 +7,18 @@ const LINKS = {
     { label: 'Inicio', to: '/' },
     { label: 'Explorar proyectos', to: '/explorar' },
     { label: 'Categorías', to: '/categorias' },
-    { label: 'Blog', to: '/blog' },
   ],
   Comunidad: [
-    { label: 'Sobre nosotros', to: '/nosotros' },
     { label: 'Únete como autor', to: '/register' },
-    { label: 'Universidades', to: '/universidades' },
-    { label: 'Mentores', to: '/mentores' },
+    { label: 'Iniciar sesión', to: '/login' },
+    { label: 'Mi perfil', to: '/perfil' },
   ],
   Soporte: [
-    { label: 'FAQ', to: '/faq' },
-    { label: 'Contáctanos', to: '/contacto' },
-    { label: 'Términos y condiciones', to: '/terminos' },
-    { label: 'Política de privacidad', to: '/privacidad' },
+    { label: 'Recuperar contraseña', to: '/forgot-password' },
+    { label: 'Registro', to: '/register' },
+    { label: 'Iniciar sesión', to: '/login' },
+    { label: 'Explorar', to: '/explorar' },
+    { label: 'Inicio', to: '/' },
   ],
 }
 
@@ -74,11 +73,11 @@ export default function Footer() {
       <div className="footer__bottom">
         <div className="container footer__bottom-inner">
           <div className="footer__legal">
-            <Link to="/faq">FAQ</Link>
+            <Link to="/forgot-password">Recuperar contraseña</Link>
             <span>·</span>
-            <Link to="/terminos">Términos y Condiciones</Link>
+            <Link to="/register">Registro</Link>
             <span>·</span>
-            <Link to="/privacidad">Privacy Policy</Link>
+            <Link to="/explorar">Explorar</Link>
           </div>
 
           <div className="footer__socials">

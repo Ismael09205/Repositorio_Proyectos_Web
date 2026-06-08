@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Mail, Lock, BookOpen, AlertCircle } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
-import { translateError } from '../../utils/errorMessages.js'
 import './Auth.css'
 
 export default function Login() {

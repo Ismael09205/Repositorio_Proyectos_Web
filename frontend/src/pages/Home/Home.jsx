@@ -68,7 +68,7 @@ export default function Home() {
               <h2 className="section-title">Explora por categoría</h2>
               <p className="home__section-sub">Encuentra proyectos organizados por área de conocimiento.</p>
             </div>
-            <Link to="/categorias" className="home__see-all">
+            <Link to="/explorar" className="home__see-all">
               Ver todas <ArrowRight size={15} />
             </Link>
           </div>

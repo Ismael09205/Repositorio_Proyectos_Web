@@ -222,8 +222,7 @@ export default function Register() {
                 <label className="auth-checkbox-wrap">
                   <input type="checkbox" name="terms" className="auth-checkbox" checked={form.terms} onChange={handleChange} />
                   <span className="auth-checkbox-label">
-                    Acepto los <Link to="/terminos">Términos y condiciones</Link> y la{' '}
-                    <Link to="/privacidad">Política de privacidad</Link> de PoliConnect.
+                    Acepto los Términos y condiciones y la Política de privacidad de PoliConnect.
                   </span>
                 </label>
                 <div className="register__actions">

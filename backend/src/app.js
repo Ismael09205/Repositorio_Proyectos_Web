@@ -9,8 +9,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Tus rutas base modulares bien estructuradas
+//endpoints
 app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes); // Tu perfil responderá en /api/users/profile
+app.use("/api/users", userRoutes); 
 
 module.exports = app;

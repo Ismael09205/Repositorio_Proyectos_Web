@@ -1,4 +1,4 @@
-const { supabaseAnon } = require('../config/supabase');
+const { supabaseAnon, supabaseService } = require('../config/supabase');
 
 
 // Funcion para registrar un nuevo usuario donde se recibe el email, password y metadata
@@ -55,18 +55,44 @@ const recoverPassword = async (email) => {
 // Funcion para actualizar la contraseña de un usuario autenticado o con token de recuperación
 const updatePassword = async (token, newPassword) => {
     try {
-        // Para actualizar la contraseña con un token de recuperación, pasamos el token
-        // como `accessToken` en las opciones (supabase-js v2).
-        const { data, error } = await supabaseAnon.auth.updateUser(
-            { password: newPassword },
-            { accessToken: token }
-        );
+        let userId = null;
+        const tokenStr = String(token || '').trim();
 
-        if (error) {
-            throw new Error(error.message)
+        // Caso 1: token JWT (access_token en URL)
+        const parts = tokenStr.split('.');
+        if (parts.length >= 2) {
+            const payloadStr = Buffer.from(parts[1], 'base64url').toString('utf8');
+            const payload = JSON.parse(payloadStr);
+            userId = payload?.sub || null;
         }
 
-        return data
+        // Caso 2: token_hash (enlaces nuevos de Supabase)
+        if (!userId) {
+            const { data: otpData, error: otpError } = await supabaseAnon.auth.verifyOtp({
+                type: 'recovery',
+                token_hash: tokenStr,
+            });
+
+            if (otpError) {
+                throw new Error(otpError.message);
+            }
+
+            userId = otpData?.user?.id || otpData?.session?.user?.id || null;
+        }
+
+        if (!userId) {
+            throw new Error('No se pudo identificar al usuario desde el token.');
+        }
+
+        const { data, error } = await supabaseService.auth.admin.updateUserById(userId, {
+            password: newPassword,
+        });
+
+        if (error) {
+            throw new Error(error.message);
+        }
+
+        return data;
     } catch (err) {
         console.error('updatePassword error:', err.message || err)
         throw err

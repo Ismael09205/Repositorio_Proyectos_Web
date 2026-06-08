@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useMemo, useState } from 'react'
 import { useSearchParams, useLocation, Link, useNavigate } from 'react-router-dom'
 import { changePassword } from '../../services/authService.js'
 import { translateError } from '../../utils/errorMessages.js'
@@ -9,27 +9,22 @@ export default function ResetPassword() {
   const location = useLocation()
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [token, setToken] = useState('')
+  const [manualToken, setManualToken] = useState('')
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
-  // Captura reactiva del token desde la URL (Soporta query params ? y hash params # de Supabase)
-  useEffect(() => {
-    // 1. Intentar leer desde Query Params (?access_token=...)
+  // Captura token desde query (?access_token=...) o hash (#access_token=...) de Supabase.
+  const urlToken = useMemo(() => {
     const accessToken = searchParams.get('access_token')
-    
-    // 2. Intentar leer desde Hash Params (#access_token=...) que es el formato nativo de Supabase
+    const tokenHash = searchParams.get('token_hash')
     const hashParams = new URLSearchParams(location.hash.replace('#', ''))
-    const hashToken = hashParams.get('access_token') || hashParams.get('token')
+    const hashToken = hashParams.get('access_token') || hashParams.get('token') || hashParams.get('token_hash')
+    return accessToken || tokenHash || hashToken || ''
+  }, [searchParams, location.hash])
 
-    const finalToken = accessToken || hashToken || ''
-    
-    if (finalToken) {
-      setToken(finalToken)
-    }
-  }, [searchParams, location.hash]) // Escucha activamente cualquier cambio en los parámetros o en el hash
+  const token = manualToken || urlToken
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -102,8 +97,8 @@ export default function ResetPassword() {
                 className="auth-input"
                 style={token ? { backgroundColor: '#eef0fb', color: '#475569', cursor: 'not-allowed' } : {}}
                 value={token}
-                disabled={!!token} // Deshabilita el campo si el token ya se inyectó desde la URL
-                onChange={(e) => setToken(e.target.value)}
+                disabled={!!urlToken} // Deshabilita el campo solo si el token llega desde la URL
+                onChange={(e) => setManualToken(e.target.value)}
               />
               {token && (
                 <p style={{ color: '#16a34a', fontSize: '0.8rem', marginTop: '0.4rem', fontWeight: '600' }}>
