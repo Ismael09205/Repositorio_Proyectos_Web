@@ -775,4 +775,4 @@ Si estas empezando, revisa los archivos en este orden:
 
 - [Joel2775](https://github.com/Joel2775)
 - [Ismael Narvaez](https://github.com/Ismael09205)
-- [Edwin Chusing](https://github.com/EdwinC-h)
+- [Edwin Chusin](https://github.com/EdwinC-h)

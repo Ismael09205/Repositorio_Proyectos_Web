@@ -3,8 +3,9 @@ const authService = require('../services/auth.service');
 // Función para registrar un nuevo usuario con metadata adicional
 const register = async (req, res) => {
     try {
-        // Desestructuramos los campos enviados desde el formulario del Frontend
-        const { name, username, email, password, university, career } = req.body;
+
+        const { name, username, email, password, university, career, facultad, semestre, biografia, ciudad, intereses, github_url, linkedin_url } = req.body;
+
 
         if (!name || !name.trim()) {
             return res.status(400).json({ error: 'Nombre completo es requerido.' });
@@ -23,8 +24,15 @@ const register = async (req, res) => {
         const metadata = {
             nombre_completo: name || '', 
             username: username || '',
-            university: university || 'No especificada', // <-- Totalmente dinámico ahora
-            career: career || 'No especificada',
+            university: university || 'Escuela Politécnica Nacional',
+            career: career || '',
+            facultad: facultad || '',
+            semestre: semestre || null,
+            biografia: biografia || '',
+            ciudad: ciudad || '',
+            intereses: intereses || null,
+            github_url: github_url || '',
+            linkedin_url: linkedin_url || ''
         };
 
         // Enviamos la metadata real a Supabase Auth a través del servicio

@@ -37,6 +37,7 @@ export default function Profile() {
           return;
         }
 
+<<<<<<< HEAD
         // Petición al backend modular
         const response = await axios.get('/api/users/profile', {
           headers: { Authorization: `Bearer ${token}` }
@@ -49,6 +50,41 @@ export default function Profile() {
       } finally {
         setLoading(false);
       }
+=======
+      let { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) console.warn('Supabase session error:', sessionError.message || sessionError);
+
+      // Si no hay sesión en el cliente Supabase, intentamos usar el token guardado localmente
+      if (!session) {
+        const localToken = localStorage.getItem('pc_token');
+        if (localToken) {
+          // Usamos el token local como respaldo para autorizar la petición
+          const response = await axios.get('/api/users/profile', {
+            headers: { Authorization: `Bearer ${localToken}` }
+          });
+
+          setProfile(response.data);
+          setFormData(response.data);
+          return;
+        }
+
+        // Si tampoco hay token local, informamos que no hay sesión
+        setError("Inicia sesión en PoliConnect para acceder a tu perfil.");
+        return;
+      }
+
+      // Petición al backend modular con sesión Supabase
+      const response = await axios.get('/api/users/profile', {
+        headers: { Authorization: `Bearer ${session.access_token}` }
+      });
+
+      setProfile(response.data);
+      setFormData(response.data); 
+    } catch (err) {
+      setError(err.response?.data?.error || "Error al conectar con PoliConnect.");
+    } finally {
+      setLoading(false);
+>>>>>>> 08aedb1eb88934e2aae0b924bdf31c69bfae900c
     }
 
     run();
@@ -61,8 +97,26 @@ export default function Profile() {
       setUpdateLoading(true);
       setSuccessMessage("");
 
+<<<<<<< HEAD
       const response = await axios.put('/api/users/profile', formData, {
         headers: { Authorization: `Bearer ${token}` }
+=======
+      let { data: { session } } = await supabase.auth.getSession();
+
+      // Si no hay sesión en Supabase, intentamos usar el token guardado localmente
+      let authToken = session?.access_token;
+      if (!authToken) {
+        authToken = localStorage.getItem('pc_token');
+      }
+
+      if (!authToken) {
+        alert("Inicia sesión nuevamente para actualizar tu perfil.");
+        return;
+      }
+
+      const response = await axios.put('/api/users/profile', formData, {
+        headers: { Authorization: `Bearer ${authToken}` }
+>>>>>>> 08aedb1eb88934e2aae0b924bdf31c69bfae900c
       });
 
       setProfile(response.data);

@@ -1,52 +1,33 @@
-# Dependencias - Bloquea node_modules en cualquier carpeta (backend y frontend)
-**/node_modules/
-node_modules/
-
-# Produccion - Carpetas donde se guarda el proyecto compilado
-**/dist/
-**/dist-ssr/
-**/build/
-bin/
-obj/
-
-# Variables de entorno y Seguridad 
+# ========== VARIABLES DE ENTORNO ==========
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
-*.pem
-*.key
+.env.development
+.env.production
+.env*.local
 
-# Firebase
-.firebase/
-firebasedebug.log
-firebase-debug.log*
+# ========== DEPENDENCIAS ==========
+node_modules/
+backend/node_modules/
+frontend/node_modules/
 
-# Logs de error y depuracion
-**/logs/
+# ========== BUILD / DIST ==========
+dist/
+build/
+frontend/dist/
+frontend/build/
+
+# ========== LOGS ==========
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
-# Archivos del sistema 
+# ========== SISTEMA OPERATIVO ==========
 .DS_Store
 Thumbs.db
-desktop.ini
 
-# Configuracion de editores 
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
+# ========== EDITORES ==========
+.vscode/
 .idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# Testing
-**/coverage/
+*.swp
+*.swo

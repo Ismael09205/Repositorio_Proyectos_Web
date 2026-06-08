@@ -3,7 +3,7 @@ const { supabaseAnon, supabaseService } = require('../config/supabase');
 
 // Funcion para registrar un nuevo usuario donde se recibe el email, password y metadata
 const registerUser = async (email, password, metadata = {}) => {
-    
+    // 1) Registramos el usuario en Auth y guardamos la respuesta
     const { data, error } = await supabaseAnon.auth.signUp({ 
         email, 
         password,
@@ -16,7 +16,46 @@ const registerUser = async (email, password, metadata = {}) => {
         throw new Error(error.message);
     }
 
-    return data;
+    // 2) Intentamos crear explícitamente el perfil en la tabla `profiles`
+    // Usamos el client con service role para poder escribir en la tabla
+    try {
+        const userId = data?.user?.id;
+
+        // Construimos el objeto de perfil con los campos esperados
+        const profile = {
+            id: userId,
+            nombre_completo: metadata.nombre_completo || metadata.name || '',
+            universidad: metadata.university || metadata.universidad || '',
+            facultad: metadata.facultad || '',
+            carrera: metadata.career || metadata.carrera || '',
+            semestre: metadata.semestre || null,
+            biografia: metadata.biografia || '',
+            ciudad: metadata.ciudad || '',
+            intereses: metadata.intereses || null,
+            github_url: metadata.github_url || '',
+            linkedin_url: metadata.linkedin_url || '',
+            created_at: new Date().toISOString()
+        };
+
+        const { data: profileData, error: profileError } = await supabaseService
+            .from('profiles')
+            .insert(profile)
+            .select()
+            .single();
+
+        if (profileError) {
+            // No hacemos que el fallo del insert rompa el registro en Auth,
+            // pero sí informamos para depuración
+            console.error('Error creando perfil en DB:', profileError.message || profileError);
+        }
+
+        // Devolvemos tanto la respuesta de Auth como el perfil creado (si existe)
+        return { auth: data, profile: profileData };
+    } catch (err) {
+        console.error('Error en post-registro al crear perfil:', err.message || err);
+        // Aunque haya fallo en la creación del perfil, devolvemos la respuesta de auth
+        return { auth: data };
+    }
 }
 // Funcion para iniciar sesion de un usuario que ya esta previamente registrado
 const loginUser = async (email, password) => {

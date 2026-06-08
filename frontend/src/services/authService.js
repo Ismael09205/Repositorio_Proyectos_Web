@@ -16,6 +16,13 @@ export const registerUser = async (userData) => {
     password: userData.password,
     university: userData.university,
     career: userData.career,
+    facultad: userData.facultad || '',
+    semestre: userData.semestre || null,
+    biografia: userData.biografia || '',
+    ciudad: userData.ciudad || '',
+    intereses: userData.intereses || null,
+    github_url: userData.github_url || '',
+    linkedin_url: userData.linkedin_url || '',
   })
 
   return response.data

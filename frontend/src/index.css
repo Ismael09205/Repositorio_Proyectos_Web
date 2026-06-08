@@ -102,9 +102,9 @@ input, textarea, select {
 
 /* ===== UTILITY CLASSES ===== */
 .container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
+  max-width: 1400px;
+  margin: auto;
+  padding: 0 20px;
 }
 
 .btn {
