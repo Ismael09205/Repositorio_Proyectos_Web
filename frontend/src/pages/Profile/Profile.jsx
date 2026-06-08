@@ -2,15 +2,15 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import './Profile.css'; // ¡IMPORTANTE! Agregada la importación de tus estilos reales
-import { 
-  User, 
-  GraduationCap, 
-  Compass, 
+import {
+  User,
+  GraduationCap,
+  Compass,
   AlertCircle,
-  Edit2, 
-  LogOut, 
-  Save, 
-  X, 
+  Edit2,
+  LogOut,
+  Save,
+  X,
   CheckCircle
 } from 'lucide-react';
 
@@ -19,7 +19,7 @@ export default function Profile() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   // Estados para la edición e interactividad del formulario
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
@@ -37,58 +37,44 @@ export default function Profile() {
           return;
         }
 
-<<<<<<< HEAD
-        // Petición al backend modular
+        let { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) console.warn('Supabase session error:', sessionError.message || sessionError);
+
+        // Si no hay sesión en el cliente Supabase, intentamos usar el token guardado localmente
+        if (!session) {
+          const localToken = localStorage.getItem('pc_token');
+          if (localToken) {
+            // Usamos el token local como respaldo para autorizar la petición
+            const response = await axios.get('/api/users/profile', {
+              headers: { Authorization: `Bearer ${localToken}` }
+            });
+
+            setProfile(response.data);
+            setFormData(response.data);
+            return;
+          }
+
+          // Si tampoco hay token local, informamos que no hay sesión
+          setError("Inicia sesión en PoliConnect para acceder a tu perfil.");
+          return;
+        }
+
+        // Petición al backend modular con sesión Supabase
         const response = await axios.get('/api/users/profile', {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${session.access_token}` }
         });
 
         setProfile(response.data);
         setFormData(response.data);
       } catch (err) {
-        setError(err.response?.data?.error || "Error al conectar con PoliConnect.");
-      } finally {
-        setLoading(false);
-      }
-=======
-      let { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) console.warn('Supabase session error:', sessionError.message || sessionError);
-
-      // Si no hay sesión en el cliente Supabase, intentamos usar el token guardado localmente
-      if (!session) {
-        const localToken = localStorage.getItem('pc_token');
-        if (localToken) {
-          // Usamos el token local como respaldo para autorizar la petición
-          const response = await axios.get('/api/users/profile', {
-            headers: { Authorization: `Bearer ${localToken}` }
-          });
-
-          setProfile(response.data);
-          setFormData(response.data);
-          return;
-        }
-
-        // Si tampoco hay token local, informamos que no hay sesión
-        setError("Inicia sesión en PoliConnect para acceder a tu perfil.");
-        return;
-      }
-
-      // Petición al backend modular con sesión Supabase
-      const response = await axios.get('/api/users/profile', {
-        headers: { Authorization: `Bearer ${session.access_token}` }
-      });
-
-      setProfile(response.data);
-      setFormData(response.data); 
-    } catch (err) {
       setError(err.response?.data?.error || "Error al conectar con PoliConnect.");
     } finally {
       setLoading(false);
->>>>>>> 08aedb1eb88934e2aae0b924bdf31c69bfae900c
     }
+  };
 
-    run();
-  }, [token]);
+  run();
+}, [token]);
 
   // 2. Enviar las actualizaciones del formulario al Backend (Método PUT)
   async function handleSaveChanges(e) {
@@ -97,10 +83,6 @@ export default function Profile() {
       setUpdateLoading(true);
       setSuccessMessage("");
 
-<<<<<<< HEAD
-      const response = await axios.put('/api/users/profile', formData, {
-        headers: { Authorization: `Bearer ${token}` }
-=======
       let { data: { session } } = await supabase.auth.getSession();
 
       // Si no hay sesión en Supabase, intentamos usar el token guardado localmente
@@ -116,13 +98,13 @@ export default function Profile() {
 
       const response = await axios.put('/api/users/profile', formData, {
         headers: { Authorization: `Bearer ${authToken}` }
->>>>>>> 08aedb1eb88934e2aae0b924bdf31c69bfae900c
+
       });
 
       setProfile(response.data);
       setIsEditing(false);
       setSuccessMessage("¡Tus datos se actualizaron correctamente!");
-      
+
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       console.error(err);
@@ -183,7 +165,7 @@ export default function Profile() {
   return (
     <div className="profile-page">
       <div className="profile-card">
-        
+
         {/* Notificación de Éxito Temporal */}
         {successMessage && (
           <div style={{
@@ -220,15 +202,15 @@ export default function Profile() {
           <div style={{ display: 'flex', gap: '8px' }}>
             {!isEditing ? (
               <>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setIsEditing(true)}
                   style={{ background: '#0f172a', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '12px', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
                   <Edit2 size={14} /> Editar Perfil
                 </button>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={handleLogout}
                   style={{ background: '#fef2f2', color: '#dc2626', border: 'none', padding: '10px 16px', borderRadius: '12px', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
@@ -237,16 +219,16 @@ export default function Profile() {
               </>
             ) : (
               <>
-                <button 
-                  type="submit" 
-                  onClick={handleSaveChanges} 
+                <button
+                  type="submit"
+                  onClick={handleSaveChanges}
                   disabled={updateLoading}
                   style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '12px', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', opacity: updateLoading ? 0.6 : 1 }}
                 >
                   <Save size={14} /> {updateLoading ? "Guardando..." : "Guardar"}
                 </button>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => { setIsEditing(false); setFormData(profile); }}
                   style={{ background: '#f1f5f9', color: '#475569', border: 'none', padding: '10px 16px', borderRadius: '12px', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
@@ -259,7 +241,7 @@ export default function Profile() {
 
         {/* GRID DE INFORMACIÓN CON TUS ESTILOS CSS */}
         <div className="profile-grid">
-          
+
           <div>
             <strong>Nombre Completo</strong>
             {isEditing ? (
