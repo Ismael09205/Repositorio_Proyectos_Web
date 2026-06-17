@@ -1,9 +1,9 @@
 
-# Policonnect
+# IdeaGora
 
 ###  Descripción del Proyecto
 
-**Policonnect** es una plataforma web diseñada para conectar a estudiantes, docentes y autoridades de universidades del Ecuador, facilitando el acceso y la interacción con contenido académico en un solo lugar.
+**IdeaGora** es una plataforma web diseñada para conectar a estudiantes, docentes y autoridades de universidades del Ecuador, facilitando el acceso y la interacción con contenido académico en un solo lugar.
 
 El sistema integra dos módulos principales:
 
