@@ -24,6 +24,9 @@ const registerUser = async (email, password, metadata = {}, isAdmin = false) => 
                 name: metadata.nombre_completo || metadata.name || '',
                 username: metadata.username || '',
                 email: email.trim().toLowerCase(),
+                cargo: metadata.cargo || null,
+                especialidad: metadata.especialidad || null,
+                sector: metadata.sector || null,
                 created_at: new Date().toISOString()
             };
 

@@ -1,10 +1,9 @@
 const authService = require('../services/auth.service');
+const authLogsService = require('../services/authLogs.service');
 
 const register = async (req, res) => {
     try {
-
         const { name, username, email, password, university, career, facultad, semestre, biografia, ciudad, intereses, github_url, linkedin_url } = req.body;
-
 
         if (!name || !name.trim()) {
             return res.status(400).json({ error: 'Nombre completo es requerido.' });
@@ -19,9 +18,8 @@ const register = async (req, res) => {
             return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres.' });
         }
 
-    
         const metadata = {
-            nombre_completo: name || '', 
+            nombre_completo: name || '',
             username: username || '',
             university: university || 'Escuela Politécnica Nacional',
             career: career || '',
@@ -35,6 +33,18 @@ const register = async (req, res) => {
         };
 
         const data = await authService.registerUser(email, password, metadata);
+
+        try {
+            await authLogsService.createLog(
+                data.auth?.user?.id,
+                'register',
+                email,
+                req.ip || req.connection?.remoteAddress,
+                req.get('user-agent')
+            );
+        } catch (logError) {
+            console.error('Error al registrar log:', logError);
+        }
 
         return res.status(201).json({
             message: 'Usuario registrado correctamente',
@@ -50,14 +60,12 @@ const registerAdmin = async (req, res) => {
     try {
         const { name, username, email, password } = req.body;
 
-        // Validaciones estrictas de datos obligatorios para el Admin
         if (!name || !name.trim()) return res.status(400).json({ error: 'Nombre completo es requerido.' });
         if (!username || !username.trim()) return res.status(400).json({ error: 'Nombre de usuario es requerido.' });
         if (!email || !email.trim() || !password) return res.status(400).json({ error: 'Email y contraseña son requeridos.' });
         if (String(password).length < 6) return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres.' });
 
         const lowerEmail = email.trim().toLowerCase();
-        
         const isEpnEmail = lowerEmail.endsWith('@epn.edu.ec');
         const isAdminPattern = lowerEmail.includes('admin') || lowerEmail.includes('area') || lowerEmail.includes('gestion');
         const isValidAdminEmail = isEpnEmail && isAdminPattern;
@@ -74,6 +82,18 @@ const registerAdmin = async (req, res) => {
 
         const data = await authService.registerUser(email, password, metadata, true);
 
+        try {
+            await authLogsService.createLog(
+                data.auth?.user?.id,
+                'register_admin',
+                email,
+                req.ip || req.connection?.remoteAddress,
+                req.get('user-agent')
+            );
+        } catch (logError) {
+            console.error('Error al registrar log de administrador:', logError);
+        }
+
         return res.status(201).json({
             message: 'Administrador registrado correctamente en el sistema.',
             user: data.auth?.user ?? null,
@@ -81,7 +101,7 @@ const registerAdmin = async (req, res) => {
             profile: data.profile ?? null,
         });
     } catch (error) {
-        console.error("Error capturado en el controlador de registro:", error.message);
+        console.error("Error en registro de administrador:", error.message);
         return res.status(400).json({ error: error.message });
     }
 };
@@ -94,24 +114,32 @@ const login = async (req, res) => {
             return res.status(400).json({ error: 'Email y contraseña son requeridos.' });
         }
 
-        
         const authData = await authService.loginUser(email, password);
 
-      
+        try {
+            await authLogsService.createLog(
+                authData.user?.id,
+                'login',
+                email,
+                req.ip || req.connection?.remoteAddress,
+                req.get('user-agent')
+            );
+        } catch (logError) {
+            console.error('Error al registrar log de inicio de sesión:', logError);
+        }
+
         if (!authData.user || !authData.user.email_confirmed_at) {
-            return res.status(401).json({ 
-                error: 'Por favor, verifica tu correo institucional de la EPN antes de iniciar sesión.' 
+            return res.status(401).json({
+                error: 'Por favor, verifica tu correo institucional de la EPN antes de iniciar sesión.'
             });
         }
 
-        // 3. Si está confirmado, pasa limpio y le entregamos el token
         res.status(200).json({
-            message: 'Login exitoso',
-            token: authData.session?.access_token || authData.token, 
+            message: 'Inicio de sesión exitoso',
+            token: authData.session?.access_token || authData.token,
             user: authData.user
         });
     } catch (error) {
-        console.error("Error en login controlador:", error.message);
         let clientError = error.message;
         if (error.message.includes('Invalid login credentials')) {
             clientError = 'El correo electrónico o la contraseña son incorrectos.';

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { Eye, EyeOff, Mail, Lock, BookOpen, AlertCircle } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import './Auth.css'
@@ -19,13 +20,61 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.email || !form.password) { setError('Completa todos los campos.'); return }
+    if (!form.email || !form.password) {
+      setError('Completa todos los campos.')
+      return
+    }
     setLoading(true)
     try {
       await login(form.email, form.password)
-      navigate('/')
+      toast.success('¡Bienvenido de vuelta!', {
+        icon: '',
+        duration: 1000,
+        style: {
+          '--toast-duration': '1000ms',
+        },
+      })
+      setTimeout(() => navigate('/'), 800)
     } catch (err) {
-      setError(err.message || 'Error al iniciar sesión.')
+      const errorMsg = err.message || 'Error al iniciar sesión'
+      
+      if (errorMsg.includes('banned') || errorMsg.includes('Usuario Baneado Temporalmente')) {
+        toast.error('Tu cuenta ha sido desactivada temporalmente. Contacta al administrador.', {
+          duration: 6000,
+          icon: '',
+          style: {
+            '--toast-duration': '6000ms',
+          },
+        })
+        // No establecer error para que no se muestre la alerta visual
+      } else if (errorMsg.toLowerCase().includes('email') && (errorMsg.toLowerCase().includes('confirm') || errorMsg.toLowerCase().includes('verif'))) {
+        toast.error('Por favor, verifica tu correo institucional antes de iniciar sesión.', {
+          duration: 6000,
+          icon: '',
+          style: {
+            '--toast-duration': '6000ms',
+          },
+        })
+        // No establecer error para que no se muestre la alerta visual
+      } else if (errorMsg.includes('Invalid') || errorMsg.includes('credentials')) {
+        toast.error('Correo o contraseña incorrectos', {
+          duration: 4000,
+          icon: '',
+          style: {
+            '--toast-duration': '4000ms',
+          },
+        })
+        setError(errorMsg)
+      } else {
+        toast.error(errorMsg, {
+          duration: 4000,
+          icon: '',
+          style: {
+            '--toast-duration': '4000ms',
+          },
+        })
+        setError(errorMsg)
+      }
     } finally {
       setLoading(false)
     }
@@ -71,7 +120,6 @@ export default function Login() {
 
           {error && (
             <div className="auth-error">
-              <AlertCircle size={15} />
               {error}
             </div>
           )}

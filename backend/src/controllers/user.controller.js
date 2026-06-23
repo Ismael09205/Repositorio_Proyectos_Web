@@ -17,7 +17,7 @@ const getProfile = async (req, res) => {
     }
 }
 
-// Función para actualizar los datos de la ficha extendida del estudiante
+// Función para actualizar los datos de la ficha extendida del estudiante o administrador
 const updateProfile = async (req, res) => {
     try {
         if (!req.body || typeof req.body !== 'object') {
@@ -25,7 +25,9 @@ const updateProfile = async (req, res) => {
         }
 
         // Validacion minima para que el perfil sea coherente
-        if (!req.body.nombre_completo || !String(req.body.nombre_completo).trim()) {
+        // Para administradores el campo es 'name', para estudiantes es 'nombre_completo'
+        const nombreCompleto = req.body.name || req.body.nombre_completo;
+        if (!nombreCompleto || !String(nombreCompleto).trim()) {
             return res.status(400).json({ error: 'El nombre completo es requerido.' });
         }
 

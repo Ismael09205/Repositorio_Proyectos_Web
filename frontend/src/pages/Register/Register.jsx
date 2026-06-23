@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { Eye, EyeOff, Mail, Lock, User, BookOpen, AlertCircle, AtSign, Shield, GraduationCap } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import '../Login/Auth.css'
@@ -37,7 +38,6 @@ export default function Register() {
   const { register } = useAuth()
   const navigate = useNavigate()
   
-  // Estado para alternar entre el diseño de Admin y Estudiante
   const [isAdminForm, setIsAdminForm] = useState(false)
   
   const [form, setForm] = useState({
@@ -58,7 +58,7 @@ export default function Register() {
   const handleToggleFormType = (isAdmin) => {
     setIsAdminForm(isAdmin)
     setError('')
-    setStep(1) // Reiniciamos al paso 1 por consistencia
+    setStep(1)
     setForm(f => ({
       ...f,
       university: '',
@@ -98,22 +98,30 @@ export default function Register() {
     setLoading(true)
     
    try {
-    
     const datosConRol = {
       ...form,
-      isAdmin: isAdminForm // Esto será true si estás en la pestaña de administrador
+      isAdmin: isAdminForm
     }
 
-    // Enviamos todo el objeto junto a tu función del AuthContext
     await register(datosConRol)
     
     if (isAdminForm) {
-      alert('¡Registro de administrador exitoso!')
+      toast.success('¡Registro de administrador exitoso!', {
+        duration: 5000,
+        icon: '',
+      })
     } else {
-      alert('¡Registro exitoso! Por favor, revisa tu correo institucional para verificar tu cuenta.')
+      toast.success('¡Registro exitoso! Revisa tu correo institucional para verificar tu cuenta.', {
+        duration: 6000,
+        icon: '',
+      })
     }
-    navigate('/login')
+    
+    setTimeout(() => navigate('/login'), 1500)
   } catch (err) {
+    toast.error(err.message || 'Error al registrarse', {
+      duration: 5000,
+    })
     setError(err.message || 'Error al registrarse.')
   } finally {
     setLoading(false)
