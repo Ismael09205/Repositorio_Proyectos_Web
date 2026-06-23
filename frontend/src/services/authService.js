@@ -10,21 +10,14 @@ const USER_URL = '/api/users'
  */
 export const registerUser = async (userData) => {
   const response = await axios.post(`${AUTH_URL}/register`, {
-    name: userData.name,
-    username: userData.username,
+    nombre_completo: userData.name || userData.nombre_completo,
+    nombre_usuario: userData.username || userData.nombre_usuario,
     email: userData.email,
     password: userData.password,
-    university: userData.university,
-    career: userData.career,
-    facultad: userData.facultad || '',
-    semestre: userData.semestre || null,
-    biografia: userData.biografia || '',
-    ciudad: userData.ciudad || '',
-    intereses: userData.intereses || null,
-    github_url: userData.github_url || '',
-    linkedin_url: userData.linkedin_url || '',
+    universidad: userData.university || userData.universidad,
+    carrera: userData.career || userData.carrera,
+    semestre: userData.semestre,
   })
-
   return response.data
 }
 

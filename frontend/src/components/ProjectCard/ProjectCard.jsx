@@ -7,7 +7,8 @@ import './ProjectCard.css'
 export default function ProjectCard({ project, variant = 'default' }) {
   const [liked, setLiked] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [likes, setLikes] = useState(project.likes)
+  const defaultLikes = project.likes ?? project.favorites ?? 0
+  const [likes, setLikes] = useState(defaultLikes)
 
   const categoryStyle = getCategoryStyle(project.categoryId)
 
@@ -99,6 +100,10 @@ export default function ProjectCard({ project, variant = 'default' }) {
         <div className="project-card__stat">
           <MessageSquare size={14} />
           <span>{project.comments}</span>
+        </div>
+        <div className="project-card__stat">
+          <Bookmark size={14} />
+          <span>{project.favorites ?? project.likes}</span>
         </div>
         <button className="project-card__more" aria-label="Más opciones">
           <MoreHorizontal size={14} />

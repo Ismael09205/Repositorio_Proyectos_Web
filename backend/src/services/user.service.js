@@ -6,13 +6,9 @@ async function getProfileById(userId) {
     .from('profiles')
     .select('*')
     .eq('id', userId)
-    .maybeSingle();
+    .single();
 
   if (error) throw error;
-  
-  if (!data) {
-    throw new Error('El perfil no existe en el sistema.');
-  }
 
   return data;
 }

@@ -11,6 +11,7 @@ app.use(express.json());
 
 //endpoints
 app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes); 
+app.use("/api/users", userRoutes);
+app.use("/api/projects", require('./routes/project.routes'));
 
 module.exports = app;

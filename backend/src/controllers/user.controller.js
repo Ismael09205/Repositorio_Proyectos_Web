@@ -16,7 +16,7 @@ const getProfile = async (req, res) => {
     } catch (error) {
         console.error('getProfile error:', error);
         // Si no encuentra el perfil o hay un fallo, manejamos el estado de error
-        return res.status(404).json({ error: error.message || 'No se encontró el perfil del estudiante en PoliConnect.' });
+        return res.status(404).json({ error: error.message || 'No se encontró el perfil del estudiante en IdeAgora.' });
     }
 }
 

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import { loginUser, registerUser } from '../services/authService.js'
 import { translateError } from '../utils/errorMessages.js'
+import { loginUser, registerUser, fetchProfile } from '../services/authService.js'
 
 const AuthContext = createContext(null)
 
@@ -12,37 +12,66 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const storedUser = localStorage.getItem('pc_user')
     const storedToken = localStorage.getItem('pc_token')
-    if (storedUser) {
-      try { setUser(JSON.parse(storedUser)) } catch {}
+
+    try {
+      if (storedUser && storedToken) {
+        setUser(JSON.parse(storedUser))
+        setToken(storedToken)
+      }
+    } catch {
+      logout()
     }
-    if (storedToken) setToken(storedToken)
+
     setLoading(false)
   }, [])
 
-  const saveAuth = (userData, accessToken) => {
-    setUser(userData)
+  const saveAuth = (authUser, profile, accessToken) => {
+    const fullUser = { auth: authUser, profile: profile || {} }
+
+    setUser(fullUser)
     setToken(accessToken)
-    localStorage.setItem('pc_user', JSON.stringify(userData))
+    localStorage.setItem('pc_user', JSON.stringify(fullUser))
     if (accessToken) {
       localStorage.setItem('pc_token', accessToken)
     }
   }
 
+  const logout = () => {
+    setUser(null)
+    setToken(null)
+    localStorage.removeItem('pc_user')
+    localStorage.removeItem('pc_token')
+  }
+
   const login = async (email, password) => {
     try {
       const response = await loginUser(email, password)
-      // El servicio puede devolver `response` (axios) o `response.data` directamente.
       const data = response?.data ?? response
       const accessToken = data?.token ?? data?.session?.access_token ?? data?.access_token ?? null
       const userData = data?.user ?? data?.session?.user ?? null
+
       if (!userData) {
-        throw new Error(data?.error || 'Credenciales incorrectas')
+        const backendError = data?.error || 'Credenciales incorrectas'
+        const backendInternal = data?.internal || null
+        console.error('Login failed:', backendInternal || backendError, data)
+        throw new Error(translateError(backendError))
       }
-      saveAuth(userData, accessToken)
-      return userData
+
+      if (!accessToken) {
+        console.error('Login sin token:', data)
+        throw new Error('No se recibió token de autenticación después del login.')
+      }
+
+      let profile = null
+      profile = await fetchProfile(accessToken)
+
+      saveAuth(userData, profile, accessToken)
+      return { auth: userData, profile }
     } catch (err) {
-      const errorMsg = err.response?.data?.error || err.message || 'No se pudo iniciar sesión'
-      throw new Error(translateError(errorMsg))
+      const backendError = err.response?.data?.error || err.message || 'No se pudo iniciar sesión'
+      const backendInternal = err.response?.data?.internal || err.message
+      console.error('Login error details:', backendInternal, err.response?.data)
+      throw new Error(translateError(backendError))
     }
   }
 
@@ -52,22 +81,27 @@ export function AuthProvider({ children }) {
       const resData = response?.data ?? response
       const accessToken = resData?.token ?? resData?.session?.access_token ?? resData?.access_token ?? null
       const userData = resData?.user ?? resData?.session?.user ?? resData?.auth?.user ?? null
+
       if (!userData) {
-        throw new Error(resData?.error || 'No se pudo registrar el usuario')
+        const backendError = resData?.error || 'No se pudo registrar el usuario'
+        const backendInternal = resData?.internal || null
+        console.error('Register failed:', backendInternal || backendError, resData)
+        throw new Error(translateError(backendError))
       }
-      saveAuth(userData, accessToken)
+
+      let profile = null
+      if (accessToken) {
+        profile = await fetchProfile(accessToken)
+      }
+
+      saveAuth(userData, profile, accessToken)
       return userData
     } catch (err) {
-      const errorMsg = err.response?.data?.error || err.message || 'No se pudo registrar'
-      throw new Error(translateError(errorMsg))
+      const backendError = err.response?.data?.error || err.message || 'No se pudo registrar'
+      const backendInternal = err.response?.data?.internal || err.message
+      console.error('Register error details:', backendInternal, err.response?.data)
+      throw new Error(translateError(backendError))
     }
-  }
-
-  const logout = () => {
-    setUser(null)
-    setToken(null)
-    localStorage.removeItem('pc_user')
-    localStorage.removeItem('pc_token')
   }
 
   return (

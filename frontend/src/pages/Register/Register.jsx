@@ -78,8 +78,8 @@ export default function Register() {
     setLoading(true)
     try {
       await register(form)
-      // Avisamos al usuario del flujo de verificación institucional antes de redirigir
-      alert('¡Registro exitoso! Por favor, revisa tu correo institucional de la EPN y confirma tu cuenta antes de iniciar sesión.')
+      // Avisamos al usuario del flujo de verificación de correo antes de redirigir
+      alert('¡Registro exitoso! Por favor, revisa tu correo electrónico y confirma tu cuenta antes de iniciar sesión.')
       navigate('/login')
     } catch (err) {
       setError(err.message || 'Error al registrarse.')
@@ -168,10 +168,10 @@ export default function Register() {
                   </div>
                 </div>
                 <div className="auth-field">
-                  <label className="auth-label">Correo institucional</label>
+                  <label className="auth-label">Correo electrónico</label>
                   <div className="auth-input-wrap">
                     <Mail size={16} className="auth-input-icon" />
-                    <input name="email" type="email" placeholder="tu@universidad.edu.ec" className="auth-input" value={form.email} onChange={handleChange} />
+                    <input name="email" type="email" placeholder="tu correo@dominio.com" className="auth-input" value={form.email} onChange={handleChange} />
                   </div>
                 </div>
                 <div className="auth-field">
@@ -222,7 +222,7 @@ export default function Register() {
                 <label className="auth-checkbox-wrap">
                   <input type="checkbox" name="terms" className="auth-checkbox" checked={form.terms} onChange={handleChange} />
                   <span className="auth-checkbox-label">
-                    Acepto los Términos y condiciones y la Política de privacidad de PoliConnect.
+                    Acepto los Términos y condiciones y la Política de privacidad de IdeAgora.
                   </span>
                 </label>
                 <div className="register__actions">

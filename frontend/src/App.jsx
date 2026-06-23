@@ -6,6 +6,8 @@ import Register from './pages/Register/Register.jsx'
 import ForgotPassword from './pages/Login/ForgotPassword.jsx'
 import ResetPassword from './pages/Login/ResetPassword.jsx'
 import Profile from './pages/Profile/Profile.jsx'
+import MyProjects from './pages/MyProjects/MyProjects.jsx'
+import ProjectDetail from './pages/ProjectDetail/ProjectDetail.jsx'
 import MainLayout from './layouts/MainLayout.jsx'
 
 function App() {
@@ -19,6 +21,8 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/perfil" element={<Profile />} />
+        <Route path="/mis-proyectos" element={<MyProjects />} />
+        <Route path="/proyecto/:id" element={<ProjectDetail />} />
         <Route path="/categorias" element={<Navigate to="/explorar" replace />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

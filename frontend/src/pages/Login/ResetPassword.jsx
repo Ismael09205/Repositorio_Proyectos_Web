@@ -70,7 +70,7 @@ export default function ResetPassword() {
         <div className="auth-panel__content">
           <h2 className="auth-panel__heading">Cambia tu contraseña</h2>
           <p className="auth-panel__sub">
-            Hemos procesado el código de seguridad de tu correo institucional. Tu acceso está listo para ser actualizado en PoliConnect.
+            Hemos procesado el código de seguridad de tu correo institucional. Tu acceso está listo para ser actualizado en IdeAgora.
           </p>
         </div>
       </div>

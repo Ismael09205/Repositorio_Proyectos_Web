@@ -23,6 +23,7 @@ export default function Profile() {
   // Estados para la edición e interactividad del formulario
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
+  const [interestInput, setInterestInput] = useState('');
   const [updateLoading, setUpdateLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -34,7 +35,7 @@ export default function Profile() {
 
         const authToken = token || localStorage.getItem('pc_token');
         if (!authToken) {
-          setError('Inicia sesión en PoliConnect para acceder a tu perfil.');
+          setError('Inicia sesión en IdeaAgora para acceder a tu perfil.');
           return;
         }
 
@@ -42,10 +43,19 @@ export default function Profile() {
           headers: { Authorization: `Bearer ${authToken}` }
         });
 
-        setProfile(response.data);
-        setFormData(response.data);
+        const profileData = response.data;
+        setProfile(profileData);
+        setFormData({
+          ...profileData,
+          intereses: Array.isArray(profileData.intereses)
+            ? profileData.intereses
+            : typeof profileData.intereses === 'string'
+              ? profileData.intereses.split(/\s+/).filter(Boolean)
+              : []
+        });
+        setInterestInput('');
       } catch (err) {
-        setError(err.response?.data?.error || 'Error al conectar con PoliConnect.');
+        setError(err.response?.data?.error || 'Error al conectar con IdeAgora.');
       } finally {
         setLoading(false);
       }
@@ -88,7 +98,7 @@ export default function Profile() {
 
   // 3. Destruir la sesión activa en el cliente
   async function handleLogout() {
-    const confirmar = window.confirm("¿Seguro que deseas cerrar sesión en PoliConnect?");
+    const confirmar = window.confirm("¿Seguro que deseas cerrar sesión en IdeAgora?");
     if (confirmar) {
       logout();
       window.location.href = '/';
@@ -100,8 +110,25 @@ export default function Profile() {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleInteresesChange = (e) => {
-    const tags = e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag !== "");
+  const handleInterestInputChange = (e) => {
+    setInterestInput(e.target.value);
+  };
+
+  const handleInterestInputKeyDown = (e) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const value = interestInput.trim();
+    if (!value) return;
+    const tags = Array.isArray(formData.intereses) ? [...formData.intereses] : [];
+    if (!tags.includes(value)) {
+      tags.push(value);
+      setFormData({ ...formData, intereses: tags });
+    }
+    setInterestInput('');
+  };
+
+  const handleRemoveInterest = (removed) => {
+    const tags = Array.isArray(formData.intereses) ? formData.intereses.filter(tag => tag !== removed) : [];
     setFormData({ ...formData, intereses: tags });
   };
 
@@ -114,7 +141,7 @@ export default function Profile() {
     return (
       <div className="profile-page">
         <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
-          <p>Sincronizando con el servidor...</p>
+          <p>Cargando tus datos...</p>
         </div>
       </div>
     );
@@ -264,7 +291,7 @@ export default function Profile() {
             {isEditing ? (
               <input type="text" name="ciudad" value={formData.ciudad || ''} onChange={handleInputChange} style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }} />
             ) : (
-              <p>{profile.ciudad || 'Quito, Ecuador'}</p>
+              <p>{profile.ciudad || 'No especificada'}</p>
             )}
           </div>
 
@@ -287,7 +314,41 @@ export default function Profile() {
           <div style={{ gridColumn: 'span 2' }}>
             <strong style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Compass size={14} /> Áreas de Interés Técnico</strong>
             {isEditing ? (
-              <input type="text" defaultValue={formData.intereses ? formData.intereses.join(', ') : ''} onBlur={handleInteresesChange} placeholder="React, Node.js, SQL (separados por comas)" style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }} />
+              <>
+                <input
+                  type="text"
+                  value={interestInput}
+                  onChange={handleInterestInputChange}
+                  onKeyDown={handleInterestInputKeyDown}
+                  placeholder="Escribe un interés y presiona Enter"
+                  style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
+                />
+                {Array.isArray(formData.intereses) && formData.intereses.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
+                    {formData.intereses.map((interes, idx) => (
+                      <span key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', fontWeight: '600', color: '#1e40af', background: '#dbeafe', padding: '4px 10px', borderRadius: '999px' }}>
+                        {interes}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveInterest(interes)}
+                          style={{
+                            border: 'none',
+                            background: 'transparent',
+                            color: '#1e40af',
+                            cursor: 'pointer',
+                            fontSize: '0.9rem',
+                            lineHeight: 1,
+                            padding: 0,
+                          }}
+                          aria-label={`Eliminar interés ${interes}`}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </>
             ) : (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '6px' }}>
                 {profile.intereses && profile.intereses.length > 0 ? (
