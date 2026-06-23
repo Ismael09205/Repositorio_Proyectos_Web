@@ -1,3 +1,120 @@
+.auth-page {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background-color: var(--bg-main, #f8fafc);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  margin-bottom: -100px;
+}
+
+/* Animación de entrada de página */
+.page-enter {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Contenedor interno para que el formulario no se estire de forma infinita hacia los lados */
+.auth-form-wrap form,
+.auth-form-content {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* --- Panel Izquierdo (Ocupa todo el espacio restante de la pantalla) --- */
+.auth-panel--left {
+  flex: 1;
+
+}
+.auth-panel--right {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #ffffff;
+}
+@media (max-width: 968px) {
+  .auth-panel--left {
+    display: none;
+  }
+}
+
+.auth-panel__content {
+  position: relative;
+  z-index: 10;
+  max-width: 440px;
+}
+
+/* Blobs de fondo con blur */
+.auth-panel__blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.12;
+}
+
+.auth-panel__blob--1 {
+  top: -10%;
+  left: -10%;
+  width: 300px;
+  height: 300px;
+  background-color: var(--primary, #3b82f6);
+}
+
+.auth-panel__blob--2 {
+  bottom: -10%;
+  right: -10%;
+  width: 350px;
+  height: 350px;
+  background-color: #6366f1;
+}
+
+.auth-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: #ffffff;
+  margin-bottom: 2.5rem;
+}
+
+.auth-logo__icon {
+  background-color: rgba(255, 255, 255, 0.2); /* Fondo sutil para contrastar con el nuevo azul */
+  backdrop-filter: blur(4px);
+  color: #ffffff;
+  padding: 0.5rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-logo__text {
+  font-size: 1.25rem;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+}
+
+.auth-logo__text strong {
+  color: #ffffff; /* Blanco para máxima legibilidad sobre el nuevo fondo */
+  font-weight: 700;
+}
+
+.auth-panel__heading {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.auth-panel__sub {
+  color: rgba(255, 255, 255, 0.75); /* Ajustado para que resalte correctamente sobre el azul */
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
 
 .register__benefits {
   list-style: none;
@@ -34,6 +151,48 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* ==========================================
+   ESTILOS DEL SELECTOR DE ROLES (ILUMINADO EN NEGRO)
+   ========================================== */
+.auth-role-selector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  background: var(--bg-subtle, #f1f5f9);
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid var(--border, #e2e8f0);
+}
+
+.role-btn {
+  flex: 1;
+  padding: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 8px;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: transparent;
+  color: var(--text-secondary, #64748b);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.role-btn:hover {
+  color: #0f172a;
+}
+
+/* Estado activo: se ilumina completamente en negro manteniendo tu paleta */
+.role-btn--active {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+}
+
+/* ========================================== */
 
 .register__steps {
   display: flex;
@@ -43,7 +202,6 @@
   position: relative;
   width: 100%;
 }
-
 
 .register__steps::before {
   content: '';
@@ -136,7 +294,6 @@
   color: #10b981;
 }
 
-
 .register__actions {
   display: flex !important;
   gap: 12px !important;
@@ -194,7 +351,6 @@
   box-shadow: none;
 }
 
-
 .auth-select {
   padding-left: 14px !important;
   appearance: none;
@@ -216,7 +372,8 @@
   color: var(--text-muted, #94a3b8);
   font-weight: 400;
 }
-.auth-page{
+
+.auth-page {
   margin-bottom: -100px;
 }
 
@@ -224,7 +381,6 @@
   from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 
 @media (max-width: 480px) {
   .register__step span {

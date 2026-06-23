@@ -1,8 +1,5 @@
 const userService = require('../services/user.service');
 
-// Función para obtener el perfil del usuario autenticado, 
-// se asume que el middleware de autenticación ya ha verificado 
-// el token y ha agregado la información del usuario al objeto de la petición (req.user)
 const getProfile = async (req, res) => {
     try {
         // Consultamos al servicio para traer los datos extendidos de la tabla 'profiles'

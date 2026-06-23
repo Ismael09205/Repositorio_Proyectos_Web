@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import { loginUser, registerUser } from '../services/authService.js'
+import { loginUser, registerUser, registerAdmin } from '../services/authService.js'
 import { translateError } from '../utils/errorMessages.js'
 
 const AuthContext = createContext(null)
@@ -48,7 +48,10 @@ export function AuthProvider({ children }) {
 
   const register = async (data) => {
     try {
-      const response = await registerUser(data)
+      const response = data?.isAdmin
+        ? await registerAdmin(data)
+        : await registerUser(data)
+
       const resData = response?.data ?? response
       const accessToken = resData?.token ?? resData?.session?.access_token ?? resData?.access_token ?? null
       const userData = resData?.user ?? resData?.session?.user ?? resData?.auth?.user ?? null

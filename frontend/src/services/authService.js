@@ -28,6 +28,17 @@ export const registerUser = async (userData) => {
   return response.data
 }
 
+export const registerAdmin = async (userData) => {
+  const response = await axios.post(`${AUTH_URL}/register-admin`, {
+    name: userData.name,
+    username: userData.username,
+    email: userData.email,
+    password: userData.password,
+  })
+
+  return response.data
+}
+
 /**
  * Inicia sesión validando credenciales y el estado de verificación de correo institucional.
  */

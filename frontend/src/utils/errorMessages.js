@@ -54,6 +54,6 @@ export const translateError = (error) => {
     return 'El enlace de recuperación expiró o es inválido. Solicita uno nuevo.'
   }
 
-  // Si no coincide con nada, devuelve el error original pero genérico
-  return 'Algo salió mal. Intenta de nuevo más tarde.'
+  // Si no coincide con nada, devuelve el error original para ver el mensaje real del backend.
+  return error
 }

@@ -1,6 +1,5 @@
 const authService = require('../services/auth.service');
 
-// Función para registrar un nuevo usuario con metadata adicional
 const register = async (req, res) => {
     try {
 
@@ -35,7 +34,6 @@ const register = async (req, res) => {
             linkedin_url: linkedin_url || ''
         };
 
-        // Enviamos la metadata real a Supabase Auth a través del servicio
         const data = await authService.registerUser(email, password, metadata);
 
         return res.status(201).json({
@@ -48,8 +46,46 @@ const register = async (req, res) => {
         return res.status(400).json({ error: error.message });
     }
 }
+const registerAdmin = async (req, res) => {
+    try {
+        const { name, username, email, password } = req.body;
 
-// Función de login corregida para aplanar la respuesta de Supabase
+        // Validaciones estrictas de datos obligatorios para el Admin
+        if (!name || !name.trim()) return res.status(400).json({ error: 'Nombre completo es requerido.' });
+        if (!username || !username.trim()) return res.status(400).json({ error: 'Nombre de usuario es requerido.' });
+        if (!email || !email.trim() || !password) return res.status(400).json({ error: 'Email y contraseña son requeridos.' });
+        if (String(password).length < 6) return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres.' });
+
+        const lowerEmail = email.trim().toLowerCase();
+        
+        const isEpnEmail = lowerEmail.endsWith('@epn.edu.ec');
+        const isAdminPattern = lowerEmail.includes('admin') || lowerEmail.includes('area') || lowerEmail.includes('gestion');
+        const isValidAdminEmail = isEpnEmail && isAdminPattern;
+
+        if (!isValidAdminEmail) {
+            return res.status(403).json({ error: 'El correo electrónico administrativo debe ser institucional de la EPN y corresponder a una cuenta de gestión autorizada.' });
+        }
+
+        const metadata = {
+            nombre_completo: name.trim(),
+            username: username.trim(),
+            role: 'admin'
+        };
+
+        const data = await authService.registerUser(email, password, metadata, true);
+
+        return res.status(201).json({
+            message: 'Administrador registrado correctamente en el sistema.',
+            user: data.auth?.user ?? null,
+            session: data.auth?.session ?? null,
+            profile: data.profile ?? null,
+        });
+    } catch (error) {
+        console.error("Error capturado en el controlador de registro:", error.message);
+        return res.status(400).json({ error: error.message });
+    }
+};
+
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -58,11 +94,10 @@ const login = async (req, res) => {
             return res.status(400).json({ error: 'Email y contraseña son requeridos.' });
         }
 
-        // 1. Intentamos hacer el login en el servicio de Supabase
+        
         const authData = await authService.loginUser(email, password);
 
-        // 2. EL CANDADO: Revisamos si el correo del usuario ya fue confirmado por Supabase
-        // Supabase guarda esto en authData.user.email_confirmed_at. Si es NULL, no está verificado.
+      
         if (!authData.user || !authData.user.email_confirmed_at) {
             return res.status(401).json({ 
                 error: 'Por favor, verifica tu correo institucional de la EPN antes de iniciar sesión.' 
@@ -160,6 +195,7 @@ const changePassword = async (req, res) => {
 
 module.exports = {
     register,
+    registerAdmin,
     login,
     recover,
     changePassword,
