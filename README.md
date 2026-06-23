@@ -1,4 +1,4 @@
-# Repositorio de Proyectos Web - PoliConnect
+# Repositorio de Proyectos Web - IdeaGora
 
 Sistema de gestión de proyectos universitarios con funcionalidades administrativas avanzadas.
 
