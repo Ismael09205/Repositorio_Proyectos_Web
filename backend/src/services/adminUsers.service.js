@@ -21,8 +21,10 @@ async function getAllUsers() {
             throw new Error('Error fetching user profiles');
         }
 
-        // Combine data
-        const users = authUsers.users.map(authUser => {
+        // Combine data - exclude banned users
+        const users = authUsers.users
+            .filter(authUser => !authUser.banned_until) // Excluir usuarios baneados
+            .map(authUser => {
             const profile = profiles?.find(p => p.id === authUser.id);
             const admin = administrators?.find(a => a.id === authUser.id);
             
@@ -31,7 +33,7 @@ async function getAllUsers() {
                 email: authUser.email,
                 created_at: authUser.created_at,
                 last_sign_in_at: authUser.last_sign_in_at,
-                is_active: !authUser.banned_until, // User is active if not banned
+                is_active: !authUser.banned_until,
                 banned_until: authUser.banned_until,
                 role: admin ? 'admin' : 'student',
                 profile: admin || profile || null,

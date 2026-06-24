@@ -6,7 +6,7 @@ async function getProfileById(userId) {
     .from('profiles')
     .select('*')
     .eq('id', userId)
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
 
@@ -26,7 +26,7 @@ async function getProfileById(userId) {
   }
 
   // If not found in either table
-  if (profileError || adminError) {
+  if (error || adminError) {
     throw new Error('El perfil no existe en el sistema.');
   }
 

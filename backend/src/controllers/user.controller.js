@@ -1,18 +1,15 @@
 const userService = require('../services/user.service');
 const { supabaseService } = require('../config/supabase');
 
-// Función para obtener el perfil del usuario autenticado, 
-// se asume que el middleware de autenticación ya ha verificado 
-// el token y ha agregado la información del usuario al objeto de la petición (req.user)
-// Esta es la función que manda a llamar el frontend justo al iniciar sesión
+
 const getProfile = async (req, res) => {
     try {
-        // 1. Intentamos buscar PRIMERO en la tabla de administradores
+       
         const { data: adminData, error: adminError } = await supabaseService
             .from('administrators')
             .select('*')
             .eq('id', req.user.id)
-            .maybeSingle(); // Si da 0 filas, retorna null de forma segura sin explotar
+            .maybeSingle(); 
 
         if (adminError) {
             console.error(">>>> [DEBUG GETPROFILE] Error al consultar tabla administrators:", adminError);
@@ -50,12 +47,22 @@ const updateProfile = async (req, res) => {
             return res.status(400).json({ error: 'Datos de perfil requeridos.' });
         }
 
-        // Validacion minima para que el perfil sea coherente
-        if (!req.body.nombre_completo || !String(req.body.nombre_completo).trim()) {
-            return res.status(400).json({ error: 'El nombre completo es requerido.' });
+        // El frontend puede enviar datos diferentes según el tipo de usuario.
+        // Para administradores se utiliza `name`; para estudiantes `nombre_completo`.
+        if (
+          req.body.nombre_completo !== undefined &&
+          (!req.body.nombre_completo || !String(req.body.nombre_completo).trim())
+        ) {
+          return res.status(400).json({ error: 'El nombre completo es requerido.' });
         }
 
-        // Enviamos al servicio el ID del usuario autenticado y el cuerpo con los nuevos cambios
+        if (
+          req.body.name !== undefined &&
+          (!req.body.name || !String(req.body.name).trim())
+        ) {
+          return res.status(400).json({ error: 'El nombre completo es requerido.' });
+        }
+
         const updatedProfile = await userService.updateProfileById(req.user.id, req.body);
 
         return res.status(200).json({

@@ -37,8 +37,16 @@ export default function Login() {
       setTimeout(() => navigate('/'), 800)
     } catch (err) {
       const errorMsg = err.message || 'Error al iniciar sesión'
-      
-      if (errorMsg.includes('banned') || errorMsg.includes('Usuario Baneado Temporalmente')) {
+
+      // Si el backend devolvió 403 significa baneo; mostramos alerta específica
+      if (err.status === 403) {
+        toast.error('Usted ha sido baneado. Contacte al administrador para más información.', {
+          duration: 8000,
+          icon: '',
+          style: { '--toast-duration': '8000ms' }
+        })
+      // Fallback: también soportamos mensajes que contienen 'banned' u otras claves
+      } else if (errorMsg.includes('banned') || errorMsg.includes('Usuario Baneado Temporalmente')) {
         toast.error('Tu cuenta ha sido desactivada temporalmente. Contacta al administrador.', {
           duration: 6000,
           icon: '',

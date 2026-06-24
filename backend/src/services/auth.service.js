@@ -5,7 +5,7 @@ const { supabaseAnon, supabaseService } = require('../config/supabase');
 const registerUser = async (email, password, metadata = {}, isAdmin = false) => {
     const normalizedMetadata = {
         nombre_completo: String(metadata.nombre_completo || '').trim(),
-        nombre_usuario: String(metadata.nombre_usuario || '').trim(),
+        username: String(metadata.nombre_usuario || metadata.username || '').trim(),
         universidad: String(metadata.universidad || '').trim(),
         facultad: String(metadata.facultad || '').trim(),
         carrera: String(metadata.carrera || '').trim(),
@@ -20,7 +20,7 @@ const registerUser = async (email, password, metadata = {}, isAdmin = false) => 
     if (!normalizedMetadata.nombre_completo) {
         throw new Error('El nombre completo es requerido para el registro.');
     }
-    if (!normalizedMetadata.nombre_usuario) {
+    if (!normalizedMetadata.username) {
         throw new Error('El nombre de usuario es requerido para el registro.');
     }
     
@@ -51,7 +51,7 @@ const registerUser = async (email, password, metadata = {}, isAdmin = false) => 
             const adminProfile = {
                 id: userId,
                 name: metadata.nombre_completo || metadata.name || '',
-                username: metadata.nombre_usuario || metadata.username || '', 
+                username: metadata.username || metadata.nombre_usuario || '', 
                 email: email.trim().toLowerCase(),
                 cargo: metadata.cargo || null,
                 especialidad: metadata.especialidad || null,

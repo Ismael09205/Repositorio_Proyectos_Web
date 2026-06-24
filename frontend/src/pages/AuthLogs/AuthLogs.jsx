@@ -102,15 +102,17 @@ export default function AuthLogs() {
   };
 
   const getActionBadge = (action) => {
+    const normalizedAction = String(action || '').toLowerCase();
     const badges = {
       register: { color: '#10b981', label: 'Registro' },
       register_admin: { color: '#8b5cf6', label: 'Registro Admin' },
-      login: { color: '#3b82f6', label: 'Inicio Sesión' },
-      logout: { color: '#6b7280', label: 'Cierre Sesión' },
-      password_change: { color: '#f59e0b', label: 'Cambio Contraseña' }
+      login: { color: '#3b82f6', label: 'Inicio de sesión' },
+      logout: { color: '#6b7280', label: 'Cierre de sesión' },
+      delete: { color: '#ef4444', label: 'Borrado' },
+      password_change: { color: '#f59e0b', label: 'Cambio de contraseña' }
     };
 
-    const badge = badges[action] || { color: '#64748b', label: action };
+    const badge = badges[normalizedAction] || { color: '#64748b', label: action };
     
     return (
       <span style={{
@@ -238,6 +240,7 @@ export default function AuthLogs() {
               <option value="register_admin">Registros Admin</option>
               <option value="login">Inicios de Sesión</option>
               <option value="logout">Cierres de Sesión</option>
+              <option value="delete">Borrados</option>
             </select>
           </div>
         </div>

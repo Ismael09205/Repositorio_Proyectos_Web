@@ -68,10 +68,12 @@ export function AuthProvider({ children }) {
       saveAuth(userData, profile, accessToken)
       return { auth: userData, profile }
     } catch (err) {
-      const backendError = err.response?.data?.error || err.message || 'No se pudo iniciar sesión'
-      const backendInternal = err.response?.data?.internal || err.message
-      console.error('Login error details:', backendInternal, err.response?.data)
-      throw new Error(translateError(backendError))
+        const backendError = err.response?.data?.error || err.message || 'No se pudo iniciar sesión'
+        const backendInternal = err.response?.data?.internal || err.message
+        console.error('Login error details:', backendInternal, err.response?.data)
+        const e = new Error(translateError(backendError))
+        e.status = err.response?.status || null
+        throw e
     }
   }
 
@@ -113,7 +115,9 @@ export function AuthProvider({ children }) {
       const backendError = err.response?.data?.error || err.message || 'No se pudo registrar'
       const backendInternal = err.response?.data?.internal || err.message
       console.error('Register error details:', backendInternal, err.response?.data)
-      throw new Error(translateError(backendError))
+      const e = new Error(translateError(backendError))
+      e.status = err.response?.status || null
+      throw e
     }
   }
 

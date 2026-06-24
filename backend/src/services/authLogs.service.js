@@ -1,5 +1,14 @@
 const { supabaseService } = require('../config/supabase');
 
+const getEcuadorTimestamp = () => {
+  return new Date()
+    .toLocaleString('sv-SE', {
+      timeZone: 'America/Guayaquil',
+      hour12: false,
+    })
+    .replace(' ', 'T');
+};
+
 /**
  * Service for managing authentication logs
  */
@@ -11,32 +20,48 @@ class AuthLogsService {
     try {
       // Validamos que venga el userId para evitar mandar un null que rompa la constraint
       if (!userId) {
-        console.error('No se puede crear el log: userId es requerido');
+        console.error('No se puede crear el log: userId es requerido', {
+          userId,
+          action,
+          email,
+          ipAddress,
+          userAgent,
+        });
         return null;
       }
 
+      const payload = {
+        user_id: userId,
+        action: String(action || 'login').toUpperCase(),
+        email: email ? String(email).trim().toLowerCase() : null,
+        ip_address: ipAddress || null,
+        user_agent: userAgent || null,
+        created_at: getEcuadorTimestamp(),
+      };
+
       const { data, error } = await supabaseService
         .from('auth_logs')
-        .insert([
-          {
-            user_id: userId,
-            action: action.toUpperCase(), 
-            email,
-            ip_address: ipAddress,
-            user_agent: userAgent
-            
-          }
-        ])
+        .insert([payload])
         .select()
         .single();
 
       if (error) {
         // En lugar de lanzar el error con 'throw' y tumbar la petición de login/register, 
         // lo registramos en consola para que el usuario sí pueda entrar aunque falle el log.
-        console.error('Error de Supabase al insertar auth log:', error.message, error.details);
+        console.error('Error de Supabase al insertar auth log:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+        });
         return null; 
       }
       
+      if (!data) {
+        console.warn('El insert de auth log no devolvió datos.', payload);
+        return null;
+      }
+
       return data;
     } catch (error) {
       console.error('Error crítico creando el auth log:', error);

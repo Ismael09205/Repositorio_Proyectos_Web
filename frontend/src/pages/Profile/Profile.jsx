@@ -195,7 +195,7 @@ export default function Profile() {
         {/* Notificación de Éxito Temporal */}
         {successMessage && (
           <div style={{
-            position: 'fixed', top: '20px', right: '20px', zIndex: 50,
+            position: 'fixed', top: '20px', right: '20px', zIndex: 9999,
             background: '#10b981', color: '#fff', padding: '12px 24px',
             borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
             display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold'
