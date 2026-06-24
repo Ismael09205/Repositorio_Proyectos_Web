@@ -1,0 +1,393 @@
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { Plus, Search, UploadCloud, X, CloudUpload, FileText, Download } from 'lucide-react'
+import ProjectCard from '../../components/ProjectCard/ProjectCard'
+import { useAuth } from '../../context/AuthContext'
+import { fetchMyProjects, createProject } from '../../services/projectService.js'
+import { uploadFileToCloudinary } from '../../services/cloudinaryService.js'
+import './MyProjects.css'
+
+const CATEGORIES = [
+  'Todas',
+  'Inteligencia Artificial',
+  'Desarrollo Web',
+  'Ciencia de Datos',
+  'Medio Ambiente',
+  'TCNP',
+  'IoT',
+  'Robótica',
+  'Blockchain',
+]
+
+export default function MyProjects() {
+  const { user, token } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [query, setQuery] = useState(searchParams.get('q') || '')
+  const [category, setCategory] = useState(searchParams.get('categoria') || 'Todas')
+  const [sort, setSort] = useState(searchParams.get('sort') || 'recent')
+  const [projects, setProjects] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [formOpen, setFormOpen] = useState(false)
+  const [uploadingFile, setUploadingFile] = useState(false)
+  const [uploadedFile, setUploadedFile] = useState(null)
+  const [formData, setFormData] = useState({
+    titulo: '',
+    resumen: '',
+    universidad: '',
+    facultad: '',
+    carrera: '',
+    categoria: '',
+    archivo_url: '',
+    archivo_tipo: '',
+    archivo_peso: '',
+    github_url: '',
+    palabras_clave: '',
+  })
+  const [error, setError] = useState('')
+  const [pageError, setPageError] = useState('')
+  const [message, setMessage] = useState('')
+
+  const activeCategory = category
+  const activeQuery = query.trim()
+
+  const filterLabel = useMemo(() => {
+    return activeCategory === 'Todas' ? 'Todas las categorías' : activeCategory
+  }, [activeCategory])
+
+  const formatFileSize = (size) => {
+    if (!size) return '0 B'
+    const units = ['B', 'KB', 'MB', 'GB']
+    let value = size
+    let index = 0
+    while (value >= 1024 && index < units.length - 1) {
+      value /= 1024
+      index += 1
+    }
+    return `${value.toFixed(1)} ${units[index]}`
+  }
+
+  const getFileIcon = (name) => {
+    const extension = name?.split('.').pop()?.toLowerCase() || ''
+    if (['pdf'].includes(extension)) return '📄'
+    if (['doc', 'docx', 'odt'].includes(extension)) return '📝'
+    if (['txt'].includes(extension)) return '📄'
+    if (['zip', 'rar', '7z'].includes(extension)) return '🗜️'
+    if (['ppt', 'pptx'].includes(extension)) return '📊'
+    if (['xls', 'xlsx', 'csv'].includes(extension)) return '📈'
+    if (['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(extension)) return '🖼️'
+    return '📎'
+  }
+
+  const uploadFile = async (file) => {
+    if (!file) return
+    setError('')
+    setUploadingFile(true)
+    try {
+      const uploaded = await uploadFileToCloudinary(file)
+      setUploadedFile(uploaded)
+      setFormData({
+        ...formData,
+        archivo_url: uploaded.url,
+        archivo_tipo: uploaded.type || file.type,
+        archivo_peso: formatFileSize(uploaded.size || file.size),
+      })
+    } catch (uploadError) {
+      setError(uploadError.message || 'Error subiendo el archivo.')
+    } finally {
+      setUploadingFile(false)
+    }
+  }
+
+  const handleFileInput = async (event) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      await uploadFile(file)
+    }
+  }
+
+  const handleDrop = async (event) => {
+    event.preventDefault()
+    const file = event.dataTransfer.files?.[0]
+    if (file) {
+      await uploadFile(file)
+    }
+  }
+
+  const handleDragOver = (event) => {
+    event.preventDefault()
+  }
+
+  const resetProjectForm = () => {
+    setFormData({
+      titulo: '',
+      resumen: '',
+      universidad: '',
+      facultad: '',
+      carrera: '',
+      categoria: '',
+      archivo_url: '',
+      archivo_tipo: '',
+      archivo_peso: '',
+      github_url: '',
+      palabras_clave: '',
+    })
+    setUploadedFile(null)
+    setError('')
+    setUploadingFile(false)
+  }
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true)
+      setPageError('')
+      try {
+        const params = {}
+        if (activeQuery) params.q = activeQuery
+        if (activeCategory && activeCategory !== 'Todas') params.categoria = activeCategory
+        if (sort) params.sort = sort
+
+        setSearchParams(params)
+        const response = await fetchMyProjects(token, params)
+        setProjects(response.projects || [])
+      } catch (err) {
+        console.error('Error cargando mis proyectos:', err)
+        const status = err.response?.status
+        const msg = status === 401
+          ? 'Debes iniciar sesión con una cuenta válida para ver tus proyectos.'
+          : 'No se pudieron cargar tus proyectos. Intenta de nuevo más tarde.'
+        setPageError(msg)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (token) {
+      load()
+    } else {
+      setPageError('Inicia sesión para ver y administrar tus proyectos.')
+      setProjects([])
+    }
+  }, [token, activeQuery, activeCategory, sort])
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    setMessage('')
+
+    try {
+      const trimmedData = {
+        ...formData,
+        titulo: formData.titulo.trim(),
+        resumen: formData.resumen.trim(),
+        universidad: formData.universidad.trim(),
+        facultad: formData.facultad.trim(),
+        carrera: formData.carrera.trim(),
+        categoria: formData.categoria.trim(),
+        archivo_url: formData.archivo_url.trim(),
+        archivo_tipo: formData.archivo_tipo.trim(),
+        archivo_peso: formData.archivo_peso.trim(),
+        github_url: formData.github_url.trim(),
+      }
+
+      const newProject = await createProject(token, {
+        ...trimmedData,
+        palabras_clave: formData.palabras_clave,
+      })
+
+      setProjects((prev) => [newProject, ...prev])
+      setMessage('Proyecto subido con éxito. Ahora puedes verlo en tu lista.')
+      setFormOpen(false)
+      resetProjectForm()
+    } catch (err) {
+      const msg = err.response?.data?.error || err.message || 'No se pudo crear el proyecto.'
+      setError(msg)
+    }
+  }
+
+  return (
+    <div className="my-projects page-enter">
+      <div className="my-projects__header container">
+        <div>
+          <p className="eyebrow">Mis proyectos</p>
+          <h1>Administración de tus publicaciones</h1>
+          <p className="my-projects__subtitle">Aquí verás todos tus proyectos subidos. Puedes filtrar por categoría, buscar por título o tecnología, y crear un nuevo proyecto con métricas de likes, visitas y comentarios.</p>
+        </div>
+
+        <button className="btn btn-primary my-projects__upload-btn" onClick={() => { resetProjectForm(); setFormOpen(true) }}>
+          <UploadCloud size={18} /> Subir nuevo proyecto
+        </button>
+      </div>
+
+      <div className="my-projects__toolbar container">
+        <div className="my-projects__search-group">
+          <label className="my-projects__label">Buscar</label>
+          <div className="my-projects__search-box">
+            <Search size={16} />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Busca por título, categoría o palabra clave"
+            />
+            {query && <button type="button" onClick={() => setQuery('')}><X size={16} /></button>}
+          </div>
+        </div>
+
+        <div className="my-projects__filters">
+          <label className="my-projects__label">Categoría</label>
+          <select value={category} onChange={(e) => setCategory(e.target.value)}>
+            {CATEGORIES.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+          </select>
+
+          <label className="my-projects__label">Ordenar por</label>
+          <select value={sort} onChange={(e) => setSort(e.target.value)}>
+            <option value="recent">Más recientes</option>
+            <option value="popular">Más likes</option>
+            <option value="views">Más visitas</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="my-projects__summary container">
+        <span>{projects.length} proyecto{projects.length === 1 ? '' : 's'}</span>
+        <span>{filterLabel}</span>
+        <span>{sort === 'recent' ? 'Ordenado por más recientes' : sort === 'popular' ? 'Ordenado por likes' : 'Ordenado por visitas'}</span>
+      </div>
+
+      {pageError && (
+        <div className="alert alert-error container" style={{ marginBottom: '1.5rem' }}>
+          {pageError}
+        </div>
+      )}
+
+      <div className="my-projects__cards container">
+        {loading ? (
+          <div className="my-projects__empty">Cargando proyectos...</div>
+        ) : projects.length === 0 ? (
+          <div className="my-projects__empty">
+            <h2>No tienes proyectos aún</h2>
+            <p>Publica tu primer proyecto para que otros estudiantes puedan verlo, darle like y comentarlo.</p>
+            <button className="btn btn-primary" onClick={() => { resetProjectForm(); setFormOpen(true) }}>
+              <Plus size={16} /> Subir mi primer proyecto
+            </button>
+          </div>
+        ) : (
+          <div className="my-projects__grid">
+            {projects.map((project) => (
+              <div key={project.id} className="my-projects__card-wrapper">
+                <ProjectCard project={{
+                  id: project.id,
+                  title: project.titulo,
+                  category: project.categoria,
+                  categoryId: project.categoria.toLowerCase().replace(/ /g, ''),
+                  author: user?.profile?.nombre_usuario || 'Tú',
+                  university: project.universidad,
+                  likes: project.likes_count || 0,
+                  favorites: project.likes_count || 0,
+                  views: project.visitas_count || 0,
+                  comments: project.comments_count || 0,
+                  description: project.resumen,
+                }} variant="expanded" />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {formOpen && (
+        <div className="my-projects__modal">
+          <div className="my-projects__modal-content container">
+            <div className="my-projects__modal-header">
+              <div>
+                <h2>Subir nuevo proyecto</h2>
+                <p>Llena los datos del proyecto y publícalo en tu portafolio.</p>
+              </div>
+              <button className="my-projects__close-btn" onClick={() => { setFormOpen(false); resetProjectForm() }}><X size={20} /></button>
+            </div>
+
+            {error && <div className="alert alert-error">{error}</div>}
+            {message && <div className="alert alert-success">{message}</div>}
+
+            <form className="my-projects__form" onSubmit={handleSubmit}>
+              <div className="my-projects__form-grid">
+                <label>
+                  Título del proyecto
+                  <input value={formData.titulo} onChange={(e) => setFormData({ ...formData, titulo: e.target.value })} />
+                </label>
+                <label>
+                  Categoría
+                  <select value={formData.categoria} onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}>
+                    <option value="">Selecciona una categoría</option>
+                    {CATEGORIES.filter((cat) => cat !== 'Todas').map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+                  </select>
+                </label>
+                <label>
+                  Universidad
+                  <input value={formData.universidad} onChange={(e) => setFormData({ ...formData, universidad: e.target.value })} />
+                </label>
+                <label>
+                  Facultad
+                  <input value={formData.facultad} onChange={(e) => setFormData({ ...formData, facultad: e.target.value })} />
+                </label>
+                <label>
+                  Carrera
+                  <input value={formData.carrera} onChange={(e) => setFormData({ ...formData, carrera: e.target.value })} />
+                </label>
+                <label className="my-projects__fullwidth">
+                  Archivo del proyecto
+                  <div
+                    className="my-projects__dropzone"
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                  >
+                    <div className="my-projects__dropzone-icon"><CloudUpload size={24} /></div>
+                    <p>{uploadingFile ? 'Subiendo archivo...' : 'Arrastra y suelta el archivo aquí, o haz clic para seleccionar.'}</p>
+                    <input
+                      type="file"
+                      className="my-projects__file-input"
+                      onChange={handleFileInput}
+                      accept=".pdf,.doc,.docx,.txt,.zip,.rar,.7z,.ppt,.pptx,.xlsx,.csv,.png,.jpg,.jpeg,.gif,.webp"
+                    />
+                  </div>
+                </label>
+
+                {uploadedFile && (
+                  <div className="my-projects__file-preview">
+                    <div className="my-projects__file-preview-icon">{getFileIcon(uploadedFile.name)}</div>
+                    <div>
+                      <strong>{uploadedFile.name}</strong>
+                      <p>{uploadedFile.type} · {uploadedFile.size ? formatFileSize(uploadedFile.size) : formData.archivo_peso}</p>
+                    </div>
+                    <a className="my-projects__file-download" href={uploadedFile.url} target="_blank" rel="noreferrer">
+                      <Download size={16} /> Descargar
+                    </a>
+                  </div>
+                )}
+
+                <label>
+                  Repositorio GitHub
+                  <input value={formData.github_url} onChange={(e) => setFormData({ ...formData, github_url: e.target.value })} placeholder="https://github.com/..." />
+                </label>
+                <label className="my-projects__fullwidth">
+                  Resumen del proyecto
+                  <textarea value={formData.resumen} onChange={(e) => setFormData({ ...formData, resumen: e.target.value })} rows={5} />
+                </label>
+                <label className="my-projects__fullwidth">
+                  Palabras clave (separadas por comas)
+                  <input value={formData.palabras_clave} onChange={(e) => setFormData({ ...formData, palabras_clave: e.target.value })} placeholder="IA, React, Python" />
+                </label>
+              </div>
+
+              <div className="my-projects__modal-actions">
+                <button type="button" className="btn btn-outline" onClick={() => { setFormOpen(false); resetProjectForm() }}>Cancelar</button>
+                <button type="submit" className="btn btn-primary" disabled={uploadingFile || !uploadedFile}>
+                  {uploadingFile ? 'Subiendo...' : 'Publicar proyecto'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
