@@ -11,6 +11,7 @@ import AuthLogs from './pages/AuthLogs/AuthLogs.jsx'
 import UserManagement from './pages/UserManagement/UserManagement.jsx'
 import MyProjects from './pages/MyProjects/MyProjects.jsx'
 import ProjectDetail from './pages/ProjectDetail/ProjectDetail.jsx'
+import Chat from './pages/Chat/Chat.jsx'
 import MainLayout from './layouts/MainLayout.jsx'
 
 function App() {
@@ -68,6 +69,7 @@ function App() {
         <Route path="/mis-proyectos" element={<MyProjects />} />
         <Route path="/proyecto/:id" element={<ProjectDetail />} />
         <Route path="/categorias" element={<Navigate to="/explorar" replace />} />
+        <Route path="/chat" element={<Chat />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

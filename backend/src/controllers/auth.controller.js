@@ -205,6 +205,14 @@ const login = async (req, res) => {
             token: authData.session?.access_token || authData.token, 
             user: authData.user
         });
+
+        await authLogsService.createLog(
+            authData.user?.id,
+            'login',
+            email,
+            req.ip || req.connection?.remoteAddress,
+            req.get('user-agent')
+        );
     } catch (error) {
         const payload = buildErrorResponse(error);
         console.error('Login error:', error);

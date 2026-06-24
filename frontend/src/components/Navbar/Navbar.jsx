@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { Search, Menu, X, ChevronDown, Bell, BookOpen, LogOut, User, Settings } from 'lucide-react'
+import { Search, Menu, X, ChevronDown, Bell, BookOpen, LogOut, User, Settings, MessageCircle } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import logoPoli from '../../assets/logo.png'
 import './Navbar.css'
@@ -84,6 +84,16 @@ export default function Navbar() {
           <NavLink to="/categorias" className={({isActive}) => isActive ? 'navbar__link navbar__link--active' : 'navbar__link'}>
             Categorías
           </NavLink>
+          <NavLink to="/sobre-nosotros" className={({isActive}) => isActive ? 'navbar__link navbar__link--active' : 'navbar__link'}>
+            Sobre nosotros
+          </NavLink>
+          {/* Solo se muestra si el usuario está autenticado */}
+          {user && (
+            <NavLink to="/chat" className={({isActive}) => isActive ? 'navbar__link navbar__link--active' : 'navbar__link'}>
+              <MessageCircle size={15} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+              Socializar
+            </NavLink>
+          )}
         </nav>
 
         {/* Right actions */}
@@ -133,6 +143,9 @@ export default function Navbar() {
                     </Link>
                     <Link to="/mis-proyectos" className="navbar__dd-item" onClick={() => setDropOpen(false)}>
                       <BookOpen size={15} /> Mis proyectos
+                    </Link>
+                    <Link to="/chat" className="navbar__dd-item" onClick={() => setDropOpen(false)}>
+                      <MessageCircle size={15} /> Mis chats
                     </Link>
                     <Link to="/perfil" className="navbar__dd-item" onClick={() => setDropOpen(false)}>
                       <Settings size={15} /> Configuración
@@ -187,7 +200,7 @@ export default function Navbar() {
       {menuOpen && (
         <div className="navbar__mobile-menu">
           <nav className="container">
-            {['/', '/explorar', '/categorias'].map((path, i) => (
+            {['/', '/explorar', '/categorias', '/sobre-nosotros'].map((path, i) => (
               <NavLink
                 key={i}
                 to={path}
@@ -195,7 +208,7 @@ export default function Navbar() {
                 onClick={() => setMenuOpen(false)}
                 end={path === '/'}
               >
-                {['Inicio', 'Explorar', 'Categorías'][i]}
+                {['Inicio', 'Explorar', 'Categorías', 'Sobre nosotros'][i]}
               </NavLink>
             ))}
             {!user && (

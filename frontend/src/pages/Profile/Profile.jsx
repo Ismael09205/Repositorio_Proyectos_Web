@@ -23,6 +23,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const navigate = useNavigate();
 
   // Estados para la edición e interactividad del formulario
   const [isEditing, setIsEditing] = useState(false);

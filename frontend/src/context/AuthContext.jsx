@@ -94,13 +94,21 @@ export function AuthProvider({ children }) {
         throw new Error(translateError(backendError))
       }
 
+      if (!accessToken) {
+        // No hay token porque requiere confirmación. 
+        // NO guardamos sesión (saveAuth), el usuario debe verificar su mail primero.
+        console.log('Registro exitoso, pero requiere confirmación de correo.');
+        return { user: userData, requireConfirmation: true }
+      }
+
+      // 4. Si sí hay token (ej: registro directo o si quitan la verificación después)
       let profile = null
       if (accessToken) {
         profile = await fetchProfile(accessToken)
       }
 
       saveAuth(userData, profile, accessToken)
-      return userData
+      return {user: userData, requireConfirmation: false}
     } catch (err) {
       const backendError = err.response?.data?.error || err.message || 'No se pudo registrar'
       const backendInternal = err.response?.data?.internal || err.message

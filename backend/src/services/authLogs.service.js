@@ -9,26 +9,38 @@ class AuthLogsService {
    */
   async createLog(userId, action, email, ipAddress = null, userAgent = null) {
     try {
+      // Validamos que venga el userId para evitar mandar un null que rompa la constraint
+      if (!userId) {
+        console.error('No se puede crear el log: userId es requerido');
+        return null;
+      }
+
       const { data, error } = await supabaseService
         .from('auth_logs')
         .insert([
           {
             user_id: userId,
-            action,
+            action: action.toUpperCase(), 
             email,
             ip_address: ipAddress,
-            user_agent: userAgent,
-            created_at: new Date().toISOString()
+            user_agent: userAgent
+            
           }
         ])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // En lugar de lanzar el error con 'throw' y tumbar la petición de login/register, 
+        // lo registramos en consola para que el usuario sí pueda entrar aunque falle el log.
+        console.error('Error de Supabase al insertar auth log:', error.message, error.details);
+        return null; 
+      }
+      
       return data;
     } catch (error) {
-      console.error('Error creating auth log:', error);
-      throw error;
+      console.error('Error crítico creando el auth log:', error);
+      return null;
     }
   }
 
