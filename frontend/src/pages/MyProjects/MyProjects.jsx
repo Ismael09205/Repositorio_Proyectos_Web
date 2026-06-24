@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Plus, Search, UploadCloud, X, CloudUpload, FileText, Download } from 'lucide-react'
+import {
+  Plus, Search, UploadCloud, X, CloudUpload, FileText, Download,
+  GitBranch, GraduationCap, Link2, Folder, FolderOpen, Clock, Heart, Eye,
+} from 'lucide-react'
 import ProjectCard from '../../components/ProjectCard/ProjectCard'
 import { useAuth } from '../../context/AuthContext'
 import { fetchMyProjects, createProject } from '../../services/projectService.js'
@@ -17,6 +20,12 @@ const CATEGORIES = [
   'IoT',
   'Robótica',
   'Blockchain',
+]
+
+const SORT_OPTIONS = [
+  { value: 'recent', label: 'Recientes', icon: Clock },
+  { value: 'popular', label: 'Likes', icon: Heart },
+  { value: 'views', label: 'Visitas', icon: Eye },
 ]
 
 export default function MyProjects() {
@@ -207,8 +216,11 @@ export default function MyProjects() {
   return (
     <div className="my-projects page-enter">
       <div className="my-projects__header container">
-        <div>
-          <p className="eyebrow">Mis proyectos</p>
+        <div className="my-projects__heading">
+          <div className="my-projects__eyebrow-row">
+            <span className="my-projects__eyebrow-icon"><Folder size={14} /></span>
+            <p className="eyebrow">Mis proyectos</p>
+          </div>
           <h1>Administración de tus publicaciones</h1>
           <p className="my-projects__subtitle">Aquí verás todos tus proyectos subidos. Puedes filtrar por categoría, buscar por título o tecnología, y crear un nuevo proyecto con métricas de likes, visitas y comentarios.</p>
         </div>
@@ -219,39 +231,56 @@ export default function MyProjects() {
       </div>
 
       <div className="my-projects__toolbar container">
-        <div className="my-projects__search-group">
-          <label className="my-projects__label">Buscar</label>
-          <div className="my-projects__search-box">
-            <Search size={16} />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Busca por título, categoría o palabra clave"
-            />
-            {query && <button type="button" onClick={() => setQuery('')}><X size={16} /></button>}
-          </div>
+        <div className="my-projects__search-box">
+          <Search size={16} />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Busca por título, categoría o palabra clave"
+            aria-label="Buscar proyectos"
+          />
+          {query && <button type="button" onClick={() => setQuery('')}><X size={16} /></button>}
         </div>
 
-        <div className="my-projects__filters">
-          <label className="my-projects__label">Categoría</label>
-          <select value={category} onChange={(e) => setCategory(e.target.value)}>
-            {CATEGORIES.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
-          </select>
+        <div className="my-projects__filter-row">
+          <div className="my-projects__chip-row" role="group" aria-label="Filtrar por categoría" title={filterLabel}>
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                className={`my-projects__chip ${category === cat ? 'is-active' : ''}`}
+                onClick={() => setCategory(cat)}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
 
-          <label className="my-projects__label">Ordenar por</label>
-          <select value={sort} onChange={(e) => setSort(e.target.value)}>
-            <option value="recent">Más recientes</option>
-            <option value="popular">Más likes</option>
-            <option value="views">Más visitas</option>
-          </select>
+          <div className="my-projects__segmented" role="group" aria-label="Ordenar por">
+            {SORT_OPTIONS.map(({ value, label, icon: Icon }) => (
+              <button
+                key={value}
+                type="button"
+                className={`my-projects__segment ${sort === value ? 'is-active' : ''}`}
+                onClick={() => setSort(value)}
+              >
+                <Icon size={14} /> {label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       <div className="my-projects__summary container">
-        <span>{projects.length} proyecto{projects.length === 1 ? '' : 's'}</span>
-        <span>{filterLabel}</span>
-        <span>{sort === 'recent' ? 'Ordenado por más recientes' : sort === 'popular' ? 'Ordenado por likes' : 'Ordenado por visitas'}</span>
+        <div className="my-projects__summary-line">
+          <Folder size={15} />
+          <span><strong>{projects.length}</strong> proyecto{projects.length === 1 ? '' : 's'}</span>
+          <span className="my-projects__summary-divider">·</span>
+          <span className="my-projects__summary-tag">categoria:{activeCategory === 'Todas' ? 'todas' : activeCategory.toLowerCase().replace(/\s+/g, '-')}</span>
+          <span className="my-projects__summary-divider">·</span>
+          <span className="my-projects__summary-tag">orden:{sort}</span>
+        </div>
       </div>
 
       {pageError && (
@@ -262,9 +291,13 @@ export default function MyProjects() {
 
       <div className="my-projects__cards container">
         {loading ? (
-          <div className="my-projects__empty">Cargando proyectos...</div>
+          <div className="my-projects__empty my-projects__loading">
+            <span className="my-projects__spinner" aria-hidden="true" />
+            Cargando proyectos...
+          </div>
         ) : projects.length === 0 ? (
           <div className="my-projects__empty">
+            <div className="my-projects__empty-icon"><FolderOpen size={28} /></div>
             <h2>No tienes proyectos aún</h2>
             <p>Publica tu primer proyecto para que otros estudiantes puedan verlo, darle like y comentarlo.</p>
             <button className="btn btn-primary" onClick={() => { resetProjectForm(); setFormOpen(true) }}>
@@ -309,73 +342,93 @@ export default function MyProjects() {
             {message && <div className="alert alert-success">{message}</div>}
 
             <form className="my-projects__form" onSubmit={handleSubmit}>
-              <div className="my-projects__form-grid">
-                <label>
-                  Título del proyecto
-                  <input value={formData.titulo} onChange={(e) => setFormData({ ...formData, titulo: e.target.value })} />
-                </label>
-                <label>
-                  Categoría
-                  <select value={formData.categoria} onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}>
-                    <option value="">Selecciona una categoría</option>
-                    {CATEGORIES.filter((cat) => cat !== 'Todas').map((cat) => <option key={cat} value={cat}>{cat}</option>)}
-                  </select>
-                </label>
-                <label>
-                  Universidad
-                  <input value={formData.universidad} onChange={(e) => setFormData({ ...formData, universidad: e.target.value })} />
-                </label>
-                <label>
-                  Facultad
-                  <input value={formData.facultad} onChange={(e) => setFormData({ ...formData, facultad: e.target.value })} />
-                </label>
-                <label>
-                  Carrera
-                  <input value={formData.carrera} onChange={(e) => setFormData({ ...formData, carrera: e.target.value })} />
-                </label>
-                <label className="my-projects__fullwidth">
-                  Archivo del proyecto
-                  <div
-                    className="my-projects__dropzone"
-                    onDrop={handleDrop}
-                    onDragOver={handleDragOver}
-                  >
-                    <div className="my-projects__dropzone-icon"><CloudUpload size={24} /></div>
-                    <p>{uploadingFile ? 'Subiendo archivo...' : 'Arrastra y suelta el archivo aquí, o haz clic para seleccionar.'}</p>
-                    <input
-                      type="file"
-                      className="my-projects__file-input"
-                      onChange={handleFileInput}
-                      accept=".pdf,.doc,.docx,.txt,.zip,.rar,.7z,.ppt,.pptx,.xlsx,.csv,.png,.jpg,.jpeg,.gif,.webp"
-                    />
+              <div className="my-projects__form-section">
+                <h3 className="my-projects__form-section-title"><GitBranch size={15} /> Información del proyecto</h3>
+                <div className="my-projects__form-grid">
+                  <label>
+                    Título del proyecto
+                    <input value={formData.titulo} onChange={(e) => setFormData({ ...formData, titulo: e.target.value })} />
+                  </label>
+                  <label>
+                    Categoría
+                    <select value={formData.categoria} onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}>
+                      <option value="">Selecciona una categoría</option>
+                      {CATEGORIES.filter((cat) => cat !== 'Todas').map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+                    </select>
+                  </label>
+                  <label className="my-projects__fullwidth">
+                    Resumen del proyecto
+                    <textarea value={formData.resumen} onChange={(e) => setFormData({ ...formData, resumen: e.target.value })} rows={5} />
+                  </label>
+                </div>
+              </div>
+
+              <div className="my-projects__form-section">
+                <h3 className="my-projects__form-section-title"><GraduationCap size={15} /> Procedencia académica</h3>
+                <div className="my-projects__form-grid my-projects__form-grid--trio">
+                  <label>
+                    Universidad
+                    <input value={formData.universidad} onChange={(e) => setFormData({ ...formData, universidad: e.target.value })} />
+                  </label>
+                  <label>
+                    Facultad
+                    <input value={formData.facultad} onChange={(e) => setFormData({ ...formData, facultad: e.target.value })} />
+                  </label>
+                  <label>
+                    Carrera
+                    <input value={formData.carrera} onChange={(e) => setFormData({ ...formData, carrera: e.target.value })} />
+                  </label>
+                </div>
+              </div>
+
+              <div className="my-projects__form-section">
+                <h3 className="my-projects__form-section-title"><FileText size={15} /> Archivo del proyecto</h3>
+                <div
+                  className="my-projects__dropzone"
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                >
+                  <div className="my-projects__dropzone-icon"><CloudUpload size={24} /></div>
+                  <p>{uploadingFile ? 'Subiendo archivo...' : 'Arrastra y suelta el archivo aquí, o haz clic para seleccionar.'}</p>
+                  <div className="my-projects__dropzone-formats">
+                    {['PDF', 'DOCX', 'PPTX', 'XLSX', 'ZIP', 'PNG', 'JPG'].map((f) => (
+                      <span key={f} className="my-projects__format-chip">{f}</span>
+                    ))}
                   </div>
-                </label>
+                  <input
+                    type="file"
+                    className="my-projects__file-input"
+                    onChange={handleFileInput}
+                    accept=".pdf,.doc,.docx,.txt,.zip,.rar,.7z,.ppt,.pptx,.xlsx,.csv,.png,.jpg,.jpeg,.gif,.webp"
+                  />
+                </div>
 
                 {uploadedFile && (
                   <div className="my-projects__file-preview">
                     <div className="my-projects__file-preview-icon">{getFileIcon(uploadedFile.name)}</div>
-                    <div>
+                    <div className="my-projects__file-preview-info">
                       <strong>{uploadedFile.name}</strong>
-                      <p>{uploadedFile.type} · {uploadedFile.size ? formatFileSize(uploadedFile.size) : formData.archivo_peso}</p>
+                      <p className="my-projects__file-preview-meta">{uploadedFile.type} · {uploadedFile.size ? formatFileSize(uploadedFile.size) : formData.archivo_peso}</p>
                     </div>
                     <a className="my-projects__file-download" href={uploadedFile.url} target="_blank" rel="noreferrer">
                       <Download size={16} /> Descargar
                     </a>
                   </div>
                 )}
+              </div>
 
-                <label>
-                  Repositorio GitHub
-                  <input value={formData.github_url} onChange={(e) => setFormData({ ...formData, github_url: e.target.value })} placeholder="https://github.com/..." />
-                </label>
-                <label className="my-projects__fullwidth">
-                  Resumen del proyecto
-                  <textarea value={formData.resumen} onChange={(e) => setFormData({ ...formData, resumen: e.target.value })} rows={5} />
-                </label>
-                <label className="my-projects__fullwidth">
-                  Palabras clave (separadas por comas)
-                  <input value={formData.palabras_clave} onChange={(e) => setFormData({ ...formData, palabras_clave: e.target.value })} placeholder="IA, React, Python" />
-                </label>
+              <div className="my-projects__form-section">
+                <h3 className="my-projects__form-section-title"><Link2 size={15} /> Enlaces y palabras clave</h3>
+                <div className="my-projects__form-grid">
+                  <label>
+                    Repositorio GitHub
+                    <input value={formData.github_url} onChange={(e) => setFormData({ ...formData, github_url: e.target.value })} placeholder="https://github.com/..." />
+                  </label>
+                  <label>
+                    Palabras clave (separadas por comas)
+                    <input value={formData.palabras_clave} onChange={(e) => setFormData({ ...formData, palabras_clave: e.target.value })} placeholder="IA, React, Python" />
+                  </label>
+                </div>
               </div>
 
               <div className="my-projects__modal-actions">
