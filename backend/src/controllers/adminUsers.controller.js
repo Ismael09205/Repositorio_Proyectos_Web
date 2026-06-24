@@ -1,8 +1,6 @@
 const adminUsersService = require('../services/adminUsers.service');
 
-/**
- * Get all users (admin only)
- */
+
 const getAllUsers = async (req, res) => {
     try {
         const users = await adminUsersService.getAllUsers();
@@ -16,9 +14,7 @@ const getAllUsers = async (req, res) => {
     }
 };
 
-/**
- * Get user by ID (admin only)
- */
+
 const getUserById = async (req, res) => {
     try {
         const { userId } = req.params;
@@ -38,9 +34,7 @@ const getUserById = async (req, res) => {
     }
 };
 
-/**
- * Update user profile (admin only)
- */
+
 const updateUser = async (req, res) => {
     try {
         const { userId } = req.params;
@@ -69,9 +63,7 @@ const updateUser = async (req, res) => {
     }
 };
 
-/**
- * Delete user (admin only) - Soft delete via permanent ban
- */
+
 const deleteUser = async (req, res) => {
     try {
         const { userId } = req.params;
@@ -96,19 +88,17 @@ const deleteUser = async (req, res) => {
     }
 };
 
-/**
- * Deactivate user temporarily (admin only)
- */
+
 const deactivateUser = async (req, res) => {
     try {
         const { userId } = req.params;
-        const { duration } = req.body; // Duration in hours, e.g., "720h" for 30 days
+        const { duration } = req.body; 
 
         if (!userId) {
             return res.status(400).json({ error: 'ID de usuario requerido' });
         }
 
-        // Prevent admin from deactivating themselves
+        
         if (userId === req.user.id) {
             return res.status(403).json({ error: 'No puedes desactivar tu propia cuenta' });
         }
@@ -124,9 +114,7 @@ const deactivateUser = async (req, res) => {
     }
 };
 
-/**
- * Activate user (remove ban) (admin only)
- */
+
 const activateUser = async (req, res) => {
     try {
         const { userId } = req.params;
@@ -146,9 +134,7 @@ const activateUser = async (req, res) => {
     }
 };
 
-/**
- * Search users by email or name (admin only)
- */
+
 const searchUsers = async (req, res) => {
     try {
         const { query } = req.query;
@@ -178,4 +164,4 @@ module.exports = {
     searchUsers
 };
 
-// Made with Bob
+
