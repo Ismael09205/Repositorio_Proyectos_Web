@@ -18,8 +18,12 @@
 .my-projects__toolbar,
 .my-projects__summary,
 .my-projects__cards {
-  margin-bottom: 1.5rem;
+  margin-bottom: 3rem;
+  display: flex;
+  margin-top: 2rem;
+  justify-content: space-between;
 }
+
 
 .my-projects__header {
   display: flex;
@@ -37,6 +41,8 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  height: 3rem;
+  
 }
 
 .my-projects__eyebrow-icon {
@@ -50,28 +56,37 @@
   color: var(--repo-accent);
 }
 
-.my-projects__subtitle {
-  max-width: 56rem;
-  margin-top: 0.85rem;
-  color: var(--text-secondary);
-  line-height: 1.8;
+.my-projects__title {
+  margin-bottom: 0.5rem;
+  margin-top: 0.25rem;
+  color:rgb(238, 185, 38);
 }
 
-.my-projects__upload-btn {
-  display: inline-flex;
+.my-projects__subtitle {
+  max-width: 56rem;
+  margin-top: 0.5rem;
+  margin-bottom: 2rem;
+  color: rgba(0, 0, 70, 0.705);
+  line-height: 1;
+}
+
+.btn.btn-primary.my-projects__upload-btn {
+  display: flex;
+  margin-top: 1.5rem;
   align-items: center;
   gap: 0.75rem;
-  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  background: linear-gradient(135deg, orange, rgb(228, 171, 15));
   color: #fff;
-  box-shadow: 0 16px 30px rgba(26, 14, 130, 0.18);
+  box-shadow: 0 16px 30px rgba(255, 209, 2, 0.507);
   transition: transform var(--t-base) var(--ease), box-shadow var(--t-base) var(--ease);
   white-space: nowrap;
 }
 
 .my-projects__upload-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 20px 36px rgba(26, 14, 130, 0.22);
+  transform: translateY(-15px);
+  box-shadow: 0 20px 36px rgba(255, 103, 2, 0.507);
 }
+
 
 .my-projects__toolbar {
   display: grid;

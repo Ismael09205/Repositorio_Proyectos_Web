@@ -221,7 +221,7 @@ export default function MyProjects() {
             <span className="my-projects__eyebrow-icon"><Folder size={14} /></span>
             <p className="eyebrow">Mis proyectos</p>
           </div>
-          <h1>Administración de tus publicaciones</h1>
+          <h1 className='my-projects__title'>Administración de tus publicaciones</h1>
           <p className="my-projects__subtitle">Aquí verás todos tus proyectos subidos. Puedes filtrar por categoría, buscar por título o tecnología, y crear un nuevo proyecto con métricas de likes, visitas y comentarios.</p>
         </div>
 
