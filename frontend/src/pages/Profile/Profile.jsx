@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../../services/apiConfig.js'
 import { useAuth } from '../../context/AuthContext';
 import './Profile.css'; // ¡IMPORTANTE! Agregada la importación de tus estilos reales
 import {
@@ -44,7 +45,7 @@ export default function Profile() {
           return;
         }
 
-        const response = await axios.get('/api/users/profile', {
+        const response = await axios.get(`${API_BASE_URL}/api/users/profile`, {
           headers: { Authorization: `Bearer ${authToken}` }
         });
         
@@ -63,7 +64,7 @@ export default function Profile() {
 
         // Check if user is admin
         try {
-          const adminCheck = await axios.get('/api/authLogs/statistics', {
+          const adminCheck = await axios.get(`${API_BASE_URL}/api/authLogs/statistics`, {
             headers: { Authorization: `Bearer ${authToken}` }
           });
           if (adminCheck.status === 200) {
@@ -105,7 +106,7 @@ export default function Profile() {
         return;
       }
 
-      const response = await axios.put('/api/users/profile', formData, {
+      const response = await axios.put(`${API_BASE_URL}/api/users/profile`, formData, {
         headers: { Authorization: `Bearer ${authToken}` }
 
       });

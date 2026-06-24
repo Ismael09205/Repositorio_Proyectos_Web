@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../../services/apiConfig.js';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import './UserManagement.css';
@@ -56,7 +57,7 @@ export default function UserManagement() {
         return;
       }
 
-      const response = await axios.get('/api/admin/users', {
+      const response = await axios.get(`${API_BASE_URL}/api/admin/users`, {
         headers: { Authorization: `Bearer ${authToken}` }
       });
 
@@ -73,7 +74,7 @@ export default function UserManagement() {
   const handleDeactivate = async (userId) => {
     try {
       const authToken = token || localStorage.getItem('pc_token');
-      await axios.post(`/api/admin/users/${userId}/deactivate`, 
+      await axios.post(`${API_BASE_URL}/api/admin/users/${userId}/deactivate`, 
         { duration: '720h' }, // 30 days
         { headers: { Authorization: `Bearer ${authToken}` } }
       );
@@ -90,7 +91,7 @@ export default function UserManagement() {
   const handleActivate = async (userId) => {
     try {
       const authToken = token || localStorage.getItem('pc_token');
-      await axios.post(`/api/admin/users/${userId}/activate`, {},
+      await axios.post(`${API_BASE_URL}/api/admin/users/${userId}/activate`, {},
         { headers: { Authorization: `Bearer ${authToken}` } }
       );
       
@@ -106,7 +107,7 @@ export default function UserManagement() {
   const handleDelete = async (userId) => {
     try {
       const authToken = token || localStorage.getItem('pc_token');
-      await axios.delete(`/api/admin/users/${userId}`, {
+      await axios.delete(`${API_BASE_URL}/api/admin/users/${userId}`, {
         headers: { Authorization: `Bearer ${authToken}` }
       });
       

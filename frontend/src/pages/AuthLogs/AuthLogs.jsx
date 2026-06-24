@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../../services/apiConfig.js';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import './AuthLogs.css';
@@ -55,7 +56,7 @@ export default function AuthLogs() {
         url = `/api/authLogs/action/${filterAction}?limit=${logsPerPage}`;
       }
 
-      const response = await axios.get(url, {
+      const response = await axios.get(`${API_BASE_URL}${url}`, {
         headers: { Authorization: `Bearer ${authToken}` }
       });
 
@@ -79,7 +80,7 @@ export default function AuthLogs() {
       const authToken = token || localStorage.getItem('pc_token');
       if (!authToken) return;
 
-      const response = await axios.get('/api/authLogs/statistics', {
+      const response = await axios.get(`${API_BASE_URL}/api/authLogs/statistics`, {
         headers: { Authorization: `Bearer ${authToken}` }
       });
 

@@ -1,6 +1,7 @@
 import axios from 'axios'
+import API_BASE_URL from './apiConfig.js'
 
-const PROJECTS_URL = '/api/projects'
+const PROJECTS_URL = `${API_BASE_URL}/api/projects`
 
 export const fetchMyProjects = async (token, params = {}) => {
   const headers = {}
