@@ -127,6 +127,58 @@ const register = async (req, res) => {
     }
 }
 
+const registerAdmin = async (req, res) => {
+    try {
+        const { name, username, email, password } = req.body;
+
+        if (!name || !name.trim()) return res.status(400).json({ error: 'Nombre completo es requerido.' });
+        if (!username || !username.trim()) return res.status(400).json({ error: 'Nombre de usuario es requerido.' });
+        if (!email || !email.trim() || !password) return res.status(400).json({ error: 'Email y contraseña son requeridos.' });
+        if (String(password).length < 6) return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres.' });
+
+        const lowerEmail = email.trim().toLowerCase();
+        const isEpnEmail = lowerEmail.endsWith('@epn.edu.ec');
+        const isAdminPattern = lowerEmail.includes('admin') || lowerEmail.includes('area') || lowerEmail.includes('gestion');
+        const isValidAdminEmail = isEpnEmail && isAdminPattern;
+
+        if (!isValidAdminEmail) {
+            return res.status(403).json({ error: 'El correo electrónico administrativo debe ser institucional de la EPN y corresponder a una cuenta de gestión autorizada.' });
+        }
+
+        const metadata = {
+            nombre_completo: name.trim(),
+            nombre_usuario: username.trim(),
+            role: 'admin'
+        };
+
+        const data = await authService.registerUser(email, password, metadata, true);
+
+        try {
+            if (typeof authLogsService !== 'undefined') {
+                await authLogsService.createLog(
+                    data.auth?.user?.id,
+                    'register_admin',
+                    email,
+                    req.ip || req.connection?.remoteAddress,
+                    req.get('user-agent')
+                );
+            }
+        } catch (logError) {
+            console.error('Error al registrar log de administrador:', logError);
+        }
+
+        return res.status(201).json({
+            message: 'Administrador registrado correctamente en el sistema.',
+            user: data.auth?.user ?? null,
+            session: data.auth?.session ?? null,
+            profile: data.profile ?? null,
+        });
+    } catch (error) {
+        console.error("Error en registro de administrador:", error.message);
+        return res.status(400).json({ error: error.message });
+    }
+};
+
 // Función de login corregida para aplanar la respuesta de Supabase
 const login = async (req, res) => {
     try {
@@ -225,6 +277,7 @@ const changePassword = async (req, res) => {
 
 module.exports = {
     register,
+    registerAdmin,
     login,
     recover,
     changePassword,

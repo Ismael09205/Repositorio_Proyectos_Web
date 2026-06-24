@@ -2,7 +2,7 @@ const { supabaseAnon, supabaseService } = require('../config/supabase');
 
 
 // Funcion para registrar un nuevo usuario donde se recibe el email, password y metadata
-const registerUser = async (email, password, metadata = {}) => {
+const registerUser = async (email, password, metadata = {}, isAdmin = false) => {
     const normalizedMetadata = {
         nombre_completo: String(metadata.nombre_completo || '').trim(),
         nombre_usuario: String(metadata.nombre_usuario || '').trim(),
@@ -23,7 +23,7 @@ const registerUser = async (email, password, metadata = {}) => {
     if (!normalizedMetadata.nombre_usuario) {
         throw new Error('El nombre de usuario es requerido para el registro.');
     }
-
+    
     // 1) Registramos el usuario en Auth y guardamos la respuesta
     const { data, error } = await supabaseAnon.auth.signUp({
         email,
@@ -40,33 +40,58 @@ const registerUser = async (email, password, metadata = {}) => {
         throw authError;
     }
 
+
     // 2) Intentamos crear explícitamente el perfil en la tabla `profiles`
     // Usamos el client con service role para poder escribir en la tabla
     try {
         const userId = data?.user?.id;
 
-        const profile = {
+        if (isAdmin) {
+            // Mapeo exacto según el SQL de 'public.administrators'
+            const adminProfile = {
+                id: userId,
+                name: metadata.nombre_completo || metadata.name || '',
+                username: metadata.nombre_usuario || metadata.username || '', 
+                email: email.trim().toLowerCase(),
+                cargo: metadata.cargo || null,
+                especialidad: metadata.especialidad || null,
+                sector: metadata.sector || null,
+                created_at: new Date().toISOString()
+            };
+
+            const { data: adminData, error: adminError } = await supabaseService
+                .from('administrators')
+                .upsert(adminProfile, { onConflict: 'id' })
+                .select()
+                .maybeSingle();
+
+            if (adminError) throw adminError;
+            return { auth: data, profile: adminData };
+
+        } else {
+
+            const profile = {
             id: userId,
             ...normalizedMetadata,
             created_at: new Date().toISOString(),
         };
+            const { data: profileData, error: profileError } = await supabaseService
+                .from('profiles')
+                .upsert(profile, { onConflict: 'id' })
+                .select()
+                .single();
 
-        const { data: profileData, error: profileError } = await supabaseService
-            .from('profiles')
-            .upsert(profile, { onConflict: 'id' })
-            .select()
-            .single();
-
-        if (profileError) {
-            console.error('Error creando/actualizando perfil en DB:', profileError.message || profileError);
+            if (profileError) throw profileError;
+            return { auth: data, profile: profileData };
         }
 
-        return { auth: data, profile: profileData };
+
     } catch (err) {
         console.error('Error en post-registro al crear perfil:', err.message || err);
         return { auth: data };
     }
-}
+};
+   
 // Funcion para iniciar sesion de un usuario que ya esta previamente registrado
 const loginUser = async (email, password) => {
     const { data, error } = await supabaseAnon.auth.signInWithPassword({ email, password });

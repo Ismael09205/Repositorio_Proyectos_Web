@@ -58,6 +58,23 @@ export const translateError = (error) => {
     return 'La solicitud tardó demasiado. Intenta de nuevo.'
   }
 
+  // Errores locales
+  if (error === 'Completa todos los campos.') {
+    return error
+  }
+  if (error.includes('caracteres')) {
+    return error
+  }
+  if (error.includes('coinciden')) {
+    return error
+  }
+  if (error.includes('correo')) {
+    return error
+  }
+  if (error.includes('token')) {
+    return 'El enlace de recuperación expiró o es inválido. Solicita uno nuevo.'
+  }
+
   // Mensajes ya amigables en español
   const spanishKeywords = ['correo', 'contraseña', 'usuario', 'dominio', 'institucional', 'recuper', 'registro', 'sesión', 'token', 'confirm', 'verificar']
   if (spanishKeywords.some(keyword => errorStr.includes(keyword))) {

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, Mail, Lock, User, BookOpen, AlertCircle, AtSign } from 'lucide-react'
+import toast from 'react-hot-toast'
+import { Eye, EyeOff, Mail, Lock, User, BookOpen, AlertCircle, AtSign, Shield, GraduationCap} from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import '../Login/Auth.css'
 import './Register.css'
@@ -19,6 +20,7 @@ const UNIVERSITIES = [
 ]
 
 const CAREERS = [
+  'Tecnología en Desarrollo de Software',
   'Ingeniería en Sistemas / Software',
   'Ingeniería en Telecomunicaciones',
   'Ingeniería Civil',
@@ -35,6 +37,7 @@ const CAREERS = [
 export default function Register() {
   const { register } = useAuth()
   const navigate = useNavigate()
+  const [isAdminForm, setIsAdminForm] = useState(false)
   const [form, setForm] = useState({
     name: '', username: '', email: '', password: '', confirmPassword: '',
     university: '', career: '', terms: false,
@@ -44,10 +47,24 @@ export default function Register() {
   const [error, setError] = useState('')
   const [step, setStep] = useState(1)
 
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
     setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }))
     if (error) setError('')
+  }
+
+  const handleToggleFormType = (isAdmin) => {
+    setIsAdminForm(isAdmin)
+    setError('')
+    setStep(1)
+    setForm(f => ({
+      ...f,
+      university: '',
+      career: '',
+      password: '',
+      confirmPassword: ''
+    }))
   }
 
   const validateStep1 = () => {
@@ -76,13 +93,33 @@ export default function Register() {
     const err = validateStep2()
     if (err) { setError(err); return }
     setLoading(true)
+
     try {
-      await register(form)
-      // Avisamos al usuario del flujo de verificación de correo antes de redirigir
-      alert('¡Registro exitoso! Por favor, revisa tu correo electrónico y confirma tu cuenta antes de iniciar sesión.')
-      navigate('/login')
+      const datosConRol = {
+      ...form,
+      isAdmin: isAdminForm
+    }
+
+      await register(datosConRol)
+      if (isAdminForm) {
+      toast.success('¡Registro de administrador exitoso!', {
+        duration: 5000,
+        icon: '',
+      })
+    } else {
+      toast.success('¡Registro exitoso! Revisa tu correo para verificar tu cuenta.', {
+        duration: 6000,
+        icon: '',
+      })
+    }
+    
+    setTimeout(() => navigate('/login'), 1500)
+
     } catch (err) {
-      setError(err.message || 'Error al registrarse.')
+      toast.error(err.message || 'Error al registrarse', {
+      duration: 5000,
+    })
+    setError(err.message || 'Error al registrarse.')
     } finally {
       setLoading(false)
     }
@@ -99,31 +136,58 @@ export default function Register() {
             <div className="auth-logo__icon">
               <BookOpen size={22} strokeWidth={2.5} />
             </div>
-            <span className="auth-logo__text">poli<strong>connect</strong></span>
+            <span className="auth-logo__text">Ide<strong>Agora</strong></span>
           </Link>
-          <h2 className="auth-panel__heading">Únete a la comunidad universitaria</h2>
+          <h2 className="auth-panel__heading">
+            {isAdminForm ? 'Panel de Gestión Interna' : 'Únete a la comunidad universitaria'}
+          </h2>
           <p className="auth-panel__sub">
-            Crea tu perfil, sube tus proyectos y conecta con estudiantes de todo Ecuador.
+            {isAdminForm 
+              ? 'Regístrate con tu correo de gestión autorizado para moderar repositorios, auditar accesos académicos y dar soporte.'
+              : 'Crea tu perfil, sube tus proyectos y conecta con estudiantes de todo Ecuador.'
+            }
           </p>
-          <ul className="register__benefits">
-            {[
-              'Publica tus proyectos universitarios',
-              'Conecta con estudiantes e investigadores',
-              'Recibe feedback de la comunidad',
-              'Encuentra colaboradores para tus ideas',
-            ].map(b => (
-              <li key={b} className="register__benefit">
-                <span className="register__benefit-check">✓</span>
-                {b}
-              </li>
-            ))}
-          </ul>
+
+          {!isAdminForm && (
+            <ul className="register__benefits">
+              {[
+                'Publica tus proyectos universitarios',
+                'Conecta con estudiantes e investigadores',
+                'Recibe feedback de la comunidad',
+                'Encuentra colaboradores para tus ideas',
+              ].map(b => (
+                <li key={b} className="register__benefit">
+                  <span className="register__benefit-check">✓</span>
+                  {b}
+                </li>
+              ))}
+            </ul>
+           )}
         </div>
       </div>
 
       {/* Right */}
       <div className="auth-panel auth-panel--right">
         <div className="auth-form-wrap">
+
+          {/* BOTONES DE SELECCIÓN DE ROL */}
+          <div className="auth-role-selector">
+            <button 
+              type="button" 
+              className={`role-btn ${!isAdminForm ? 'role-btn--active' : ''}`}
+              onClick={() => handleToggleFormType(false)}
+            >
+              <GraduationCap size={16} /> Estudiante
+            </button>
+            <button 
+              type="button" 
+              className={`role-btn ${isAdminForm ? 'role-btn--active' : ''}`}
+              onClick={() => handleToggleFormType(true)}
+            >
+              <Shield size={16} /> Administrador
+            </button>
+          </div>
+
           {/* Steps indicator */}
           <div className="register__steps">
             {[1, 2].map(s => (
@@ -137,10 +201,10 @@ export default function Register() {
 
           <div className="auth-form-header">
             <h1 className="auth-form-title">
-              {step === 1 ? 'Crea tu cuenta' : 'Configura tu acceso'}
+              {isAdminForm ? 'Registro Administrativo' : step === 1 ? 'Crea tu cuenta' : 'Configura tu acceso'}
             </h1>
             <p className="auth-form-sub">
-              {step === 1 ? 'Ingresa tus datos personales para comenzar' : 'Establece tu contraseña y acepta los términos'}
+              {isAdminForm ? 'Ingresa tus credenciales del sistema institucional' : step === 1 ? 'Ingresa tus datos personales e institucionales' : 'Establece tu contraseña y finaliza el registro'}
             </p>
           </div>
 
@@ -168,30 +232,45 @@ export default function Register() {
                   </div>
                 </div>
                 <div className="auth-field">
-                  <label className="auth-label">Correo electrónico</label>
+                  <label className="auth-label">Correo electronico</label>
                   <div className="auth-input-wrap">
                     <Mail size={16} className="auth-input-icon" />
-                    <input name="email" type="email" placeholder="tu correo@dominio.com" className="auth-input" value={form.email} onChange={handleChange} />
+                    <input 
+                      name="email" 
+                      type="email" 
+                      placeholder={isAdminForm ? "Ej. admin.gestion@dominio.com" : "ejemplo@dominio.com"} 
+                      className="auth-input" 
+                      value={form.email} 
+                      onChange={handleChange} 
+                    />
                   </div>
                 </div>
-                <div className="auth-field">
-                  <label className="auth-label">Universidad <span className="auth-label-optional">(opcional)</span></label>
-                  <select name="university" className="auth-input auth-select" value={form.university} onChange={handleChange}>
-                    <option value="">Selecciona tu universidad</option>
-                    {UNIVERSITIES.map(u => <option key={u} value={u}>{u}</option>)}
-                  </select>
-                </div>
-                <div className="auth-field">
-                  <label className="auth-label">Carrera <span className="auth-label-optional">(opcional)</span></label>
-                  <select name="career" className="auth-input auth-select" value={form.career} onChange={handleChange}>
-                    <option value="">Selecciona tu carrera</option>
-                    {CAREERS.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
+
+                {/* Se ocultan los campos opcionales universitarios si es Admin */}
+                
+                {!isAdminForm && (
+                  <>
+                    <div className="auth-field">
+                      <label className="auth-label">Universidad <span className="auth-label-optional">(opcional)</span></label>
+                      <select name="university" className="auth-input auth-select" value={form.university} onChange={handleChange}>
+                        <option value="">Selecciona tu universidad</option>
+                        {UNIVERSITIES.map(u => <option key={u} value={u}>{u}</option>)}
+                      </select>
+                    </div>
+                    <div className="auth-field">
+                      <label className="auth-label">Carrera <span className="auth-label-optional">(opcional)</span></label>
+                      <select name="career" className="auth-input auth-select" value={form.career} onChange={handleChange}>
+                        <option value="">Selecciona tu carrera</option>
+                        {CAREERS.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </div>
+                  </>
+                )}
                 <div className="register__actions">
                   <button type="submit" className="register__btn-submit">Continuar →</button>
                 </div>
               </>
+            
             ) : (
               <>
                 <div className="auth-field">
@@ -230,7 +309,7 @@ export default function Register() {
                     ← Volver
                   </button>
                   <button type="submit" className={`register__btn-submit${loading ? ' loading' : ''}`} disabled={loading}>
-                    {loading ? <span className="auth-spinner" /> : 'Crear cuenta'}
+                    {loading ? <span className="auth-spinner" /> : isAdminForm ? 'Registrar Administrador' : 'Crear cuenta'}
                   </button>
                 </div>
               </>
