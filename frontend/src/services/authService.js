@@ -1,9 +1,8 @@
 import axios from 'axios'
+import API_BASE_URL from './apiConfig.js'
 
-// Usamos rutas relativas para que el proxy de Vite (vite.config.js)
-// intercepte las peticiones y las desvíe automáticamente al backend (puerto 3000).
-const AUTH_URL = '/api/auth'
-const USER_URL = '/api/users'
+const AUTH_URL = `${API_BASE_URL}/api/auth`
+const USER_URL = `${API_BASE_URL}/api/users`
 
 /**
  * Registra un nuevo estudiante en la plataforma PoliConnect.
@@ -28,6 +27,17 @@ export const loginUser = async (email, password) => {
   const response = await axios.post(`${AUTH_URL}/login`, {
     email,
     password,
+  })
+
+  return response.data
+}
+
+export const registerAdmin = async (userData) => {
+  const response = await axios.post(`${AUTH_URL}/register-admin`, {
+    name: userData.name,
+    username: userData.username,
+    email: userData.email,
+    password: userData.password,
   })
 
   return response.data

@@ -63,13 +63,16 @@ const obtenerConversacionesPorUsuario = async (usuarioId) => {
         .from('conversaciones')
         .select(`
             *,
-            perfil_a:profiles!conversaciones_usuario_a_fkey(id, nombre_completo, nombre_usuario),
-            perfil_b:profiles!conversaciones_usuario_b_fkey(id, nombre_completo, nombre_usuario)
+            perfil_a:profiles!usuario_a(id, nombre_completo),
+            perfil_b:profiles!usuario_b(id, nombre_completo)
         `)
         .or(`usuario_a.eq.${usuarioId},usuario_b.eq.${usuarioId}`)
         .order('updated_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+        console.error("Error en obtenerConversacionesPorUsuario:", error);
+        throw error;
+    }
     return data || [];
 };
 
@@ -88,9 +91,9 @@ const marcarComoLeidos = async (conversacion_id, usuarioId) => {
 const buscarUsuarios = async (query, miId) => {
     const { data, error } = await supabaseService
         .from('profiles')
-        .select('id, nombre_completo, nombre_usuario')
-        .neq('id', miId) 
-        .or(`nombre_completo.ilike.%${query}%,nombre_usuario.ilike.%${query}%`)
+        .select('id, nombre_completo')
+        .neq('id', miId)
+        .ilike('nombre_completo', `%${query}%`)
         .limit(10);
 
     if (error) throw error;

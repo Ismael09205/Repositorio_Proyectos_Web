@@ -1,4 +1,5 @@
 const { supabaseService } = require('../config/supabase');
+const { aiService } = require('./ia.service'); // Inyectamos el servicio de IA
 
 const getMyProjects = async (userId, filters = {}) => {
   const search = String(filters.search || '').trim().toLowerCase();
@@ -87,7 +88,31 @@ const getProjectById = async (projectId) => {
 };
 
 const createProject = async (projectData) => {
-  const { data, error } = await supabaseService.from('proyectos').insert([projectData]).select().single();
+  let embedding = null;
+
+  try {
+    // 1. Unimos el título y el resumen para darle el contexto semántico que leerá Qwen
+    const textoParaVector = `${projectData.titulo}. ${projectData.resumen}`;
+    
+    // 2. Generamos el vector de 384 dimensiones usando Hugging Face
+    embedding = await aiService.generarEmbedding(textoParaVector);
+  } catch (aiError) {
+    // Si la API de Hugging Face llega a fallar o excede límites, atrapamos el error.
+    // De esta forma evitamos romper el flujo principal y el estudiante podrá publicar su tesis pase lo que pase.
+    console.error('Error generando embedding para el proyecto:', aiError);
+  }
+
+  // 3. Insertamos en Supabase añadiendo el campo embedding a la petición
+  const { data, error } = await supabaseService
+    .from('proyectos')
+    .insert([
+      {
+        ...projectData,
+        embedding: embedding // Si falló la IA se guardará como null
+      }
+    ])
+    .select()
+    .single();
 
   if (error) {
     throw error;

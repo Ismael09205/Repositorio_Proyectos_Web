@@ -63,5 +63,5 @@ module.exports = {
     obtenerConversaciones,
     obtenerMensajes,
     iniciarConversacion,
-    buscarUsuarios // ¡Asegúrate de que esto se exporte!
+    buscarUsuarios 
 };

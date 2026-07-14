@@ -7,20 +7,18 @@ const LINKS = {
     { label: 'Inicio', to: '/' },
     { label: 'Explorar proyectos', to: '/explorar' },
     { label: 'Categorías', to: '/categorias' },
-    { label: 'Blog', to: '/blog' },
   ],
   Comunidad: [
-    { label: 'Sobre nosotros', to: '/sobre-nosotros' },
-    { label: 'Socializar', to: '/chat' },
     { label: 'Únete como autor', to: '/register' },
-    { label: 'Universidades', to: '/universidades' },
-    { label: 'Mentores', to: '/mentores' },
+    { label: 'Iniciar sesión', to: '/login' },
+    { label: 'Mi perfil', to: '/perfil' },
   ],
   Soporte: [
-    { label: 'FAQ', to: '/faq' },
-    { label: 'Contáctanos', to: '/contacto' },
-    { label: 'Términos y condiciones', to: '/terminos' },
-    { label: 'Política de privacidad', to: '/privacidad' },
+    { label: 'Recuperar contraseña', to: '/forgot-password' },
+    { label: 'Registro', to: '/register' },
+    { label: 'Iniciar sesión', to: '/login' },
+    { label: 'Explorar', to: '/explorar' },
+    { label: 'Inicio', to: '/' },
   ],
 }
 
@@ -31,6 +29,7 @@ export default function Footer() {
         {/* Brand */}
         <div className="footer__brand">
           <Link to="/" className="footer__logo">
+            
             <img src={logoPoliconnect} alt="Logo Policonnect" className="logo-image"/>
             <span className="footer__logo-text">Ide<strong>Agora</strong></span>
           </Link>

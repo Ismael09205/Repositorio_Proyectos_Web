@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { translateError } from '../utils/errorMessages.js'
-import { loginUser, registerUser, fetchProfile } from '../services/authService.js'
+import { loginUser, registerUser, registerAdmin, fetchProfile } from '../services/authService.js'
 
 const AuthContext = createContext(null)
 
@@ -68,45 +68,58 @@ export function AuthProvider({ children }) {
       saveAuth(userData, profile, accessToken)
       return { auth: userData, profile }
     } catch (err) {
-      const backendError = err.response?.data?.error || err.message || 'No se pudo iniciar sesión'
-      const backendInternal = err.response?.data?.internal || err.message
-      console.error('Login error details:', backendInternal, err.response?.data)
-      throw new Error(translateError(backendError))
+        const backendError = err.response?.data?.error || err.message || 'No se pudo iniciar sesión'
+        const backendInternal = err.response?.data?.internal || err.message
+        console.error('Login error details:', backendInternal, err.response?.data)
+        const e = new Error(translateError(backendError))
+        e.status = err.response?.status || null
+        throw e
     }
   }
 
   const register = async (data) => {
-  try {
-    const response = await registerUser(data)
-    const resData = response?.data ?? response
-    
-    // Supabase devuelve el user, pero el access_token será null si falta confirmar email
-    const accessToken = resData?.token ?? resData?.session?.access_token ?? resData?.access_token ?? null
-    const userData = resData?.user ?? resData?.session?.user ?? resData?.auth?.user ?? null
 
-    if (!userData) {
-      const backendError = resData?.error || 'No se pudo registrar el usuario'
-      throw new Error(translateError(backendError))
+    try {
+      
+      const response = data?.isAdmin
+        ? await registerAdmin(data)
+        : await registerUser(data)
+        
+      const resData = response?.data ?? response
+      const accessToken = resData?.token ?? resData?.session?.access_token ?? resData?.access_token ?? null
+      const userData = resData?.user ?? resData?.session?.user ?? resData?.auth?.user ?? null
+
+      if (!userData) {
+        const backendError = resData?.error || 'No se pudo registrar el usuario'
+        const backendInternal = resData?.internal || null
+        console.error('Register failed:', backendInternal || backendError, resData)
+        throw new Error(translateError(backendError))
+      }
+
+      if (!accessToken) {
+        // No hay token porque requiere confirmación. 
+        // NO guardamos sesión (saveAuth), el usuario debe verificar su mail primero.
+        console.log('Registro exitoso, pero requiere confirmación de correo.');
+        return { user: userData, requireConfirmation: true }
+      }
+
+      // 4. Si sí hay token (ej: registro directo o si quitan la verificación después)
+      let profile = null
+      if (accessToken) {
+        profile = await fetchProfile(accessToken)
+      }
+
+      saveAuth(userData, profile, accessToken)
+      return {user: userData, requireConfirmation: false}
+    } catch (err) {
+      const backendError = err.response?.data?.error || err.message || 'No se pudo registrar'
+      const backendInternal = err.response?.data?.internal || err.message
+      console.error('Register error details:', backendInternal, err.response?.data)
+      const e = new Error(translateError(backendError))
+      e.status = err.response?.status || null
+      throw e
     }
-
-    // --- EL CAMBIO CLAVE ESTÁ AQUÍ ---
-    if (!accessToken) {
-      // No hay token porque requiere confirmación. 
-      // NO llamamos a saveAuth(). El usuario sigue "desconectado" hasta que verifique su correo.
-      console.log('Registro exitoso, pero requiere confirmación de correo.');
-      return { user: userData, requireConfirmation: true }
-    }
-
-    // Si por alguna razón sí hay token (ej. si luego agregas login con Google)
-    let profile = await fetchProfile(accessToken)
-    saveAuth(userData, profile, accessToken)
-    return { user: userData, requireConfirmation: false }
-    
-  } catch (err) {
-    const backendError = err.response?.data?.error || err.message || 'No se pudo registrar'
-    throw new Error(translateError(backendError))
   }
-}
 
   return (
     <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>

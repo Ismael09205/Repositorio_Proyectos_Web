@@ -1,12 +1,12 @@
 require('dotenv').config(); 
-const http = require('http'); // chat
 const app = require('./app');
-const { inicializarSocket } = require('./config/socket'); //chat
-const registerSockets = require('./sockets/index'); //chat
-const socketAuthMiddleware = require('./middlewares/socket.middleware');//chat
+const http = require('http');
+const { inicializarSocket } = require('./config/socket');
+const registerSockets = require('./sockets/index');
+const socketAuthMiddleware = require('./middlewares/socket.middleware');
 
 const PORT = process.env.PORT || 3000;
- 
+
 // Creamos el servidor HTTP a partir de Express
 const server = http.createServer(app);
  

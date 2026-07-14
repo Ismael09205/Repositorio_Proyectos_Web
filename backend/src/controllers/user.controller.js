@@ -1,22 +1,42 @@
 const userService = require('../services/user.service');
+const { supabaseService } = require('../config/supabase');
 
-// Función para obtener el perfil del usuario autenticado, 
-// se asume que el middleware de autenticación ya ha verificado 
-// el token y ha agregado la información del usuario al objeto de la petición (req.user)
+
 const getProfile = async (req, res) => {
     try {
-        // Consultamos al servicio para traer los datos extendidos de la tabla 'profiles'
-        const profile = await userService.getProfileById(req.user.id, req.user.user_metadata);
+       
+        const { data: adminData, error: adminError } = await supabaseService
+            .from('administrators')
+            .select('*')
+            .eq('id', req.user.id)
+            .maybeSingle(); 
 
-        // Devolvemos los datos del perfil combinados con el email oficial de la autenticación
+        if (adminError) {
+            console.error(">>>> [DEBUG GETPROFILE] Error al consultar tabla administrators:", adminError);
+            throw adminError;
+        }
+
+        let profile = null;
+
+        if (adminData) {
+            profile = adminData;
+        } else {
+            // Si no está en administrators, es un estudiante común y corriente
+            profile = await userService.getProfileById(req.user.id, req.user.user_metadata);
+        }
+
+        if (!profile) {
+            return res.status(404).json({ error: 'No se encontró el perfil en el sistema.' });
+        }
+
         return res.status(200).json({
             ...profile,
             email: req.user.email
         });
+
     } catch (error) {
-        console.error('getProfile error:', error);
-        // Si no encuentra el perfil o hay un fallo, manejamos el estado de error
-        return res.status(404).json({ error: error.message || 'No se encontró el perfil del estudiante en IdeAgora.' });
+        console.error('>>>> [DEBUG GETPROFILE] ERROR CRÍTICO CAPTURADO:', error);
+        return res.status(500).json({ error: error.message || 'Error interno del servidor.' });
     }
 }
 
@@ -27,12 +47,22 @@ const updateProfile = async (req, res) => {
             return res.status(400).json({ error: 'Datos de perfil requeridos.' });
         }
 
-        // Validacion minima para que el perfil sea coherente
-        if (!req.body.nombre_completo || !String(req.body.nombre_completo).trim()) {
-            return res.status(400).json({ error: 'El nombre completo es requerido.' });
+        // El frontend puede enviar datos diferentes según el tipo de usuario.
+        // Para administradores se utiliza `name`; para estudiantes `nombre_completo`.
+        if (
+          req.body.nombre_completo !== undefined &&
+          (!req.body.nombre_completo || !String(req.body.nombre_completo).trim())
+        ) {
+          return res.status(400).json({ error: 'El nombre completo es requerido.' });
         }
 
-        // Enviamos al servicio el ID del usuario autenticado y el cuerpo con los nuevos cambios
+        if (
+          req.body.name !== undefined &&
+          (!req.body.name || !String(req.body.name).trim())
+        ) {
+          return res.status(400).json({ error: 'El nombre completo es requerido.' });
+        }
+
         const updatedProfile = await userService.updateProfileById(req.user.id, req.body);
 
         return res.status(200).json({

@@ -1,4 +1,5 @@
 const authService = require('../services/auth.service');
+const authLogsService = require('../services/authLogs.service');
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -48,6 +49,9 @@ const getFriendlyError = (error) => {
     }
     if (normalized.includes('password') && normalized.includes('invalid')) {
         return 'Contraseña inválida o muy corta (mínimo 6 caracteres).';
+    }
+    if (normalized.includes('ban') || normalized.includes('banned') || normalized.includes('banned_until')) {
+        return 'Tu cuenta ha sido desactivada. Contacta a un administrador si crees que es un error.';
     }
     if (normalized.includes('no se pudo identificar al usuario desde el token')) {
         return 'El enlace de recuperación no se pudo procesar. Solicita uno nuevo.';
@@ -99,7 +103,7 @@ const register = async (req, res) => {
 
         const metadata = {
             nombre_completo: resolvedName || '', 
-            nombre_usuario: resolvedUsername || '',
+            username: resolvedUsername || '',
             universidad: resolvedUniversity,
             carrera: resolvedCareer || '',
             facultad: facultad || '',
@@ -127,6 +131,58 @@ const register = async (req, res) => {
     }
 }
 
+const registerAdmin = async (req, res) => {
+    try {
+        const { name, username, email, password } = req.body;
+
+        if (!name || !name.trim()) return res.status(400).json({ error: 'Nombre completo es requerido.' });
+        if (!username || !username.trim()) return res.status(400).json({ error: 'Nombre de usuario es requerido.' });
+        if (!email || !email.trim() || !password) return res.status(400).json({ error: 'Email y contraseña son requeridos.' });
+        if (String(password).length < 6) return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres.' });
+
+        const lowerEmail = email.trim().toLowerCase();
+        const isEpnEmail = lowerEmail.endsWith('@epn.edu.ec');
+        const isAdminPattern = lowerEmail.includes('admin') || lowerEmail.includes('area') || lowerEmail.includes('gestion');
+        const isValidAdminEmail = isEpnEmail && isAdminPattern;
+
+        if (!isValidAdminEmail) {
+            return res.status(403).json({ error: 'El correo electrónico administrativo debe ser institucional de la EPN y corresponder a una cuenta de gestión autorizada.' });
+        }
+
+        const metadata = {
+            nombre_completo: name.trim(),
+            username: username.trim(),
+            role: 'admin'
+        };
+
+        const data = await authService.registerUser(email, password, metadata, true);
+
+        try {
+            if (typeof authLogsService !== 'undefined') {
+                await authLogsService.createLog(
+                    data.auth?.user?.id,
+                    'register_admin',
+                    email,
+                    req.ip || req.connection?.remoteAddress,
+                    req.get('user-agent')
+                );
+            }
+        } catch (logError) {
+            console.error('Error al registrar log de administrador:', logError);
+        }
+
+        return res.status(201).json({
+            message: 'Administrador registrado correctamente en el sistema.',
+            user: data.auth?.user ?? null,
+            session: data.auth?.session ?? null,
+            profile: data.profile ?? null,
+        });
+    } catch (error) {
+        console.error("Error en registro de administrador:", error.message);
+        return res.status(400).json({ error: error.message });
+    }
+};
+
 // Función de login corregida para aplanar la respuesta de Supabase
 const login = async (req, res) => {
     try {
@@ -139,23 +195,49 @@ const login = async (req, res) => {
         // 1. Intentamos hacer el login en el servicio de Supabase
         const authData = await authService.loginUser(email, password);
 
-        // 2. EL CANDADO: Revisamos si el correo del usuario ya fue confirmado por Supabase
-        // Supabase guarda esto en authData.user.email_confirmed_at. Si es NULL, no está verificado.
-        if (!authData.user || !authData.user.email_confirmed_at) {
-            return res.status(401).json({ 
-                error: 'Por favor, verifica tu correo electrónico antes de iniciar sesión.' 
+        // 2. Si Supabase permite el login, lo permitimos
+        // (Supabase ya valida email_confirmed_at según su configuración)
+        let authLogSaved = null;
+        try {
+            console.debug('Login exitoso para usuario:', {
+                userId: authData.user?.id,
+                email,
             });
+
+            authLogSaved = await authLogsService.createLog(
+                authData.user?.id,
+                'login',
+                email,
+                req.ip || req.connection?.remoteAddress,
+                req.get('user-agent')
+            );
+
+            if (!authLogSaved) {
+                console.warn('Auth log no se guardó para login exitoso.', {
+                    userId: authData.user?.id,
+                    email,
+                    ip: req.ip || req.connection?.remoteAddress,
+                    userAgent: req.get('user-agent'),
+                });
+            }
+        } catch (logError) {
+            console.error('Error al guardar auth log en login:', logError);
         }
 
-        // 3. Si está confirmado, pasa limpio y le entregamos el token
         res.status(200).json({
             message: 'Login exitoso',
             token: authData.session?.access_token || authData.token, 
-            user: authData.user
+            user: authData.user,
+            authLogSaved: Boolean(authLogSaved)
         });
     } catch (error) {
         const payload = buildErrorResponse(error);
         console.error('Login error:', error);
+        const raw = String(error?.message || error || '').toLowerCase();
+        // Si el error proviene de un baneo, respondemos 403 (Prohibido)
+        if (raw.includes('ban') || raw.includes('banned') || raw.includes('banned_until') || raw.includes('usuario banead') || raw.includes('baneado')) {
+            return res.status(403).json(payload);
+        }
         return res.status(400).json(payload);
     }
 }
@@ -225,6 +307,7 @@ const changePassword = async (req, res) => {
 
 module.exports = {
     register,
+    registerAdmin,
     login,
     recover,
     changePassword,

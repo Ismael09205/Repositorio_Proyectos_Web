@@ -16,6 +16,7 @@ export default function Navbar() {
   const dropRef = useRef(null)
   const searchRef = useRef(null)
 
+  // Extraemos el nombre real usando primero el username, luego el nombre completo y finalmente un fallback
   const displayNombre =
     user?.profile?.nombre_usuario ||
     user?.profile?.nombre_completo ||
@@ -65,6 +66,9 @@ export default function Navbar() {
       <div className="navbar__inner container">
         {/* Logo */}
         <Link to="/" className="navbar__logo">
+          
+          
+          
           <img src={logoPoli} alt="Logo IdeaAgora" className="logo-image" />
           <span className="navbar__logo-text">Ide<strong>Agora</strong></span>
         </Link>
@@ -207,11 +211,6 @@ export default function Navbar() {
                 {['Inicio', 'Explorar', 'Categorías', 'Sobre nosotros'][i]}
               </NavLink>
             ))}
-            {user && (
-              <NavLink to="/chat" className="navbar__mobile-link" onClick={() => setMenuOpen(false)}>
-                Socializar
-              </NavLink>
-            )}
             {!user && (
               <div className="navbar__mobile-auth">
                 <Link to="/login" className="btn btn-outline" onClick={() => setMenuOpen(false)}>Iniciar Sesión</Link>

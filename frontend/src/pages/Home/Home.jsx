@@ -4,6 +4,7 @@ import { ArrowRight, Flame, Clock, Star } from 'lucide-react'
 import Hero from '../../components/Hero/Hero'
 import ProjectCard from '../../components/ProjectCard/ProjectCard'
 import { MOCK_PROJECTS, CATEGORIES } from '../../services/mockData'
+import { ChatFlotante } from '../../components/ChatFlotante/ChatFlotante'; // <-- Importas tu nuevo componente
 import './Home.css'
 
 const FILTERS = [
@@ -109,6 +110,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <ChatFlotante /> {/* <-- Lo renderizas aquí al final */}
     </div>
   )
 }

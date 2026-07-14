@@ -6,14 +6,69 @@ async function getProfileById(userId) {
     .from('profiles')
     .select('*')
     .eq('id', userId)
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
 
-  return data;
+  if (data) {
+    return data;
+  }
+
+  // If not found in profiles, try administrators table
+  const { data: adminData, error: adminError } = await supabaseService
+    .from('administrators')
+    .select('*')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (adminData) {
+    return adminData;
+  }
+
+  // If not found in either table
+  if (error || adminError) {
+    throw new Error('El perfil no existe en el sistema.');
+  }
+
+  throw new Error('El perfil no existe en el sistema.');
 }
 
 async function updateProfileById(userId, profileData) {
+
+  //Check if user is admin or student
+  const { data: adminCheck } = await supabaseService
+    .from('administrators')
+    .select('id')
+    .eq('id', userId)
+    .maybeSingle();
+
+  const isAdmin = !!adminCheck;
+
+    if (isAdmin) {
+    // Update administrator profile
+    const currentProfile = await getProfileById(userId);
+
+    const payload = {
+      id: userId,
+      name: profileData?.name ?? currentProfile.name,
+      username: profileData?.username ?? currentProfile.username,
+      cargo: profileData?.cargo ?? currentProfile.cargo,
+      especialidad: profileData?.especialidad ?? currentProfile.especialidad,
+      sector: profileData?.sector ?? currentProfile.sector,
+    };
+
+    const { data, error } = await supabaseService
+      .from('administrators')
+      .update(payload)
+      .eq('id', userId)
+      .select('*')
+      .single();
+
+    if (error) throw error;
+    return data;
+    
+  }else {
+
   // 1. Traemos el perfil actual para no perder los datos que no se envíen en el body
   const currentProfile = await getProfileById(userId);
 
@@ -52,7 +107,8 @@ async function updateProfileById(userId, profileData) {
 
   if (error) throw error;
   return data;
-}
+  }
+};
 
 module.exports = {
   getProfileById,
