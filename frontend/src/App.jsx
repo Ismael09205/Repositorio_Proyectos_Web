@@ -13,6 +13,7 @@ import MyProjects from './pages/MyProjects/MyProjects.jsx'
 import ProjectDetail from './pages/ProjectDetail/ProjectDetail.jsx'
 import Chat from './pages/Chat/Chat.jsx'
 import MainLayout from './layouts/MainLayout.jsx'
+import Done from './pages/Done/Done.jsx'
 
 function App() {
   return (
@@ -70,6 +71,7 @@ function App() {
         <Route path="/proyecto/:id" element={<ProjectDetail />} />
         <Route path="/categorias" element={<Navigate to="/explorar" replace />} />
         <Route path="/chat" element={<Chat />} />
+        <Route path="/done" element={<Done />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

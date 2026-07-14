@@ -1,9 +1,11 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { ArrowRight, Flame, Clock, Star } from 'lucide-react'
 import Hero from '../../components/Hero/Hero'
 import ProjectCard from '../../components/ProjectCard/ProjectCard'
-import { MOCK_PROJECTS, CATEGORIES } from '../../services/mockData'
+import { fetchAllProjects } from '../../services/projectService'
+import { CATEGORIES } from '../../services/mockData'
+import toast from 'react-hot-toast'
 import './Home.css'
 
 const FILTERS = [
@@ -14,10 +16,59 @@ const FILTERS = [
 
 export default function Home() {
   const [activeFilter, setActiveFilter] = useState('featured')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [alertMessage, setAlertMessage] = useState(null)
+  const [projects, setProjects] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const featured = MOCK_PROJECTS.filter(p => p.featured)
-  const recent = [...MOCK_PROJECTS].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 6)
-  const top = [...MOCK_PROJECTS].sort((a, b) => b.likes - a.likes).slice(0, 6)
+  // Load projects from API
+  useEffect(() => {
+    loadProjects()
+  }, [])
+
+  const loadProjects = async () => {
+    try {
+      setLoading(true)
+      const data = await fetchAllProjects({ sort: 'recent' })
+      setProjects(data || [])
+    } catch (error) {
+      console.error('Error loading projects:', error)
+      toast.error('Error al cargar proyectos')
+      setProjects([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const featured = projects.slice(0, 6)
+  const recent = [...projects]
+    .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+    .slice(0, 6)
+  const top = [...projects]
+    .sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0))
+    .slice(0, 6)
+
+  /*UseEffect para manejar los parámetros de búsqueda y alertas de cancelación y exito de donaciones*/
+  useEffect(() => {
+    const status = searchParams.get('status');
+    
+    if (status === 'success') {
+      setAlertMessage({
+        type: 'success',
+        title: '¡Donación Exitosa!',
+        text: 'Muchas gracias por apoyar a IdeAgora. Tu contribución nos ayuda a seguir creciendo.'
+      });
+      // Limpiamos la URL para que no vuelva a salir la alerta si recargan la página
+      setSearchParams({});
+    } else if (status === 'cancel') {
+      setAlertMessage({
+        type: 'cancel',
+        title: 'Pago Cancelado',
+        text: 'El proceso de donación ha sido cancelado. No se realizó ningún cargo.'
+      });
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams]);
 
   const displayProjects = activeFilter === 'featured' ? featured
     : activeFilter === 'recent' ? recent
@@ -25,6 +76,18 @@ export default function Home() {
 
   return (
     <div className="home page-enter">
+      {/* 3. VENTANITA FLOTANTE (ALERTA DE STRIPE) */}
+      {alertMessage && (
+        <div className="stripe-alert-overlay">
+          <div className={`stripe-alert-card ${alertMessage.type}`}>
+            <h3>{alertMessage.title}</h3>
+            <p>{alertMessage.text}</p>
+            <button className="stripe-alert-btn" onClick={() => setAlertMessage(null)}>
+              Aceptar
+            </button>
+          </div>
+        </div>
+      )}
       <Hero />
 
       {/* Featured projects */}
@@ -54,9 +117,19 @@ export default function Home() {
         </div>
 
         <div className="home__projects-grid">
-          {displayProjects.map(project => (
-            <ProjectCard key={project.id} project={project} />
-          ))}
+          {loading ? (
+            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem' }}>
+              <p>Cargando proyectos...</p>
+            </div>
+          ) : displayProjects.length === 0 ? (
+            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem' }}>
+              <p>No hay proyectos disponibles</p>
+            </div>
+          ) : (
+            displayProjects.map(project => (
+              <ProjectCard key={project.id} project={project} />
+            ))
+          )}
         </div>
       </section>
 
@@ -74,27 +147,33 @@ export default function Home() {
           </div>
 
           <div className="home__cats-grid">
-            {CATEGORIES.map(cat => (
-              <Link
-                key={cat.id}
-                to={`/explorar?categoria=${cat.id}`}
-                className="home__cat-card"
-                style={{ '--cat-bg': cat.color, '--cat-text': cat.textColor }}
-              >
-                <div className="home__cat-icon">
-                  {cat.label.charAt(0)}
-                </div>
-                <span className="home__cat-label">{cat.label}</span>
-                <span className="home__cat-count">
-                  {MOCK_PROJECTS.filter(p => p.categoryId === cat.id).length} proyectos
-                </span>
-              </Link>
-            ))}
+            {CATEGORIES.map(cat => {
+              const count = projects.filter(p => 
+                p.categoria?.toLowerCase() === cat.label.toLowerCase()
+              ).length
+              return (
+                <Link
+                  key={cat.id}
+                  to={`/explorar?categoria=${cat.id}`}
+                  className="home__cat-card"
+                  style={{ '--cat-bg': cat.color, '--cat-text': cat.textColor }}
+                >
+                  <div className="home__cat-icon">
+                    {cat.label.charAt(0)}
+                  </div>
+                  <span className="home__cat-label">{cat.label}</span>
+                  <span className="home__cat-count">
+                    {count} {count === 1 ? 'proyecto' : 'proyectos'}
+                  </span>
+                </Link>
+              )
+            })}
           </div>
         </div>
       </section>
-
-      {/* CTA Banner */}
+      {/* CTA Banner - Done*/}
+      <div className='banner__done'>
+            {/* CTA Banner */}
       <section className="home__cta container">
         <div className="home__cta-inner">
           <div className="home__cta-text">
@@ -109,6 +188,23 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Donaciones*/}
+      <section className="home__done container">
+        <div className="home__done-inner">
+          <div className="info_donate">
+            <h2 className="home__done-title">¿Te gustó nuestra página?</h2>
+            <p className="home__done-sub">
+            Nos puede ayudar con una donación  
+            </p>
+          </div>
+          <div className="home__done-actions">
+            <Link to="/done" className="btn btn-done">Donar</Link>
+            <Link to="/calificar" className="btn btn-calificar">Calificar</Link>
+          </div>
+        </div>
+      </section>
+        </div>  
     </div>
   )
 }

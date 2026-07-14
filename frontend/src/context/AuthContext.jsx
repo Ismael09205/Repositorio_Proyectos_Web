@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react'
 import { translateError } from '../utils/errorMessages.js'
 import { loginUser, registerUser, registerAdmin, fetchProfile } from '../services/authService.js'
 
-const AuthContext = createContext(null)
+export const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)

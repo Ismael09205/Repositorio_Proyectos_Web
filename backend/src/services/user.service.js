@@ -1,35 +1,31 @@
 const { supabaseService } = require('../config/supabase');
 
 async function getProfileById(userId) {
-  // El trigger ya asegura que el perfil existe al registrarse.
-  const { data, error } = await supabaseService
+  // 1. Buscamos primero en perfiles de estudiantes
+  const { data: studentData, error: studentError } = await supabaseService
     .from('profiles')
     .select('*')
     .eq('id', userId)
     .maybeSingle();
 
-  if (error) throw error;
-
-  if (data) {
-    return data;
+  if (studentError) throw studentError;
+  if (studentData) {
+    return studentData; // Ya incluye el campo 'rol': 'estudiante' nativo de la BD
   }
 
-  // If not found in profiles, try administrators table
+  // 2. Si no es estudiante, buscamos en administradores
   const { data: adminData, error: adminError } = await supabaseService
     .from('administrators')
     .select('*')
     .eq('id', userId)
     .maybeSingle();
 
+  if (adminError) throw adminError;
   if (adminData) {
-    return adminData;
+    return adminData; // Ya incluye el campo 'rol': 'administrador' nativo de la BD
   }
 
-  // If not found in either table
-  if (error || adminError) {
-    throw new Error('El perfil no existe en el sistema.');
-  }
-
+  // 3. Si no existe en ninguna de las dos tablas
   throw new Error('El perfil no existe en el sistema.');
 }
 

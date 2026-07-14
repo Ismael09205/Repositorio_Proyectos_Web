@@ -16,58 +16,73 @@ class AuthLogsService {
   /**
    * Create a log entry for user authentication events
    */
-  async createLog(userId, action, email, ipAddress = null, userAgent = null) {
-    try {
-      // Validamos que venga el userId para evitar mandar un null que rompa la constraint
-      if (!userId) {
-        console.error('No se puede crear el log: userId es requerido', {
-          userId,
-          action,
-          email,
-          ipAddress,
-          userAgent,
-        });
-        return null;
-      }
-
-      const payload = {
-        user_id: userId,
-        action: String(action || 'login').toUpperCase(),
-        email: email ? String(email).trim().toLowerCase() : null,
-        ip_address: ipAddress || null,
-        user_agent: userAgent || null,
-        created_at: getEcuadorTimestamp(),
-      };
-
-      const { data, error } = await supabaseService
-        .from('auth_logs')
-        .insert([payload])
-        .select()
-        .single();
-
-      if (error) {
-        // En lugar de lanzar el error con 'throw' y tumbar la petición de login/register, 
-        // lo registramos en consola para que el usuario sí pueda entrar aunque falle el log.
-        console.error('Error de Supabase al insertar auth log:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code,
-        });
-        return null; 
-      }
-      
-      if (!data) {
-        console.warn('El insert de auth log no devolvió datos.', payload);
-        return null;
-      }
-
-      return data;
-    } catch (error) {
-      console.error('Error crítico creando el auth log:', error);
+  async createLog(userId, action, email, ipAddress, userAgent, rol) {
+  try {
+    // 1. Validaciones rígidas de parámetros obligatorios
+    if (!userId) {
+      console.error('>>>> [LOGS ERROR] Intento de inserción rechazado: "userId" es requerido.');
       return null;
     }
+
+    if (!action || !String(action).trim()) {
+      console.error('>>>> [LOGS ERROR] Intento de inserción rechazado: "action" es requerida.');
+      return null;
+    }
+
+    if (!email || !String(email).trim()) {
+      console.error('>>>> [LOGS ERROR] Intento de inserción rechazado: "email" es requerido.');
+      return null;
+    }
+
+    // 2. Validación estricta del ENUM del rol
+    const rolesValidos = ['estudiante', 'administrador'];
+    const rolNormalizado = rol ? String(rol).trim().toLowerCase() : null;
+
+    if (!rolNormalizado || !rolesValidos.includes(rolNormalizado)) {
+      console.error(`>>>> [LOGS ERROR] Intento de inserción rechazado: El rol "${rol}" no es válido en el sistema.`);
+      return null;
+    }
+
+    // 3. Construcción limpia y normalizada del Payload[cite: 1]
+    const payload = {
+      user_id: userId,
+      action: String(action).trim().toUpperCase(), // Ej: LOGIN, REGISTER, LOGOUT
+      email: String(email).trim().toLowerCase(),
+      ip_address: ipAddress ? String(ipAddress).trim() : '0.0.0.0', // Evitamos el null si es posible
+      user_agent: userAgent ? String(userAgent).trim() : 'Desconocido',
+      rol: rolNormalizado, // Persistencia nativa del rol[cite: 1]
+      created_at: typeof getEcuadorTimestamp === 'function' ? getEcuadorTimestamp() : new Date().toISOString(),
+    };
+
+    // 4. Inserción en la Base de Datos[cite: 1]
+    const { data, error } = await supabaseService
+      .from('auth_logs')
+      .insert([payload])
+      .select('*')
+      .maybeSingle(); // Usamos maybeSingle de forma segura por si acaso
+
+    if (error) {
+      // Mantenemos la política de no tumbar el login del usuario, pero con un log súper visible
+      console.error('>>>> [SUPABASE ERROR] Error al guardar auth log persistentemente:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        payload
+      });
+      return null; 
+    }
+    
+    if (!data) {
+      console.warn('>>>> [LOGS WARN] El registro fue exitoso pero no retornó datos de confirmación.', payload);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('>>>> [CRITICAL ERROR] Fallo general en la capa del servicio de logs:', error);
+    return null;
   }
+}
 
   /**
    * Get all authentication logs (admin only)

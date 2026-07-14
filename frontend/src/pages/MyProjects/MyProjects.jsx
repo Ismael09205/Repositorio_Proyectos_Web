@@ -156,8 +156,8 @@ export default function MyProjects() {
         if (sort) params.sort = sort
 
         setSearchParams(params)
-        const response = await fetchMyProjects(token, params)
-        setProjects(response.projects || [])
+        const projects = await fetchMyProjects(token, params)
+        setProjects(projects || [])
       } catch (err) {
         console.error('Error cargando mis proyectos:', err)
         const status = err.response?.status

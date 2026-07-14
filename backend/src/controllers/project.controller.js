@@ -18,6 +18,24 @@ const getMyProjects = async (req, res) => {
   }
 };
 
+const getAllProjects = async (req, res) => {
+  try {
+    const { q, search, categoria, sort } = req.query;
+    const filters = {
+      search: q || search || '',
+      category: categoria || 'all',
+      sort: sort || 'recent',
+    };
+
+    const projects = await projectService.getAllProjects(filters);
+
+    return res.status(200).json({ projects });
+  } catch (error) {
+    console.error('getAllProjects error:', error);
+    return res.status(500).json({ error: error.message || 'Error obteniendo proyectos.' });
+  }
+};
+
 const getProjectById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -92,8 +110,66 @@ const createProject = async (req, res) => {
   }
 };
 
+const toggleLike = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const userId = req.user?.id || req.user?.user_id;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Usuario no identificado.' });
+    }
+
+    const result = await projectService.toggleLike(projectId, userId);
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('toggleLike error:', error);
+    return res.status(500).json({ error: error.message || 'Error al dar like al proyecto.' });
+  }
+};
+
+const getComments = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+
+    const comments = await projectService.getComments(projectId);
+
+    return res.status(200).json({ comments });
+  } catch (error) {
+    console.error('getComments error:', error);
+    return res.status(500).json({ error: error.message || 'Error obteniendo comentarios.' });
+  }
+};
+
+const addComment = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { contenido } = req.body;
+    const userId = req.user?.id || req.user?.user_id;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Usuario no identificado.' });
+    }
+
+    if (!contenido || !contenido.trim()) {
+      return res.status(400).json({ error: 'El comentario no puede estar vacío.' });
+    }
+
+    const comment = await projectService.addComment(projectId, userId, contenido.trim());
+
+    return res.status(201).json({ comment });
+  } catch (error) {
+    console.error('addComment error:', error);
+    return res.status(500).json({ error: error.message || 'Error agregando comentario.' });
+  }
+};
+
 module.exports = {
   getMyProjects,
+  getAllProjects,
   getProjectById,
   createProject,
+  toggleLike,
+  getComments,
+  addComment,
 };

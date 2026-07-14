@@ -1,4 +1,5 @@
 const { supabaseAnon } = require('../config/supabase');
+const userService = require('../services/user.service');
 
 // Middleware para verificar si el usuario está autenticado o no.
 // Se verifica el token de autenticación que se envía en el header de la petición.
@@ -21,8 +22,18 @@ const authMiddleware = async (req, res, next) => {
             return res.status(401).json({ error: 'El token de autenticación es inválido o ha expirado' });
         }
 
-        // Inyectamos el usuario verificado en la petición para usarlo en los controladores
-        req.user = data.user;
+        // Buscamos el perfil en cascada para obtener el rol real de la base de datos
+        try {
+            const perfil = await userService.getProfileById(data.user.id);
+            // Inyectamos el usuario de auth y le pegamos el rol nativo de tu tabla
+            req.user = {
+                ...data.user,
+                rol: perfil.rol // Aquí va 'estudiante' o 'administrador'
+            };
+        } catch (perfilError) {
+            // Si el token es válido en Auth pero no existe en las tablas de la BD pública
+            return res.status(404).json({ error: 'El usuario está autenticado pero no tiene un perfil asignado.' });
+        }
         
         next();
     } catch (error) {
@@ -30,5 +41,17 @@ const authMiddleware = async (req, res, next) => {
     }
 }
 
-// Exportamos la función de manera limpia para que la uses en tus archivos de rutas
-module.exports = authMiddleware;
+// ¡NUEVO! Middleware secundario para proteger rutas exclusivas de administrador
+const isAdmin = (req, res, next) => {
+    // Como authMiddleware se ejecuta primero, req.user ya tiene el rol inyectado
+    if (!req.user || req.user.rol !== 'administrador') {
+        return res.status(403).json({ error: 'Acceso denegado. Se requieren permisos de administrador.' });
+    }
+    next();
+}
+
+// Exportamos la función de manera limpia para que lauses en tus archivos de rutas
+module.exports = {
+    authMiddleware,
+    isAdmin
+};

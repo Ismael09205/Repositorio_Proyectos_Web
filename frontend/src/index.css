@@ -140,6 +140,29 @@ input, textarea, select {
   transform: translateY(-1px);
 }
 
+.btn-done {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(251,146,60,.3);
+}
+
+.btn-done:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.btn-calificar{
+  border: 1.5px solid var(--border);
+  color: var(--text-secondary);
+  background: #fff;
+}
+
+.btn-calificar:hover{
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--bg-subtle);
+}
+
 .btn-outline {
   border: 1.5px solid var(--border);
   color: var(--text-secondary);

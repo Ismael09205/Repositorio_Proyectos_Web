@@ -23,6 +23,8 @@ const registerUser = async (email, password, metadata = {}, isAdmin = false) => 
     if (!normalizedMetadata.username) {
         throw new Error('El nombre de usuario es requerido para el registro.');
     }
+
+    normalizedMetadata.role = isAdmin ? 'admin' : 'student';
     
     // 1) Registramos el usuario en Auth y guardamos la respuesta
     const { data, error } = await supabaseAnon.auth.signUp({
@@ -59,14 +61,20 @@ const registerUser = async (email, password, metadata = {}, isAdmin = false) => 
                 created_at: new Date().toISOString()
             };
 
-            const { data: adminData, error: adminError } = await supabaseService
-                .from('administrators')
-                .upsert(adminProfile, { onConflict: 'id' })
-                .select()
-                .maybeSingle();
+            try {
+                const { data: adminData, error: adminError } = await supabaseService
+                    .from('administrators')
+                    .upsert(adminProfile, { onConflict: 'id' })
+                    .select()
+                    .maybeSingle();
 
-            if (adminError) throw adminError;
-            return { auth: data, profile: adminData };
+                if (adminError) throw adminError;
+                return { auth: data, profile: adminData };
+            } catch (dbError) {
+                // Si salta por la FK (correo no verificado), ignoramos el crash y dejamos que el trigger actúe después
+                console.log('Perfil de administrador pendiente de confirmación de correo.');
+                return { auth: data, profile: null, status: 'awaiting_confirmation' };
+            }
 
         } else {
 
@@ -86,9 +94,10 @@ const registerUser = async (email, password, metadata = {}, isAdmin = false) => 
         }
 
 
-    } catch (err) {
-        console.error('Error en post-registro al crear perfil:', err.message || err);
-        return { auth: data };
+    } catch (dbError) {
+        // Evita el crash si la base de datos rechaza la inserción antes de verificar el correo
+        console.log('Perfil de estudiante pendiente de confirmación de correo.');
+        return { auth: data, profile: null, status: 'awaiting_confirmation' };
     }
 };
    

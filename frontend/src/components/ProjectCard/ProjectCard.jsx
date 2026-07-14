@@ -1,22 +1,53 @@
-import { useState } from 'react'
+import { useState, useContext } from 'react'
 import { Link } from 'react-router-dom'
 import { Heart, Eye, MessageSquare, Bookmark, MoreHorizontal } from 'lucide-react'
+import { AuthContext } from '../../context/AuthContext'
+import { toggleLike } from '../../services/projectService'
 import { getCategoryStyle } from '../../services/mockData'
+import toast from 'react-hot-toast'
 import './ProjectCard.css'
 
-export default function ProjectCard({ project, variant = 'default' }) {
+export default function ProjectCard({ project, variant = 'default', onLikeChange }) {
+  const { token, user } = useContext(AuthContext)
   const [liked, setLiked] = useState(false)
   const [saved, setSaved] = useState(false)
-  const defaultLikes = project.likes ?? project.favorites ?? 0
-  const [likes, setLikes] = useState(defaultLikes)
+  const [loading, setLoading] = useState(false)
+  
+  // Map backend fields to display fields
+  const title = project.titulo || project.title || ''
+  const description = project.resumen || project.description || ''
+  const likes = project.likes_count ?? project.likes ?? 0
+  const views = project.visitas_count ?? project.views ?? 0
+  const comments = project.comments_count ?? project.comments ?? 0
+  const category = project.categoria || project.category || 'General'
+  const categoryId = project.categoryId || 'general'
+  
+  // Get author info
+  const author = project.autor_id || 1
+  const university = project.universidad || project.university || 'Universidad'
 
-  const categoryStyle = getCategoryStyle(project.categoryId)
+  const categoryStyle = getCategoryStyle(categoryId)
 
-  const handleLike = (e) => {
+  const handleLike = async (e) => {
     e.preventDefault()
     e.stopPropagation()
-    setLiked(l => !l)
-    setLikes(n => liked ? n - 1 : n + 1)
+    
+    if (!token || !user) {
+      toast.error('Debes iniciar sesión para dar likes')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const result = await toggleLike(token, project.id)
+      setLiked(result.liked)
+      onLikeChange?.(result.likes_count)
+    } catch (error) {
+      console.error('Error toggling like:', error)
+      toast.error('Error al procesar el like')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleSave = (e) => {
@@ -46,7 +77,7 @@ export default function ProjectCard({ project, variant = 'default' }) {
           {/* Visual pattern */}
           <div className="project-card__img-pattern" />
           <span className="project-card__img-icon">
-            {project.category.charAt(0)}
+            {category.charAt(0).toUpperCase()}
           </span>
         </div>
         {/* Save button */}
@@ -62,23 +93,23 @@ export default function ProjectCard({ project, variant = 'default' }) {
       {/* Content */}
       <div className="project-card__body">
         <span className="project-card__category badge" style={categoryStyle}>
-          {project.category}
+          {category}
         </span>
 
-        <h3 className="project-card__title">{project.title}</h3>
+        <h3 className="project-card__title">{title}</h3>
 
         {variant === 'expanded' && (
-          <p className="project-card__desc">{project.description}</p>
+          <p className="project-card__desc">{description}</p>
         )}
 
         <div className="project-card__meta">
           <div className="project-card__author">
             <div className="project-card__author-avatar">
-              {project.author.charAt(0)}
+              {university.charAt(0).toUpperCase()}
             </div>
-            <span>{project.author}</span>
+            <span>{author}</span>
             <span className="project-card__dot">·</span>
-            <span className="project-card__uni">{project.university}</span>
+            <span className="project-card__uni">{university}</span>
           </div>
         </div>
       </div>
@@ -88,6 +119,7 @@ export default function ProjectCard({ project, variant = 'default' }) {
         <button
           className={`project-card__stat${liked ? ' project-card__stat--liked' : ''}`}
           onClick={handleLike}
+          disabled={loading}
           aria-label={liked ? 'Quitar like' : 'Dar like'}
         >
           <Heart size={14} fill={liked ? 'currentColor' : 'none'} />
@@ -95,15 +127,11 @@ export default function ProjectCard({ project, variant = 'default' }) {
         </button>
         <div className="project-card__stat">
           <Eye size={14} />
-          <span>{project.views}</span>
+          <span>{views}</span>
         </div>
         <div className="project-card__stat">
           <MessageSquare size={14} />
-          <span>{project.comments}</span>
-        </div>
-        <div className="project-card__stat">
-          <Bookmark size={14} />
-          <span>{project.favorites ?? project.likes}</span>
+          <span>{comments}</span>
         </div>
         <button className="project-card__more" aria-label="Más opciones">
           <MoreHorizontal size={14} />

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Search, SlidersHorizontal, Grid, List, X } from 'lucide-react'
+import { Search, SlidersHorizontal, Grid, List, X, Loader } from 'lucide-react'
 import ProjectCard from '../../components/ProjectCard/ProjectCard'
-import { MOCK_PROJECTS, CATEGORIES } from '../../services/mockData'
+import { fetchAllProjects } from '../../services/projectService'
+import { CATEGORIES } from '../../services/mockData'
+import toast from 'react-hot-toast'
 import './Explore.css'
 
 const SORT_OPTIONS = [
@@ -18,24 +20,71 @@ export default function Explore() {
   const [sort, setSort] = useState('recent')
   const [viewMode, setViewMode] = useState('grid')
   const [showFilters, setShowFilters] = useState(false)
+  const [projects, setProjects] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [categoryCounts, setCategoryCounts] = useState({})
 
   const inputQuery = searchParams.get('q') || ''
 
-  const filtered = MOCK_PROJECTS.filter(p => {
-    const matchQ = !inputQuery || p.title.toLowerCase().includes(inputQuery.toLowerCase())
-      || p.tags.some(t => t.toLowerCase().includes(inputQuery.toLowerCase()))
-      || p.category.toLowerCase().includes(inputQuery.toLowerCase())
-    const matchCat = activeCategory === 'all' || p.categoryId === activeCategory
+  // Load projects from API
+  useEffect(() => {
+    loadProjects()
+  }, [sort])
+
+  const loadProjects = async () => {
+    try {
+      setLoading(true)
+      const params = {
+        sort: sort,
+      }
+      if (inputQuery) params.search = inputQuery
+      if (activeCategory && activeCategory !== 'all') params.categoria = activeCategory
+
+      const data = await fetchAllProjects(params)
+      setProjects(data || [])
+
+      // Calculate category counts
+      const counts = { all: data?.length || 0 }
+      CATEGORIES.forEach(cat => {
+        counts[cat.id] = (data || []).filter(p => p.categoria?.toLowerCase() === cat.label.toLowerCase()).length
+      })
+      setCategoryCounts(counts)
+    } catch (error) {
+      console.error('Error loading projects:', error)
+      toast.error('Error al cargar proyectos')
+      setProjects([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Filter projects locally
+  const filtered = projects.filter(p => {
+    const titulo = p.titulo?.toLowerCase() || ''
+    const resumen = p.resumen?.toLowerCase() || ''
+    const tags = (p.palabras_clave || []).join(' ').toLowerCase()
+    const categoria = p.categoria?.toLowerCase() || ''
+    
+    const matchQ = !inputQuery || 
+      titulo.includes(inputQuery.toLowerCase()) ||
+      resumen.includes(inputQuery.toLowerCase()) ||
+      tags.includes(inputQuery.toLowerCase()) ||
+      categoria.includes(inputQuery.toLowerCase())
+    
+    const matchCat = activeCategory === 'all' || 
+      p.categoria?.toLowerCase() === CATEGORIES.find(c => c.id === activeCategory)?.label.toLowerCase()
+    
     return matchQ && matchCat
   }).sort((a, b) => {
-    if (sort === 'popular') return b.likes - a.likes
-    if (sort === 'views') return b.views - a.views
-    return new Date(b.createdAt) - new Date(a.createdAt)
+    if (sort === 'popular') return (b.likes_count || 0) - (a.likes_count || 0)
+    if (sort === 'views') return (b.visitas_count || 0) - (a.visitas_count || 0)
+    return new Date(b.created_at || 0) - new Date(a.created_at || 0)
   })
 
   const handleSearch = (e) => {
     e.preventDefault()
     setSearchParams(query ? { q: query } : {})
+    setActiveCategory('all')
   }
 
   const handleCategoryClick = (catId) => {
@@ -93,22 +142,19 @@ export default function Explore() {
                 onClick={() => handleCategoryClick('all')}
               >
                 Todas
-                <span className="explore__cat-count">{MOCK_PROJECTS.length}</span>
+                <span className="explore__cat-count">{categoryCounts.all || 0}</span>
               </button>
-              {CATEGORIES.map(cat => {
-                const count = MOCK_PROJECTS.filter(p => p.categoryId === cat.id).length
-                return (
-                  <button
-                    key={cat.id}
-                    className={`explore__cat-btn${activeCategory === cat.id ? ' explore__cat-btn--active' : ''}`}
-                    onClick={() => handleCategoryClick(cat.id)}
-                    style={activeCategory === cat.id ? { background: cat.color, color: cat.textColor, borderColor: cat.textColor } : {}}
-                  >
-                    {cat.label}
-                    <span className="explore__cat-count">{count}</span>
-                  </button>
-                )
-              })}
+              {CATEGORIES.map(cat => (
+                <button
+                  key={cat.id}
+                  className={`explore__cat-btn${activeCategory === cat.id ? ' explore__cat-btn--active' : ''}`}
+                  onClick={() => handleCategoryClick(cat.id)}
+                  style={activeCategory === cat.id ? { background: cat.color, color: cat.textColor, borderColor: cat.textColor } : {}}
+                >
+                  {cat.label}
+                  <span className="explore__cat-count">{categoryCounts[cat.id] || 0}</span>
+                </button>
+              ))}
             </div>
           </div>
 
@@ -162,7 +208,12 @@ export default function Explore() {
           </div>
 
           {/* Grid / List */}
-          {filtered.length === 0 ? (
+          {loading ? (
+            <div className="explore__empty">
+              <Loader size={40} className="animate-spin" />
+              <p>Cargando proyectos...</p>
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="explore__empty">
               <p className="explore__empty-icon">🔍</p>
               <h3>Sin resultados</h3>

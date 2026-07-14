@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const chatController = require('../controllers/chat.controller');
-const authMiddleware = require('../middlewares/auth.middleware');
+const {authMiddleware} = require('../middlewares/auth.middleware');
 
 // Ruta para obtener todas las conversaciones del usuario autenticado (Protegida)
 router.get('/conversaciones', authMiddleware, chatController.obtenerConversaciones);
@@ -15,5 +15,6 @@ router.get('/conversaciones/:conversacion_id/mensajes', authMiddleware, chatCont
 
 // 🔥 AQUÍ ESTÁ LA RUTA NUEVA QUE FALTABA 🔥
 router.get('/buscar-usuarios', authMiddleware, chatController.buscarUsuarios);
+
 
 module.exports = router;

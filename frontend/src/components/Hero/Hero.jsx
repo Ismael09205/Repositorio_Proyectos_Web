@@ -1,8 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, Sparkles, TrendingUp, Users } from 'lucide-react'
 import { POPULAR_TAGS } from '../../services/mockData'
 import './Hero.css'
+
+// Tus imágenes de assets ya importadas
+import imagen1 from '../../assets/ambiente.webp'; 
+import imagen2 from '../../assets/civil.jpg';
+import imagen3 from '../../assets/petroleos.avif';
+import imagen4 from '../../assets/sistemas.avif';
 
 const STATS = [
   { icon: TrendingUp, value: '1,200+', label: 'Proyectos' },
@@ -10,9 +16,22 @@ const STATS = [
   { icon: Sparkles, value: '45+', label: 'Universidades' },
 ]
 
+// Array con las imágenes para el carrusel
+const HERO_IMAGES = [imagen1, imagen2, imagen3, imagen4];
+
 export default function Hero() {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+
+  // Temporizador para cambiar la imagen cada 4 segundos de forma cíclica
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % HERO_IMAGES.length)
+    }, 4000)
+
+    return () => clearInterval(interval)
+  }, [])
 
   const handleSearch = (e) => {
     e.preventDefault()
@@ -92,64 +111,27 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Right: Illustration */}
+        {/* Right: Slider de Imágenes de Proyectos Reales */}
         <div className="hero__illustration">
-          <div className="hero__illus-card hero__illus-card--main">
-            <IllustrationSVG />
-          </div>
-          {/* Floating badges */}
-          <div className="hero__float hero__float--1">
-            <span>📚</span> +12 proyectos hoy
-          </div>
-          <div className="hero__float hero__float--2">
-            <span>🏆</span> Mejor proyecto IA
+          <div className="hero__illus-card hero__illus-card--main hero__slider-container">
+            
+            {/* Renderizado de imágenes con transición activa */}
+            {HERO_IMAGES.map((img, index) => (
+              <img
+                key={index}
+                src={img}
+                alt={`Proyecto universitario ${index + 1}`}
+                className={`hero__slider-img ${
+                  index === currentImageIndex ? 'hero__slider-img--active' : ''
+                }`}
+              />
+            ))}
+            
+            {/* Máscara/Capa superior para difuminar los bordes hacia el fondo de la página */}
+            <div className="hero__slider-overlay"></div>
           </div>
         </div>
       </div>
     </section>
-  )
-}
-
-function IllustrationSVG() {
-  return (
-    <svg viewBox="0 0 320 260" fill="none" xmlns="http://www.w3.org/2000/svg" className="hero__svg">
-      {/* Books stack */}
-      <rect x="90" y="160" width="140" height="18" rx="4" fill="#1a0e82" opacity=".9"/>
-      <rect x="100" y="144" width="120" height="18" rx="4" fill="#f97316"/>
-      <rect x="95" y="128" width="130" height="18" rx="4" fill="#fbbf24"/>
-      <rect x="105" y="112" width="110" height="18" rx="4" fill="#1a0e82" opacity=".7"/>
-      <rect x="115" y="96" width="90" height="18" rx="4" fill="#e0e7ff"/>
-
-      {/* Magnifying glass */}
-      <circle cx="240" cy="90" r="32" fill="none" stroke="#1a0e82" strokeWidth="6"/>
-      <circle cx="240" cy="90" r="22" fill="#e0e7ff" opacity=".6"/>
-      <line x1="263" y1="113" x2="282" y2="135" stroke="#1a0e82" strokeWidth="6" strokeLinecap="round"/>
-
-      {/* Person sitting on books */}
-      <circle cx="175" cy="82" r="16" fill="#fbbf24"/>
-      <rect x="155" y="96" width="40" height="32" rx="8" fill="#1a0e82"/>
-      <rect x="145" y="108" width="18" height="8" rx="4" fill="#1a0e82"/>
-      <rect x="157" y="126" width="12" height="28" rx="4" fill="#1a0e82" opacity=".8"/>
-      <rect x="173" y="126" width="12" height="28" rx="4" fill="#1a0e82" opacity=".8"/>
-
-      {/* Laptop on lap */}
-      <rect x="150" y="108" width="50" height="30" rx="4" fill="#334155"/>
-      <rect x="153" y="111" width="44" height="22" rx="2" fill="#38bdf8" opacity=".6"/>
-      <rect x="145" y="138" width="60" height="4" rx="2" fill="#475569"/>
-
-      {/* Stars / sparkles */}
-      <circle cx="70" cy="70" r="4" fill="#f97316" opacity=".7"/>
-      <circle cx="270" cy="160" r="3" fill="#7c3aed" opacity=".6"/>
-      <circle cx="55" cy="140" r="3" fill="#1a0e82" opacity=".4"/>
-      <circle cx="285" cy="55" r="5" fill="#fbbf24" opacity=".8"/>
-
-      {/* Decorative lines */}
-      <path d="M50 180 Q80 160 110 180" stroke="#e2e5f1" strokeWidth="2" fill="none"/>
-      <path d="M230 180 Q260 165 280 180" stroke="#e2e5f1" strokeWidth="2" fill="none"/>
-
-      {/* Text label on book */}
-      <rect x="102" y="148" width="60" height="8" rx="2" fill="rgba(255,255,255,.5)"/>
-      <text x="132" y="155" textAnchor="middle" fontSize="7" fill="#fff" fontWeight="bold">LIBRARY</text>
-    </svg>
   )
 }

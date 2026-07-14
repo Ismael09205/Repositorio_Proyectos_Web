@@ -161,10 +161,12 @@ const registerAdmin = async (req, res) => {
             if (typeof authLogsService !== 'undefined') {
                 await authLogsService.createLog(
                     data.auth?.user?.id,
-                    'register_admin',
+                    'REGISTER_ADMIN',
                     email,
                     req.ip || req.connection?.remoteAddress,
-                    req.get('user-agent')
+                    req.get('user-agent'),
+                    'administrador'
+
                 );
             }
         } catch (logError) {
@@ -196,7 +198,6 @@ const login = async (req, res) => {
         const authData = await authService.loginUser(email, password);
 
         // 2. Si Supabase permite el login, lo permitimos
-        // (Supabase ya valida email_confirmed_at según su configuración)
         let authLogSaved = null;
         try {
             console.debug('Login exitoso para usuario:', {
@@ -204,12 +205,16 @@ const login = async (req, res) => {
                 email,
             });
 
+            // Extraemos el rol real desde la metadata que viaja en el objeto 'user'
+            const userRole = authData.user?.user_metadata?.role === 'admin' ? 'administrador' : 'estudiante';
+
             authLogSaved = await authLogsService.createLog(
                 authData.user?.id,
-                'login',
+                'LOGIN',
                 email,
                 req.ip || req.connection?.remoteAddress,
-                req.get('user-agent')
+                req.get('user-agent'),
+                userRole // Ahora sí está correctamente definida la variable aquí
             );
 
             if (!authLogSaved) {
