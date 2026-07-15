@@ -5,6 +5,7 @@ import { Eye, EyeOff, Mail, Lock, User, BookOpen, AlertCircle, AtSign, Shield, G
 import { useAuth } from '../../context/AuthContext'
 import '../Login/Auth.css'
 import './Register.css'
+import boom from '../../assets/boom.jpg'
 
 const UNIVERSITIES = [
   'Escuela Politécnica Nacional (EPN)',
@@ -46,7 +47,6 @@ export default function Register() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [step, setStep] = useState(1)
-
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -96,30 +96,30 @@ export default function Register() {
 
     try {
       const datosConRol = {
-      ...form,
-      isAdmin: isAdminForm
-    }
+        ...form,
+        isAdmin: isAdminForm
+      }
 
       await register(datosConRol)
       if (isAdminForm) {
-      toast.success('¡Registro de administrador exitoso!', {
-        duration: 5000,
-        icon: '',
-      })
-    } else {
-      toast.success('¡Registro exitoso! Revisa tu correo para verificar tu cuenta.', {
-        duration: 6000,
-        icon: '',
-      })
-    }
-    
-    setTimeout(() => navigate('/login'), 1500)
+        toast.success('¡Registro de administrador exitoso!', {
+          duration: 5000,
+          icon: '',
+        })
+      } else {
+        toast.success('¡Registro exitoso! Revisa tu correo para verificar tu cuenta.', {
+          duration: 6000,
+          icon: '',
+        })
+      }
+      
+      setTimeout(() => navigate('/login'), 1500)
 
     } catch (err) {
       toast.error(err.message || 'Error al registrarse', {
-      duration: 5000,
-    })
-    setError(err.message || 'Error al registrarse.')
+        duration: 5000,
+      })
+      setError(err.message || 'Error al registrarse.')
     } finally {
       setLoading(false)
     }
@@ -127,10 +127,29 @@ export default function Register() {
 
   return (
     <div className="auth-page page-enter">
-      {/* Left */}
-      <div className="auth-panel auth-panel--left">
-        <div className="auth-panel__blob auth-panel__blob--1" />
-        <div className="auth-panel__blob auth-panel__blob--2" />
+      
+      {/* BOTONES DE SELECCIÓN DE ROL (Esquina superior izquierda) */}
+      <div className="auth-role-selector">
+        <button 
+          type="button" 
+          className={`role-btn ${!isAdminForm ? 'role-btn--active' : ''}`}
+          onClick={() => handleToggleFormType(false)}
+          title="Registrarse como Estudiante"
+        >
+          <GraduationCap size={20} />
+        </button>
+        <button 
+          type="button" 
+          className={`role-btn ${isAdminForm ? 'role-btn--active' : ''}`}
+          onClick={() => handleToggleFormType(true)}
+          title="Registrarse como Administrador"
+        >
+          <Shield size={20} />
+        </button>
+      </div>
+
+      {/* Left Panel - Ahora usa boom.jpg como fondo */}
+      <div className="auth-panel auth-panel--left" style={{ backgroundImage: `url(${boom})` }}>
         <div className="auth-panel__content">
           <Link to="/" className="auth-logo">
             <div className="auth-logo__icon">
@@ -166,27 +185,9 @@ export default function Register() {
         </div>
       </div>
 
-      {/* Right */}
+      {/* Right Panel - Formulario */}
       <div className="auth-panel auth-panel--right">
         <div className="auth-form-wrap">
-
-          {/* BOTONES DE SELECCIÓN DE ROL */}
-          <div className="auth-role-selector">
-            <button 
-              type="button" 
-              className={`role-btn ${!isAdminForm ? 'role-btn--active' : ''}`}
-              onClick={() => handleToggleFormType(false)}
-            >
-              <GraduationCap size={16} /> Estudiante
-            </button>
-            <button 
-              type="button" 
-              className={`role-btn ${isAdminForm ? 'role-btn--active' : ''}`}
-              onClick={() => handleToggleFormType(true)}
-            >
-              <Shield size={16} /> Administrador
-            </button>
-          </div>
 
           {/* Steps indicator */}
           <div className="register__steps">
@@ -203,6 +204,8 @@ export default function Register() {
             <h1 className="auth-form-title">
               {isAdminForm ? 'Registro Administrativo' : step === 1 ? 'Crea tu cuenta' : 'Configura tu acceso'}
             </h1>
+
+              
             <p className="auth-form-sub">
               {isAdminForm ? 'Ingresa tus credenciales del sistema institucional' : step === 1 ? 'Ingresa tus datos personales e institucionales' : 'Establece tu contraseña y finaliza el registro'}
             </p>
@@ -245,8 +248,6 @@ export default function Register() {
                     />
                   </div>
                 </div>
-
-                {/* Se ocultan los campos opcionales universitarios si es Admin */}
                 
                 {!isAdminForm && (
                   <>

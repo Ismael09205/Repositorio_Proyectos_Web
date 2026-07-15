@@ -5,6 +5,7 @@ import Hero from '../../components/Hero/Hero'
 import ProjectCard from '../../components/ProjectCard/ProjectCard'
 import { fetchAllProjects } from '../../services/projectService'
 import { CATEGORIES } from '../../services/mockData'
+import { ChatFlotante } from '../../components/ChatFlotante/ChatFlotante';
 import toast from 'react-hot-toast'
 import './Home.css'
 
@@ -41,12 +42,8 @@ export default function Home() {
   }
 
   const featured = projects.slice(0, 6)
-  const recent = [...projects]
-    .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
-    .slice(0, 6)
-  const top = [...projects]
-    .sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0))
-    .slice(0, 6)
+  const recent = [...projects].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)).slice(0, 6)
+  const top = [...projects].sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0)).slice(0, 6)
 
   /*UseEffect para manejar los parámetros de búsqueda y alertas de cancelación y exito de donaciones*/
   useEffect(() => {
@@ -75,6 +72,7 @@ export default function Home() {
     : top
 
   return (
+    
     <div className="home page-enter">
       {/* 3. VENTANITA FLOTANTE (ALERTA DE STRIPE) */}
       {alertMessage && (
@@ -115,7 +113,7 @@ export default function Home() {
             Ver todos <ArrowRight size={15} />
           </Link>
         </div>
-
+        
         <div className="home__projects-grid">
           {loading ? (
             <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem' }}>
@@ -204,7 +202,8 @@ export default function Home() {
           </div>
         </div>
       </section>
-        </div>  
+      </div>  
+        <ChatFlotante />
     </div>
   )
 }

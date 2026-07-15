@@ -8,7 +8,7 @@ export default function MainLayout() {
   const location = useLocation()
 
   // Mapeamos las rutas reales que tienes configuradas en App.jsx
-  const ocultarFooterEn = ['/chat', '/mis-proyectos', '/perfil', '/proyecto']
+  const ocultarFooterEn = ['/chat', '/mis-proyectos', '/perfil', '/proyecto', '/done', '/login', '/register', '/forgot-password', '/reset-password', '/admin', '/explorar']
 
   // Verificamos si la ruta actual empieza con alguna de la lista
   const deberiaOcultarFooter = ocultarFooterEn.some(ruta => 

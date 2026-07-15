@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useSearchParams, useLocation, Link, useNavigate } from 'react-router-dom'
 import { changePassword } from '../../services/authService.js'
 import { translateError } from '../../utils/errorMessages.js'
+import boom from '../../assets/boom.jpg'
 import './Auth.css'
 
 export default function ResetPassword() {
@@ -64,9 +65,7 @@ export default function ResetPassword() {
 
   return (
     <div className="auth-page page-enter">
-      <div className="auth-panel auth-panel--left">
-        <div className="auth-panel__blob auth-panel__blob--1" />
-        <div className="auth-panel__blob auth-panel__blob--2" />
+      <div className="auth-panel auth-panel--left" style={{backgroundImage: `url(${boom})`}}>
         <div className="auth-panel__content">
           <h2 className="auth-panel__heading">Cambia tu contraseña</h2>
           <p className="auth-panel__sub">

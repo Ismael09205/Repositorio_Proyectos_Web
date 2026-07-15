@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { Eye, EyeOff, Mail, Lock, BookOpen, AlertCircle } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import boom from '../../assets/boom.jpg'
 import './Auth.css'
 
 export default function Login() {
@@ -90,33 +91,31 @@ export default function Login() {
 
   return (
     <div className="auth-page page-enter">
-      {/* Left panel */}
-      <div className="auth-panel auth-panel--left">
-        <div className="auth-panel__blob auth-panel__blob--1" />
-        <div className="auth-panel__blob auth-panel__blob--2" />
-        <div className="auth-panel__content">
-          <Link to="/" className="auth-logo">
-            <div className="auth-logo__icon">
-              <BookOpen size={22} strokeWidth={2.5} />
-            </div>
-            <span className="auth-logo__text">poli<strong>connect</strong></span>
-          </Link>
-          <h2 className="auth-panel__heading">
-            La plataforma de proyectos universitarios del Ecuador
-          </h2>
-          <p className="auth-panel__sub">
-            Más de 1,200 proyectos de estudiantes de todo el país. Conéctate, aprende y comparte.
-          </p>
-          <div className="auth-panel__stats">
-            {[['1,200+', 'Proyectos'], ['3,800+', 'Estudiantes'], ['45+', 'Universidades']].map(([n, l]) => (
-              <div key={l} className="auth-panel__stat">
-                <span className="auth-panel__stat-num">{n}</span>
-                <span className="auth-panel__stat-lbl">{l}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+      {/* Reemplaza este bloque */}
+<div className="auth-panel auth-panel--left" style={{ backgroundImage: `url(${boom})` }}>
+  <div className="auth-panel__content">
+    <Link to="/" className="auth-logo">
+      <div className="auth-logo__icon">
+        <BookOpen size={22} strokeWidth={2.5} />
       </div>
+      <span className="auth-logo__text">IdeAgora</span>
+    </Link>
+    <h2 className="auth-panel__heading">
+      La plataforma de proyectos universitarios del Ecuador
+    </h2>
+    <p className="auth-panel__sub">
+      Más de 1,200 proyectos de estudiantes de todo el país. Conéctate, aprende y comparte.
+    </p>
+    <div className="auth-panel__stats">
+      {[['1,200+', 'Proyectos'], ['3,800+', 'Estudiantes'], ['45+', 'Universidades']].map(([n, l]) => (
+        <div key={l} className="auth-panel__stat">
+          <span className="auth-panel__stat-num">{n}</span>
+          <span className="auth-panel__stat-lbl">{l}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
 
       {/* Right: form */}
       <div className="auth-panel auth-panel--right">

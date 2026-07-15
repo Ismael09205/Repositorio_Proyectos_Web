@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { recoverPassword } from '../../services/authService.js'
 import { translateError } from '../../utils/errorMessages.js'
+import boom from '../../assets/boom.jpg'
 import './Auth.css'
 
 export default function ForgotPassword() {
@@ -55,9 +56,8 @@ export default function ForgotPassword() {
 
   return (
     <div className="auth-page page-enter">
-      <div className="auth-panel auth-panel--left">
-        <div className="auth-panel__blob auth-panel__blob--1" />
-        <div className="auth-panel__blob auth-panel__blob--2" />
+      {/* Reemplaza este bloque */}
+      <div className="auth-panel auth-panel--left" style={{ backgroundImage: `url(${boom})` }}>
         <div className="auth-panel__content">
           <h2 className="auth-panel__heading">Recupera tu contraseña</h2>
           <p className="auth-panel__sub">

@@ -23,7 +23,7 @@
 .navbar__logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 1px;
   text-decoration: none;
   flex-shrink: 0;
 }
@@ -36,18 +36,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: #ffffff;
 }
 
 .navbar__logo-text {
   font-family: var(--font-display);
   font-size: 1.1rem;
-  color: var(--primary);
+  color: orange;
   letter-spacing: -0.02em;
 }
 
 .navbar__logo-text strong {
   font-weight: 800;
+  color: black;
 }
 
 /* Nav links */

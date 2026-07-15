@@ -51,58 +51,84 @@ const getProjectById = async (req, res) => {
 };
 
 const createProject = async (req, res) => {
+
+  console.log("BODY RECIBIDO:");
+  console.log(req.body);
+
   try {
-    const { titulo, resumen, universidad, facultad, carrera, categoria, archivo_url, archivo_tipo, archivo_peso, github_url, palabras_clave } = req.body;
+  const { 
+  titulo,
+  resumen,
+  universidad,
+  facultad,
+  carrera,
+  categoria,
+  archivo_url,
+  archivo_tipo,
+  archivo_peso,
+  github_url,
+  palabras_clave,
+  archivos
+} = req.body;
 
     if (!titulo || !titulo.trim()) {
+      console.log("Titulo no proporcionado");
       return res.status(400).json({ error: 'El título del proyecto es requerido.' });
     }
     if (!resumen || !resumen.trim()) {
+      console.log("Resumen no proporcionado");
       return res.status(400).json({ error: 'El resumen del proyecto es requerido.' });
     }
     if (!universidad || !universidad.trim()) {
+      console.log("Universidad no proporcionada");
       return res.status(400).json({ error: 'El campo universidad es requerido.' });
     }
     if (!facultad || !facultad.trim()) {
+      console.log("Facultad no proporcionada");
       return res.status(400).json({ error: 'El campo facultad es requerido.' });
     }
     if (!carrera || !carrera.trim()) {
+      console.log("Carrera no proporcionada");
       return res.status(400).json({ error: 'El campo carrera es requerido.' });
     }
     if (!categoria || !categoria.trim()) {
+      console.log("Categoria no proporcionada");
       return res.status(400).json({ error: 'Selecciona una categoría para el proyecto.' });
     }
-    if (!archivo_url || !archivo_url.trim()) {
-      return res.status(400).json({ error: 'La URL del archivo es requerida.' });
-    }
-    if (!archivo_tipo || !archivo_tipo.trim()) {
-      return res.status(400).json({ error: 'El tipo de archivo es requerido.' });
-    }
+    if (!Array.isArray(archivos) || archivos.length === 0) {
+      console.log("Archivos no proporcionados");
+    return res.status(400).json({
+        error: "Debes subir al menos un archivo."
+    });
+}
 
     const projectData = {
-      autor_id: req.user.id,
-      titulo: titulo.trim(),
-      resumen: resumen.trim(),
-      universidad: universidad.trim(),
-      facultad: facultad.trim(),
-      carrera: carrera.trim(),
-      categoria: categoria.trim(),
-      archivo_url: archivo_url.trim(),
-      archivo_tipo: archivo_tipo.trim(),
-      archivo_peso: archivo_peso ? String(archivo_peso).trim() : null,
-      github_url: github_url ? String(github_url).trim() : null,
-      palabras_clave: Array.isArray(palabras_clave)
-        ? palabras_clave.map(String).map((item) => item.trim()).filter(Boolean)
-        : String(palabras_clave || '')
-            .split(',')
-            .map((item) => item.trim())
-            .filter(Boolean),
-      visitas_count: 0,
-      likes_count: 0,
-      descargas_count: 0,
-    };
+  autor_id: req.user.id,
 
-    const project = await projectService.createProject(projectData);
+  titulo: titulo.trim(),
+  resumen: resumen.trim(),
+  universidad: universidad.trim(),
+  facultad: facultad.trim(),
+  carrera: carrera.trim(),
+  categoria: categoria.trim(),
+
+  github_url: github_url
+    ? github_url.trim()
+    : null,
+
+  palabras_clave: Array.isArray(palabras_clave)
+    ? palabras_clave
+    : String(palabras_clave || "")
+        .split(",")
+        .map(x => x.trim())
+        .filter(Boolean),
+
+  visitas_count: 0,
+  likes_count: 0,
+  descargas_count: 0
+}
+
+    const project = await projectService.createProject(projectData, archivos || []);
     return res.status(201).json({ project });
   } catch (error) {
     console.error('createProject error:', error);

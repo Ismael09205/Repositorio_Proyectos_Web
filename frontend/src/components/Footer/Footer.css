@@ -1,7 +1,7 @@
 .footer {
-  background: var(--primary-dark);
+  background: linear-gradient(90deg, #6f0091, rgb(49, 0, 129));
   color: #e2e8f0;
-  margin-top: 80px; 
+  margin-top: 20px; 
 }
 
 .footer__main {
@@ -16,7 +16,8 @@
   align-items: center;
   gap: 10px;
   text-decoration: none;
-  margin-bottom: 16px;
+  margin-bottom: 0px;
+  margin-top: -25px;
 }
 
 .footer__logo-icon {
@@ -32,21 +33,20 @@
 
 .footer__logo-text {
   font-family: var(--font-display);
-  font-size: 1.1rem;
+  font-size: 1.6rem;
+  color: orange;
+}
+.footer__logo-text strong { 
+  font-weight: 800; 
   color: #fff;
 }
-.footer__logo-text strong { font-weight: 800; }
 
 .footer__tagline {
   font-size: 0.875rem;
   color: #94a3b8;
   line-height: 1.7;
-  margin-bottom: 24px;
+  margin-bottom: 15px;
   max-width: 280px;
-}
-
-.footer__newsletter {
-  margin-top: 16px;
 }
 
 .footer__nl-label {
@@ -92,16 +92,17 @@
   text-transform: uppercase;
   letter-spacing: .06em;
   color: #fff;
-  margin-bottom: 18px;
+  margin-bottom: 6px;
+  margin-top: -20px;
 }
 
 .footer__col-list {
   list-style: none;
   padding: 0;
-  margin: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  margin-bottom: 13px;
 }
 
 .footer__col-link {
@@ -145,7 +146,7 @@
 /* Redes Sociales Corregidas */
 .footer__socials {
   display: flex;
-  gap: 16px; /* 👈 Separación real entre los enlaces de texto */
+  gap: 15px; /* 👈 Separación real entre los enlaces de texto */
   align-items: center;
 }
 
@@ -167,7 +168,7 @@
 
 .footer__copy {
   font-size: 0.8rem;
-  color: #64748b;
+  color: #ffffff;
 }
 .footer__brand{
   padding-top: 40px;

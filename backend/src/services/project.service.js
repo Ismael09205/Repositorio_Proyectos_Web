@@ -145,14 +145,37 @@ const getProjectById = async (projectId) => {
   };
 };
 
-const createProject = async (projectData) => {
-  const { data, error } = await supabaseService.from('proyectos').insert([projectData]).select().single();
+const createProject = async (projectData, archivos = []) => {
 
-  if (error) {
-    throw error;
-  }
+    // Crear el proyecto
+    const { data: proyecto, error } = await supabaseService
+        .from("proyectos")
+        .insert([projectData])
+        .select()
+        .single();
 
-  return data;
+    if (error) throw error;
+
+    // Si hay archivos, guardarlos
+    if (archivos.length > 0) {
+
+        const archivosInsert = archivos.map((archivo, index) => ({
+            proyecto_id: proyecto.id,
+            nombre: archivo.nombre,
+            url: archivo.url,
+            tipo: archivo.tipo,
+            peso: archivo.peso,
+            orden: index + 1
+        }));
+
+        const { error: archivosError } = await supabaseService
+            .from("proyecto_archivos")
+            .insert(archivosInsert);
+
+        if (archivosError) throw archivosError;
+    }
+
+    return proyecto;
 };
 
 const toggleLike = async (projectId, userId) => {

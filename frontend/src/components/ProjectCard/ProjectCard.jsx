@@ -23,7 +23,7 @@ export default function ProjectCard({ project, variant = 'default', onLikeChange
   const categoryId = project.categoryId || 'general'
   
   // Get author info
-  const author = project.autor_id || 1
+  const author = project.user?.name || 'Sin Autor'
   const university = project.universidad || project.university || 'Universidad'
 
   const categoryStyle = getCategoryStyle(categoryId)

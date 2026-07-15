@@ -66,9 +66,6 @@ export default function Navbar() {
       <div className="navbar__inner container">
         {/* Logo */}
         <Link to="/" className="navbar__logo">
-          
-          
-          
           <img src={logoPoli} alt="Logo IdeaAgora" className="logo-image" />
           <span className="navbar__logo-text">Ide<strong>Agora</strong></span>
         </Link>
@@ -81,12 +78,10 @@ export default function Navbar() {
           <NavLink to="/explorar" className={({isActive}) => isActive ? 'navbar__link navbar__link--active' : 'navbar__link'}>
             Explorar
           </NavLink>
-          <NavLink to="/categorias" className={({isActive}) => isActive ? 'navbar__link navbar__link--active' : 'navbar__link'}>
-            Categorías
-          </NavLink>
           <NavLink to="/sobre-nosotros" className={({isActive}) => isActive ? 'navbar__link navbar__link--active' : 'navbar__link'}>
             Sobre nosotros
           </NavLink>
+          
           {/* Solo se muestra si el usuario está autenticado */}
           {user && (
             <NavLink to="/chat" className={({isActive}) => isActive ? 'navbar__link navbar__link--active' : 'navbar__link'}>

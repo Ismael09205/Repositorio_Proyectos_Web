@@ -1,49 +1,84 @@
+/* ==========================================================================
+   VARIABLES DE FUSIÓN (mismo tono en fondo, velo y máscara -> sin "salto")
+   ========================================================================== */
+:root {
+  --auth-blend-bg: gradient rgb(234, 0, 255); /* lavanda casi blanco, con un poco de color */
+}
+
+/* ==========================================================================
+   CONFIGURACIÓN GENERAL Y LAYOUT
+   ========================================================================== */
 .auth-page {
   display: grid;
   grid-template-columns: 1fr 1fr;
   min-height: calc(100vh - var(--nav-h));
+  background: var(--auth-blend-bg);
+  margin-bottom: -100px;
 }
 
-/* Left panel */
+/* ==========================================================================
+   PANEL IZQUIERDO (IMAGEN DE FONDO)
+   ========================================================================== */
 .auth-panel--left {
-  background: linear-gradient(145deg, var(--primary-dark) 0%, var(--primary-light) 100%);
   position: relative;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 60px 48px;
+  background-color: transparent;
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  /* Desvanecido largo y con pasos intermedios: fade suave, no un corte duro */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    rgba(0,0,0,1) 40%,
+    rgba(0,0,0,0.85) 55%,
+    rgba(0,0,0,0.5) 72%,
+    rgba(0,0,0,0.18) 88%,
+    rgba(0,0,0,0) 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    rgba(0,0,0,1) 40%,
+    rgba(0,0,0,0.85) 55%,
+    rgba(0,0,0,0.5) 72%,
+    rgba(0,0,0,0.18) 88%,
+    rgba(0,0,0,0) 100%
+  );
+
+  z-index: 1;
 }
 
-.auth-panel__blob {
+/* Capa de contraste/velo: oscurece donde va el texto (para legibilidad),
+   se aclara hacia la derecha y se funde con --auth-blend-bg.
+   z-index: 1 (NO -1), si no queda detrás de la imagen y no se ve. */
+.auth-panel--left::before {
+  content: '';
   position: absolute;
-  border-radius: 50%;
-  filter: blur(60px);
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.55) 0%,
+    rgba(15, 23, 42, 0.3) 40%,
+    rgba(246, 244, 251, 0.35) 65%,
+    rgba(246, 244, 251, 0.85) 88%,
+    var(--auth-blend-bg) 100%
+  );
+  z-index: 1;
   pointer-events: none;
-}
-
-.auth-panel__blob--1 {
-  width: 300px;
-  height: 300px;
-  background: rgba(249,115,22,.2);
-  top: -60px;
-  right: -60px;
-}
-
-.auth-panel__blob--2 {
-  width: 250px;
-  height: 250px;
-  background: rgba(255,255,255,.06);
-  bottom: -40px;
-  left: -40px;
 }
 
 .auth-panel__content {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   max-width: 360px;
 }
 
+/* --- LOGO Y TEXTOS PANEL IZQUIERDO --- */
 .auth-logo {
   display: flex;
   align-items: center;
@@ -60,7 +95,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: #fdfdfd;
 }
 
 .auth-logo__text {
@@ -69,7 +104,9 @@
   color: #fff;
 }
 
-.auth-logo__text strong { font-weight: 800; }
+.auth-logo__text strong {
+  font-weight: 800;
+}
 
 .auth-panel__heading {
   font-family: var(--font-display);
@@ -82,11 +119,12 @@
 
 .auth-panel__sub {
   font-size: 0.9rem;
-  color: rgba(255,255,255,.7);
+  color: rgba(255, 255, 255, 0.85);
   line-height: 1.7;
   margin-bottom: 40px;
 }
 
+/* --- ESTADÍSTICAS DEL LOGIN --- */
 .auth-panel__stats {
   display: flex;
   gap: 28px;
@@ -107,16 +145,18 @@
 
 .auth-panel__stat-lbl {
   font-size: 0.78rem;
-  color: rgba(255,255,255,.6);
+  color: rgba(255, 255, 255, 0.75);
 }
 
-/* Right panel */
+/* ==========================================================================
+   PANEL DERECHO (FORMULARIO)
+   ========================================================================== */
 .auth-panel--right {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 60px 48px;
-  background: #fff;
+  background: transparent;
   overflow-y: auto;
 }
 
@@ -126,7 +166,7 @@
 }
 
 .auth-form-header {
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
 .auth-form-title {
@@ -142,7 +182,28 @@
   color: var(--text-secondary);
 }
 
-/* Error */
+/* --- ETIQUETA DINÁMICA DE ROL (ESTUDIANTE / ADMIN) --- */
+.auth-role-badge {
+  display: inline-block;
+  font-size: 0.82rem;
+  color: var(--text-secondary, #64748b);
+  background: var(--bg-subtle, #f1f5f9);
+  padding: 4px 14px;
+  border-radius: 999px;
+  margin-top: 10px;
+  margin-bottom: 6px;
+  border: 1px solid var(--border, #e2e8f0);
+  font-weight: 500;
+}
+
+.auth-role-badge strong {
+  color: var(--primary, #3b82f6);
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   ESTADOS DE ALERTA (ERROR Y ÉXITO)
+   ========================================================================== */
 .auth-error {
   display: flex;
   align-items: center;
@@ -168,7 +229,9 @@
   margin-bottom: 20px;
 }
 
-/* Form fields */
+/* ==========================================================================
+   INPUTS Y CAMPOS DEL FORMULARIO
+   ========================================================================== */
 .auth-form {
   display: flex;
   flex-direction: column;
@@ -193,6 +256,11 @@
   justify-content: space-between;
 }
 
+.auth-label-optional {
+  color: var(--text-muted, #94a3b8);
+  font-weight: 400;
+}
+
 .auth-forgot {
   font-size: 0.78rem;
   color: var(--primary);
@@ -200,7 +268,9 @@
   font-weight: 500;
 }
 
-.auth-forgot:hover { text-decoration: underline; }
+.auth-forgot:hover {
+  text-decoration: underline;
+}
 
 .auth-input-wrap {
   position: relative;
@@ -233,7 +303,9 @@
   box-shadow: 0 0 0 3px rgba(26,14,130,.08);
 }
 
-.auth-input::placeholder { color: var(--text-muted); }
+.auth-input::placeholder {
+  color: var(--text-muted);
+}
 
 .auth-input-toggle {
   position: absolute;
@@ -248,9 +320,54 @@
   transition: color var(--t-fast) var(--ease);
 }
 
-.auth-input-toggle:hover { color: var(--primary); }
+.auth-input-toggle:hover {
+  color: var(--primary);
+}
 
-/* Submit */
+.auth-select {
+  padding-left: 14px !important;
+  appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-select:focus {
+  border-color: var(--primary, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.auth-checkbox-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.auth-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.auth-checkbox-label {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.auth-checkbox-label a {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   BOTONES DE ENVÍO Y REDES SOCIALES
+   ========================================================================== */
 .auth-submit {
   width: 100%;
   padding: 13px;
@@ -275,7 +392,10 @@
   box-shadow: 0 4px 16px rgba(26,14,130,.3);
 }
 
-.auth-submit:disabled { opacity: .7; cursor: not-allowed; }
+.auth-submit:disabled {
+  opacity: .7;
+  cursor: not-allowed;
+}
 
 .auth-spinner {
   width: 18px;
@@ -286,9 +406,11 @@
   animation: spin .6s linear infinite;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 
-/* Divider */
+/* --- DIVIDER "O CONTINÚA CON" --- */
 .auth-divider {
   display: flex;
   align-items: center;
@@ -304,7 +426,7 @@
   background: var(--border);
 }
 
-/* Social */
+/* --- BOTONES SOCIALES --- */
 .auth-social-btns {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -332,7 +454,9 @@
   background: var(--bg-subtle);
 }
 
-/* Switch */
+/* ==========================================================================
+   ENLACES DE NAVEGACIÓN INFERIOR Y HINTS
+   ========================================================================== */
 .auth-switch {
   margin-top: 24px;
   font-size: 0.875rem;
@@ -346,9 +470,10 @@
   text-decoration: none;
 }
 
-.auth-switch-link:hover { text-decoration: underline; }
+.auth-switch-link:hover {
+  text-decoration: underline;
+}
 
-/* Demo hint */
 .auth-demo-hint {
   margin-top: 16px;
   padding: 10px 14px;
@@ -367,35 +492,18 @@
   font-family: monospace;
 }
 
-/* Checkbox */
-.auth-checkbox-wrap {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.auth-checkbox {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--primary);
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.auth-checkbox-label {
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-  line-height: 1.5;
-}
-
-.auth-checkbox-label a {
-  color: var(--primary);
-  font-weight: 600;
-}
-
-/* Responsive */
+/* ==========================================================================
+   RESPONSIVE DESIGN (MÓVILES Y TABLETS)
+   ========================================================================== */
 @media (max-width: 768px) {
-  .auth-page { grid-template-columns: 1fr; }
-  .auth-panel--left { display: none; }
-  .auth-panel--right { padding: 40px 24px; min-height: calc(100vh - var(--nav-h)); }
+  .auth-page {
+    grid-template-columns: 1fr;
+  }
+  .auth-panel--left {
+    display: none;
+  }
+  .auth-panel--right {
+    padding: 40px 24px;
+    min-height: calc(100vh - var(--nav-h));
+  }
 }

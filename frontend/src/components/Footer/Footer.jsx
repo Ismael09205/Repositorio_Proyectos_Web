@@ -6,7 +6,7 @@ const LINKS = {
   Plataforma: [
     { label: 'Inicio', to: '/' },
     { label: 'Explorar proyectos', to: '/explorar' },
-    { label: 'Categorías', to: '/categorias' },
+    { label: 'Quienes somos', to: '/About' },
   ],
   Comunidad: [
     { label: 'Únete como autor', to: '/register' },
@@ -14,11 +14,10 @@ const LINKS = {
     { label: 'Mi perfil', to: '/perfil' },
   ],
   Soporte: [
-    { label: 'Recuperar contraseña', to: '/forgot-password' },
-    { label: 'Registro', to: '/register' },
-    { label: 'Iniciar sesión', to: '/login' },
-    { label: 'Explorar', to: '/explorar' },
-    { label: 'Inicio', to: '/' },
+    { label: 'Información', to: '/register' },
+    { label: 'Contacto', to: '/login' },
+    { label: 'Politicas', to: '/explorar' },
+    { label: 'Privacidad', to: '/' },
   ],
 }
 
@@ -37,21 +36,7 @@ export default function Footer() {
             Descubre, comparte y aprende de proyectos desarrollados por estudiantes del Ecuador.
           </p>
 
-          {/* Newsletter */}
-          <div className="footer__newsletter">
-            <p className="footer__nl-label">Obtén lo mejor del contenido</p>
-            <form className="footer__nl-form" onSubmit={e => e.preventDefault()}>
-              <input
-                type="email"
-                placeholder="Tu correo..."
-                className="footer__nl-input"
-                aria-label="Email para newsletter"
-              />
-              <button type="submit" className="btn btn-accent footer__nl-btn">
-                Suscribir
-              </button>
-            </form>
-          </div>
+          
         </div>
 
         {/* Links */}
