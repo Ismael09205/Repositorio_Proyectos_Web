@@ -1,0 +1,276 @@
+.uni-page {
+  padding-bottom: 5rem;
+  background-color: var(--bg-subtle, #f8fafc);
+  min-height: 100vh;
+}
+
+.uni-page__back-container {
+  padding-top: 1.5rem;
+  padding-bottom: 1rem;
+}
+
+.uni-page__back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary, #475569);
+  text-decoration: none;
+  transition: color var(--t-fast) ease;
+}
+
+.uni-page__back-btn:hover {
+  color: var(--primary, #1a0e82);
+}
+
+/* Header de la Universidad */
+.uni-page__header {
+  border-top: 1px solid var(--border, #e2e8f0);
+  border-bottom: 1px solid var(--border, #e2e8f0);
+  padding: 3rem 0;
+  margin-bottom: 2rem;
+  background: rgba(26, 14, 130, 0.05);
+}
+
+.uni-page__header-content {
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+  
+}
+
+@media (max-width: 768px) {
+  .uni-page__header-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+  }
+}
+
+.uni-page__logo-wrap {
+  width: 140px;
+  height: 140px;
+  min-width: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-lg, 12px);
+  padding: 12px;
+}
+
+.uni-page__logo {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.uni-page__info {
+  flex: 1;
+}
+
+.uni-page__badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--primary, #1a0e82);
+  background: rgba(26, 14, 130, 0.08);
+  padding: 4px 10px;
+  border-radius: 9999px;
+  margin-bottom: 10px;
+}
+
+.uni-page__title {
+  font-family: var(--font-display, inherit);
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--text-primary, #0f172a);
+  line-height: 1.2;
+  margin-bottom: 10px;
+}
+
+.uni-page__desc {
+  font-size: 1rem;
+  color: var(--text-secondary, #475569);
+  line-height: 1.6;
+  max-width: 800px;
+}
+
+/* Toolbar de Filtros Rápidos */
+.uni-page__toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  padding: 1rem 1.5rem;
+  border-radius: var(--r-md, 8px);
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+  .uni-page__toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.uni-page__search-bar {
+  position: relative;
+  flex: 1;
+}
+
+.uni-page__search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted, #94a3b8);
+}
+
+.uni-page__search-input {
+  width: 100%;
+  padding: 10px 14px 10px 42px;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: var(--r-sm, 6px);
+  font-size: 0.9rem;
+  background: var(--bg-subtle, #f8fafc);
+  outline: none;
+  transition: all var(--t-fast) ease;
+}
+
+.uni-page__search-input:focus {
+  border-color: var(--primary, #1a0e82);
+  background: var(--bg-card, #ffffff);
+  box-shadow: 0 0 0 3px rgba(26, 14, 130, 0.1);
+}
+
+.uni-page__sort-options {
+  display: flex;
+  gap: 8px;
+}
+
+.uni-page__sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: var(--r-sm, 6px);
+  background: var(--bg-card, #ffffff);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary, #475569);
+  cursor: pointer;
+  transition: all var(--t-fast) ease;
+}
+
+.uni-page__sort-btn:hover {
+  background: var(--bg-subtle, #f8fafc);
+  color: var(--primary, #1a0e82);
+}
+
+.uni-page__sort-btn.active {
+  background: var(--primary, #1a0e82);
+  color: #ffffff;
+  border-color: var(--primary, #1a0e82);
+}
+
+/* Layout Principal */
+.uni-page__layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 2rem;
+}
+
+@media (max-width: 992px) {
+  .uni-page__layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Sidebar */
+.uni-page__sidebar-box {
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: var(--r-md, 8px);
+  padding: 1.5rem;
+  position: sticky;
+  top: 20px;
+}
+
+.uni-page__sidebar-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  margin-bottom: 1.2rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+}
+
+.uni-page__sidebar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.uni-page__sidebar-item {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-secondary, #475569);
+  border-radius: var(--r-sm, 6px);
+  cursor: pointer;
+  transition: all var(--t-fast) ease;
+}
+
+.uni-page__sidebar-item:hover {
+  background: var(--bg-subtle, #f8fafc);
+  color: var(--primary, #1a0e82);
+}
+
+.uni-page__sidebar-item.active {
+  background: rgba(26, 14, 130, 0.06);
+  color: var(--primary, #1a0e82);
+  font-weight: 700;
+}
+
+/* Main Grid de Proyectos */
+.uni-page__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.uni-page__empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 4rem 2rem;
+  background: var(--bg-card, #ffffff);
+  border: 1px dashed var(--border, #e2e8f0);
+  border-radius: var(--r-md, 8px);
+}
+
+.uni-page__empty-emoji {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.uni-page__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 1rem;
+}

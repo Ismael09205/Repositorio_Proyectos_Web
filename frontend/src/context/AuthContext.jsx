@@ -26,7 +26,18 @@ export function AuthProvider({ children }) {
   }, [])
 
   const saveAuth = (authUser, profile, accessToken) => {
-    const fullUser = { auth: authUser, profile: profile || {} }
+    const fallbackProfile = {
+      rol: authUser?.user_metadata?.rol || authUser?.user_metadata?.role || 'estudiante',
+      nombre_completo: authUser?.user_metadata?.nombre_completo || '',
+      nombre_usuario: authUser?.user_metadata?.nombre_usuario || '',
+      avatar_url: authUser?.user_metadata?.avatar_url || null,
+      email: authUser?.email || ''
+    };
+
+    const fullUser = { 
+      auth: authUser, 
+      profile: (profile && Object.keys(profile).length > 0) ? profile : fallbackProfile 
+    }
 
     setUser(fullUser)
     setToken(accessToken)

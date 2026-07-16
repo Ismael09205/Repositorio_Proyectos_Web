@@ -51,6 +51,7 @@ async function updateProfileById(userId, profileData) {
       cargo: profileData?.cargo ?? currentProfile.cargo,
       especialidad: profileData?.especialidad ?? currentProfile.especialidad,
       sector: profileData?.sector ?? currentProfile.sector,
+      avatar_url: profileData?.avatar_url ?? currentProfile.avatar_url,
     };
 
     const { data, error } = await supabaseService
@@ -91,6 +92,7 @@ async function updateProfileById(userId, profileData) {
     intereses: intereses,
     github_url: profileData?.github_url ?? currentProfile.github_url,
     linkedin_url: profileData?.linkedin_url ?? currentProfile.linkedin_url,
+    avatar_url: profileData?.avatar_url ?? currentProfile.avatar_url,
   };
 
   // 4. Guardamos los cambios

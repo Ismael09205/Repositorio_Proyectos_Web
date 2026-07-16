@@ -1,9 +1,9 @@
-import { useState, useContext } from 'react'
+import { useState, useContext, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, Eye, MessageSquare, Bookmark, MoreHorizontal } from 'lucide-react'
+import { Heart, Eye, MessageSquare, Bookmark, Share2 } from 'lucide-react'
 import { AuthContext } from '../../context/AuthContext'
 import { toggleLike } from '../../services/projectService'
-import { getCategoryStyle } from '../../services/mockData'
+import { getUniversityStyle } from '../../services/mockData'
 import toast from 'react-hot-toast'
 import './ProjectCard.css'
 
@@ -12,26 +12,48 @@ export default function ProjectCard({ project, variant = 'default', onLikeChange
   const [liked, setLiked] = useState(false)
   const [saved, setSaved] = useState(false)
   const [loading, setLoading] = useState(false)
-  
-  // Map backend fields to display fields
+
+  // Sincronizar estado local del like con los cambios externos del prop
+  useEffect(() => {
+    setLiked(project.is_liked || project.liked || false)
+  }, [project.is_liked, project.liked])
+
   const title = project.titulo || project.title || ''
   const description = project.resumen || project.description || ''
   const likes = project.likes_count ?? project.likes ?? 0
   const views = project.visitas_count ?? project.views ?? 0
   const comments = project.comments_count ?? project.comments ?? 0
-  const category = project.categoria || project.category || 'General'
-  const categoryId = project.categoryId || 'general'
-  
-  // Get author info
-  const author = project.user?.name || 'Sin Autor'
-  const university = project.universidad || project.university || 'Universidad'
 
-  const categoryStyle = getCategoryStyle(categoryId)
+  const university = project.universidad || project.university || 'EPN'
+  const universityStyle = getUniversityStyle(university)
+
+  // Datos del autor (vienen del backend o mapeados desde MyProjects)
+  const autorNombre = project.autor?.nombre_completo || project.autor?.nombre_usuario || project.autor?.username || project.author || 'Usuario'
+  const autorAvatar = project.autor?.avatar_url || project.authorAvatar || null
+
+  const getInitials = (nombre) => {
+    if (!nombre) return 'U'
+    return nombre.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
+  }
+
+  // Obtener iniciales del título del proyecto para la vista previa por defecto
+  const getProjectInitials = (titulo) => {
+    if (!titulo) return 'PR'
+    const words = titulo.trim().split(/\s+/)
+    if (words.length === 1) return words[0].substring(0, 2).toUpperCase()
+    return (words[0][0] + words[1][0]).toUpperCase()
+  }
+
+  const formatearFecha = (fechaStr) => {
+    if (!fechaStr) return ''
+    const fecha = new Date(fechaStr)
+    return fecha.toLocaleDateString('es-EC', { day: 'numeric', month: 'short', year: 'numeric' })
+  }
 
   const handleLike = async (e) => {
     e.preventDefault()
     e.stopPropagation()
-    
+
     if (!token || !user) {
       toast.error('Debes iniciar sesión para dar likes')
       return
@@ -56,7 +78,22 @@ export default function ProjectCard({ project, variant = 'default', onLikeChange
     setSaved(s => !s)
   }
 
-  // Gradient placeholder when no image
+  const handleShare = async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    const url = `${window.location.origin}/proyecto/${project.id}`
+
+    try {
+      await navigator.clipboard.writeText(url)
+      toast.success('Enlace copiado al portapapeles')
+    } catch (error) {
+      console.error('Error al copiar el enlace:', error)
+      toast.error('No se pudo copiar el enlace')
+    }
+  }
+
+  // Degradados de respaldo para el fondo
   const gradients = [
     'linear-gradient(135deg,#667eea 0%,#764ba2 100%)',
     'linear-gradient(135deg,#f093fb 0%,#f5576c 100%)',
@@ -69,18 +106,47 @@ export default function ProjectCard({ project, variant = 'default', onLikeChange
   ]
   const grad = gradients[project.id % gradients.length]
 
+  // --- Lógica para buscar portada o usar iniciales del proyecto ---
+  let previewUrl = project.portada_url || null
+  let isImage = !!previewUrl
+
+  // Si no hay portada_url directa, buscamos si el primer archivo de la lista es imagen
+  if (!previewUrl && project.archivos && project.archivos.length > 0) {
+    const firstImage = project.archivos.find(f => 
+      f.tipo?.includes('image') || /\.(png|jpe?g|gif|webp)$/i.test(f.url || f.nombre || '')
+    )
+    if (firstImage) {
+      previewUrl = firstImage.url
+      isImage = true
+    }
+  } else if (!previewUrl && project.archivo_url) {
+    // Si solo hay archivo_url simple y es una imagen
+    const isFileImage = project.archivo_tipo?.includes('image') || /\.(png|jpe?g|gif|webp)$/i.test(project.archivo_url)
+    if (isFileImage) {
+      previewUrl = project.archivo_url
+      isImage = true
+    }
+  }
+
   return (
     <Link to={`/proyecto/${project.id}`} className={`project-card project-card--${variant}`}>
-      {/* Image */}
+      {/* Image / Project Initials Cover */}
       <div className="project-card__img-wrap">
-        <div className="project-card__img" style={{ background: grad }}>
-          {/* Visual pattern */}
-          <div className="project-card__img-pattern" />
-          <span className="project-card__img-icon">
-            {category.charAt(0).toUpperCase()}
-          </span>
-        </div>
-        {/* Save button */}
+        {isImage && previewUrl ? (
+          <img
+            src={previewUrl}
+            alt={title}
+            className="project-card__img-real"
+          />
+        ) : (
+          /* Vista previa estilizada con las Iniciales del Proyecto */
+          <div className="project-card__img" style={{ background: grad }}>
+            <div className="project-card__img-pattern" />
+            <span className="project-card__img-icon" style={{ fontSize: '2.5rem', fontWeight: '800', letterSpacing: '1px' }}>
+              {getProjectInitials(title)}
+            </span>
+          </div>
+        )}
         <button
           className={`project-card__save${saved ? ' saved' : ''}`}
           onClick={handleSave}
@@ -92,8 +158,8 @@ export default function ProjectCard({ project, variant = 'default', onLikeChange
 
       {/* Content */}
       <div className="project-card__body">
-        <span className="project-card__category badge" style={categoryStyle}>
-          {category}
+        <span className="project-card__category badge" style={universityStyle}>
+          {university}
         </span>
 
         <h3 className="project-card__title">{title}</h3>
@@ -105,11 +171,19 @@ export default function ProjectCard({ project, variant = 'default', onLikeChange
         <div className="project-card__meta">
           <div className="project-card__author">
             <div className="project-card__author-avatar">
-              {university.charAt(0).toUpperCase()}
+              {autorAvatar ? (
+                <img src={autorAvatar} alt={autorNombre} className="project-card__author-avatar-img" />
+              ) : (
+                getInitials(autorNombre)
+              )}
             </div>
-            <span>{author}</span>
-            <span className="project-card__dot">·</span>
-            <span className="project-card__uni">{university}</span>
+            <span>{autorNombre}</span>
+            {project.created_at && (
+              <>
+                <span className="project-card__dot">•</span>
+                <span className="project-card__date">{formatearFecha(project.created_at)}</span>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -133,8 +207,8 @@ export default function ProjectCard({ project, variant = 'default', onLikeChange
           <MessageSquare size={14} />
           <span>{comments}</span>
         </div>
-        <button className="project-card__more" aria-label="Más opciones">
-          <MoreHorizontal size={14} />
+        <button className="project-card__more" onClick={handleShare} aria-label="Compartir proyecto">
+          <Share2 size={14} />
         </button>
       </div>
     </Link>

@@ -80,3 +80,18 @@ export const fetchProfile = async (token) => {
 
   return response.data
 }
+
+/**
+ * Actualiza los datos del perfil del usuario logueado (Estudiante o Administrador).
+ * Sirve tanto para editar datos generales como para actualizar el avatar_url
+ * una vez que la imagen ya fue subida a Cloudinary desde el frontend.
+ */
+export const updateProfile = async (token, profileData) => {
+  const response = await axios.put(`${USER_URL}/profile`, profileData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  return response.data
+}

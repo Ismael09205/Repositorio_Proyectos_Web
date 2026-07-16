@@ -80,7 +80,6 @@ const deleteUser = async (req, res) => {
             return res.status(400).json({ error: 'ID de usuario requerido' });
         }
 
-        // Prevent admin from deleting themselves
         if (userId === req.user.id) {
             return res.status(403).json({ error: 'No puedes eliminar tu propia cuenta' });
         }
@@ -102,13 +101,12 @@ const deleteUser = async (req, res) => {
 const deactivateUser = async (req, res) => {
     try {
         const { userId } = req.params;
-        const { duration } = req.body; // Duration in hours, e.g., "720h" for 30 days
+        const { duration } = req.body;
 
         if (!userId) {
             return res.status(400).json({ error: 'ID de usuario requerido' });
         }
 
-        // Prevent admin from deactivating themselves
         if (userId === req.user.id) {
             return res.status(403).json({ error: 'No puedes desactivar tu propia cuenta' });
         }
@@ -177,5 +175,3 @@ module.exports = {
     activateUser,
     searchUsers
 };
-
-// Made with Bob

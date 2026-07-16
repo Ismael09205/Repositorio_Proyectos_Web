@@ -19,7 +19,7 @@ const authMiddleware = async (req, res, next) => {
         const { data, error } = await supabaseAnon.auth.getUser(token);
 
         if (error || !data || !data.user) {
-            return res.status(401).json({ error: 'El token de autenticación es inválido o ha expirado' });
+            return res.status(401).json({ error: 'Su sesion ha expirado' });
         }
 
         // Buscamos el perfil en cascada para obtener el rol real de la base de datos

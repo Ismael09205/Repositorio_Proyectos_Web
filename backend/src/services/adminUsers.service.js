@@ -2,17 +2,14 @@ const { supabaseService } = require('../config/supabase');
 
 async function getAllUsers() {
     try {
-        // Get all users from auth.users
         const { data: authUsers, error: authError } = await supabaseService.auth.admin.listUsers();
         
         if (authError) throw authError;
 
-        // Get all profiles (students)
         const { data: profiles, error: profilesError } = await supabaseService
             .from('profiles')
             .select('*');
 
-        // Get all administrators
         const { data: administrators, error: adminsError } = await supabaseService
             .from('administrators')
             .select('*');
@@ -21,9 +18,8 @@ async function getAllUsers() {
             throw new Error('Error fetching user profiles');
         }
 
-        // Combine data - exclude banned users
         const users = authUsers.users
-            .filter(authUser => !authUser.banned_until) // Excluir usuarios baneados
+            .filter(authUser => !authUser.banned_until)
             .map(authUser => {
             const profile = profiles?.find(p => p.id === authUser.id);
             const admin = administrators?.find(a => a.id === authUser.id);
@@ -37,7 +33,8 @@ async function getAllUsers() {
                 banned_until: authUser.banned_until,
                 role: admin ? 'admin' : 'student',
                 profile: admin || profile || null,
-                name: admin ? admin.name : profile?.nombre_completo || 'Sin nombre'
+                name: admin ? admin.name : profile?.nombre_completo || 'Sin nombre',
+                avatar_url: admin ? admin.avatar_url : profile?.avatar_url || null
             };
         });
 
@@ -53,19 +50,16 @@ async function getAllUsers() {
  */
 async function getUserById(userId) {
     try {
-        // Get user from auth
         const { data: authUser, error: authError } = await supabaseService.auth.admin.getUserById(userId);
         
         if (authError) throw authError;
 
-        // Try to get profile (student)
         const { data: profile } = await supabaseService
             .from('profiles')
             .select('*')
             .eq('id', userId)
             .maybeSingle();
 
-        // Try to get admin profile
         const { data: admin } = await supabaseService
             .from('administrators')
             .select('*')
@@ -81,7 +75,8 @@ async function getUserById(userId) {
             banned_until: authUser.user.banned_until,
             role: admin ? 'admin' : 'student',
             profile: admin || profile || null,
-            name: admin ? admin.name : profile?.nombre_completo || 'Sin nombre'
+            name: admin ? admin.name : profile?.nombre_completo || 'Sin nombre',
+            avatar_url: admin ? admin.avatar_url : profile?.avatar_url || null
         };
     } catch (error) {
         console.error('getUserById error:', error);
@@ -94,7 +89,6 @@ async function getUserById(userId) {
  */
 async function updateUser(userId, updateData) {
     try {
-        // Check if user is admin or student
         const { data: admin } = await supabaseService
             .from('administrators')
             .select('id')
@@ -104,7 +98,6 @@ async function updateUser(userId, updateData) {
         const isAdmin = !!admin;
 
         if (isAdmin) {
-            // Update administrator profile
             const { data, error } = await supabaseService
                 .from('administrators')
                 .update({
@@ -112,7 +105,8 @@ async function updateUser(userId, updateData) {
                     username: updateData.username,
                     cargo: updateData.cargo,
                     especialidad: updateData.especialidad,
-                    sector: updateData.sector
+                    sector: updateData.sector,
+                    avatar_url: updateData.avatar_url
                 })
                 .eq('id', userId)
                 .select()
@@ -121,7 +115,6 @@ async function updateUser(userId, updateData) {
             if (error) throw error;
             return data;
         } else {
-            // Update student profile
             const { data, error } = await supabaseService
                 .from('profiles')
                 .update({
@@ -134,7 +127,8 @@ async function updateUser(userId, updateData) {
                     biografia: updateData.biografia,
                     intereses: updateData.intereses,
                     github_url: updateData.github_url,
-                    linkedin_url: updateData.linkedin_url
+                    linkedin_url: updateData.linkedin_url,
+                    avatar_url: updateData.avatar_url
                 })
                 .eq('id', userId)
                 .select()
@@ -154,10 +148,9 @@ async function updateUser(userId, updateData) {
  */
 async function deleteUser(userId) {
     try {
-        // Ban user permanently (set banned_until to far future)
         const { data, error } = await supabaseService.auth.admin.updateUserById(
             userId,
-            { ban_duration: '876000h' } // 100 years
+            { ban_duration: '876000h' }
         );
 
         if (error) throw error;
@@ -173,7 +166,6 @@ async function deleteUser(userId) {
  */
 async function deactivateUser(userId, duration = '720h') {
     try {
-        // Ban user for specified duration (default 30 days = 720 hours)
         const { data, error } = await supabaseService.auth.admin.updateUserById(
             userId,
             { ban_duration: duration }
@@ -192,7 +184,6 @@ async function deactivateUser(userId, duration = '720h') {
  */
 async function activateUser(userId) {
     try {
-        // Remove ban by setting ban_duration to 'none'
         const { data, error } = await supabaseService.auth.admin.updateUserById(
             userId,
             { ban_duration: 'none' }

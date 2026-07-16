@@ -41,9 +41,7 @@ export default function Hero() {
 
   return (
     <section className="hero">
-      {/* Decorative blobs */}
-      <div className="hero__blob hero__blob--1" />
-      <div className="hero__blob hero__blob--2" />
+
 
       <div className="hero__inner container">
         {/* Left: Text */}

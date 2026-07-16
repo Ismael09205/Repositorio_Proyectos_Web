@@ -1,14 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import {
-  Plus, Search, UploadCloud, X, CloudUpload, FileText,
-  GitBranch, GraduationCap, Link2, Folder, FolderOpen, Clock, Heart, Eye,
-  Loader2, CheckCircle2, AlertCircle,
+  Plus, Search, UploadCloud, X,
+  GitBranch, GraduationCap, Link2, Folder, FolderOpen, Clock, Heart, Eye
 } from 'lucide-react'
 import ProjectCard from '../../components/ProjectCard/ProjectCard'
 import { useAuth } from '../../context/AuthContext'
-import { fetchMyProjects, createProject } from '../../services/projectService.js'
-import { uploadFileToCloudinary } from '../../services/cloudinaryService.js'
+import { fetchMyProjects } from '../../services/projectService.js'
 import './MyProjects.css'
 
 const CATEGORIES = [
@@ -60,41 +58,16 @@ function getCategoryAccent(categoria) {
   return CATEGORY_ACCENTS[categoria] || { solid: 'var(--orange)', tint: 'var(--orange-tint)' }
 }
 
-const MAX_FILES = 5
-const MAX_FILE_SIZE_MB = 5
-const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
-
 export default function MyProjects() {
   const { user, token } = useAuth()
+  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [query, setQuery] = useState(searchParams.get('q') || '')
   const [category, setCategory] = useState(searchParams.get('categoria') || 'Todas')
   const [sort, setSort] = useState(searchParams.get('sort') || 'recent')
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(false)
-  const [formOpen, setFormOpen] = useState(false)
-  const [files, setFiles] = useState([])
-  const [dropzoneError, setDropzoneError] = useState('')
-  
-  // ¡CORREGIDO!: El estado de errores de los campos ahora vive dentro del componente
-  const [fieldErrors, setFieldErrors] = useState({})
-  
-  const [formData, setFormData] = useState({
-    titulo: '',
-    resumen: '',
-    universidad: '',
-    facultad: '',
-    carrera: '',
-    categoria: '',
-    archivo_url: '',
-    archivo_tipo: '',
-    archivo_peso: '',
-    github_url: '',
-    palabras_clave: '',
-  })
-  const [error, setError] = useState('')
   const [pageError, setPageError] = useState('')
-  const [message, setMessage] = useState('')
 
   const activeCategory = category
   const activeQuery = query.trim()
@@ -102,135 +75,6 @@ export default function MyProjects() {
   const filterLabel = useMemo(() => {
     return activeCategory === 'Todas' ? 'Todas las categorías' : activeCategory
   }, [activeCategory])
-
-  const formatFileSize = (size) => {
-    if (!size) return '0 B'
-    const units = ['B', 'KB', 'MB', 'GB']
-    let value = size
-    let index = 0
-    while (value >= 1024 && index < units.length - 1) {
-      value /= 1024
-      index += 1
-    }
-    return `${value.toFixed(1)} ${units[index]}`
-  }
-
-  const getFileIcon = (name) => {
-    const extension = name?.split('.').pop()?.toLowerCase() || ''
-    if (['pdf'].includes(extension)) return '📄'
-    if (['doc', 'docx', 'odt'].includes(extension)) return '📝'
-    if (['txt'].includes(extension)) return '📄'
-    if (['zip', 'rar', '7z'].includes(extension)) return '🗜️'
-    if (['ppt', 'pptx'].includes(extension)) return '📊'
-    if (['xls', 'xlsx', 'csv'].includes(extension)) return '📈'
-    if (['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(extension)) return '🖼️'
-    return '📎'
-  }
-
-  const uploadEntry = async (entry) => {
-    try {
-      const uploaded = await uploadFileToCloudinary(entry.file)
-      setFiles((prev) => prev.map((f) => (
-        f.id === entry.id
-          ? { ...f, status: 'done', url: uploaded.url, type: uploaded.type || entry.type, size: uploaded.size || entry.size }
-          : f
-      )))
-    } catch (uploadError) {
-      setFiles((prev) => prev.map((f) => (
-        f.id === entry.id
-          ? { ...f, status: 'error', error: uploadError.message || 'Error subiendo el archivo.' }
-          : f
-      )))
-    }
-  }
-
-  const addFiles = (fileList) => {
-    const incoming = Array.from(fileList || [])
-    if (!incoming.length) return
-
-    setDropzoneError('')
-    const room = MAX_FILES - files.length
-
-    if (room <= 0) {
-      setDropzoneError(`Ya alcanzaste el máximo de ${MAX_FILES} archivos.`)
-      return
-    }
-
-    const toAdd = incoming.slice(0, room)
-    const notices = []
-
-    if (incoming.length > room) {
-      notices.push(`Solo se agregaron ${room} de ${incoming.length} archivo(s): máximo ${MAX_FILES}.`)
-    }
-
-    const accepted = []
-    toAdd.forEach((file) => {
-      if (file.size > MAX_FILE_SIZE_BYTES) {
-        notices.push(`"${file.name}" supera los ${MAX_FILE_SIZE_MB}MB y no se agregó.`)
-      } else {
-        accepted.push(file)
-      }
-    })
-
-    if (notices.length) setDropzoneError(notices.join(' '))
-    if (!accepted.length) return
-
-    const newEntries = accepted.map((file) => ({
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      file,
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      status: 'uploading',
-      url: '',
-      error: '',
-    }))
-
-    setFiles((prev) => [...prev, ...newEntries])
-    newEntries.forEach((entry) => uploadEntry(entry))
-  }
-
-  const removeFile = (id) => {
-    setFiles((prev) => prev.filter((f) => f.id !== id))
-  }
-
-  const handleFileInput = (event) => {
-    addFiles(event.target.files)
-    event.target.value = ''
-  }
-
-  const handleDrop = (event) => {
-    event.preventDefault()
-    addFiles(event.dataTransfer.files)
-  }
-
-  const handleDragOver = (event) => {
-    event.preventDefault()
-  }
-
-  const isUploadingAnyFile = files.some((f) => f.status === 'uploading')
-  const hasCompletedFile = files.some((f) => f.status === 'done')
-  const dropzoneFull = files.length >= MAX_FILES
-
-  const resetProjectForm = () => {
-    setFormData({
-      titulo: '',
-      resumen: '',
-      universidad: '',
-      facultad: '',
-      carrera: '',
-      categoria: '',
-      archivo_url: '',
-      archivo_tipo: '',
-      archivo_peso: '',
-      github_url: '',
-      palabras_clave: '',
-    })
-    setFiles([])
-    setDropzoneError('')
-    setError('')
-    setFieldErrors({}) // Limpiamos errores de validación al resetear
-  }
 
   useEffect(() => {
     const load = async () => {
@@ -265,80 +109,22 @@ export default function MyProjects() {
     }
   }, [token, activeQuery, activeCategory, sort])
 
-  // ¡CORREGIDO!: Validación robusta, control preventDefault y orden de variables
-  const handleSubmit = async (e) => {
-    e.preventDefault() // Evitamos la recarga del navegador inmediatamente
-    setError('')
-    setMessage('')
-
-    const errors = {}
-    const completedFiles = files.filter((f) => f.status === 'done')
-
-    if (!formData.titulo.trim()) {
-      errors.titulo = 'El título es obligatorio.'
-    }
-    if (!formData.resumen.trim()) {
-      errors.resumen = 'El resumen es obligatorio.'
-    }
-    if (!formData.categoria.trim()) {
-      errors.categoria = 'Selecciona una categoría.'
-    }
-    if (!formData.universidad.trim()) {
-      errors.universidad = 'La universidad es obligatoria.'
-    }
-    if (!formData.facultad.trim()) {
-      errors.facultad = 'La facultad es obligatoria.'
-    }
-    if (!formData.carrera.trim()) {
-      errors.carrera = 'La carrera es obligatoria.'
-    }
-    if (completedFiles.length === 0) {
-      errors.archivos = 'Debes subir al menos un archivo con éxito.'
-    }
-
-    setFieldErrors(errors)
-
-    // Detener flujo si hay errores
-    if (Object.keys(errors).length > 0) {
-      return
-    }
-
-    const primary = completedFiles[0]
-
-    try {
-      const trimmedData = {
-        ...formData,
-        titulo: formData.titulo.trim(),
-        resumen: formData.resumen.trim(),
-        universidad: formData.universidad.trim(),
-        facultad: formData.facultad.trim(),
-        carrera: formData.carrera.trim(),
-        categoria: formData.categoria.trim(),
-        archivo_url: primary?.url || '',
-        archivo_tipo: primary?.type || '',
-        archivo_peso: primary ? formatFileSize(primary.size) : '',
-        github_url: formData.github_url.trim(),
-      }
-
-      const newProject = await createProject(token, {
-        ...trimmedData,
-        palabras_clave: formData.palabras_clave,
-        archivos: completedFiles.map((f) => ({
-          url: f.url,
-          tipo: f.type,
-          peso: formatFileSize(f.size),
-          nombre: f.name,
-        })),
+  // Actualizar el estado local cuando cambia un like desde ProjectCard
+  const handleLikeChange = (projectId, newLikesCount) => {
+    setProjects((prev) =>
+      prev.map((p) => {
+        if (p.id === projectId) {
+          const currentlyLiked = p.is_liked || p.liked || false
+          return {
+            ...p,
+            likes_count: newLikesCount,
+            is_liked: !currentlyLiked,
+            liked: !currentlyLiked,
+          }
+        }
+        return p
       })
-
-      setProjects((prev) => [newProject, ...prev])
-      setMessage('Proyecto subido con éxito. Ahora puedes verlo en tu lista.')
-      setFormOpen(false)
-      resetProjectForm()
-    } catch (err) {
-      const msg = err.response?.data?.error || err.message || 'No se pudo crear el proyecto.'
-      setError(msg)
-    }
+    )
   }
 
   return (
@@ -356,7 +142,7 @@ export default function MyProjects() {
         </p>
         <button
           className="my-projects__upload-btn btn btn-primary"
-          onClick={() => { resetProjectForm(); setFormOpen(true) }}
+          onClick={() => navigate('/subir-proyecto')}
         >
           <UploadCloud size={17} /> Subir nuevo proyecto
         </button>
@@ -441,7 +227,7 @@ export default function MyProjects() {
             <div className="my-projects__empty-icon"><FolderOpen size={26} /></div>
             <h2>No tienes proyectos aún</h2>
             <p>Publica tu primer proyecto para que otros estudiantes puedan verlo, darle like y comentarlo.</p>
-            <button className="btn btn-primary" onClick={() => { resetProjectForm(); setFormOpen(true) }}>
+            <button className="btn btn-primary" onClick={() => navigate('/subir-proyecto')}>
               <Plus size={16} /> Subir mi primer proyecto
             </button>
           </div>
@@ -449,6 +235,15 @@ export default function MyProjects() {
           <div className="my-projects__grid">
             {projects.map((project, index) => {
               const accent = getCategoryAccent(project.categoria)
+
+              const projectData = {
+                ...project,
+                autor: project.autor || {
+                  nombre_completo: user?.profile?.nombre_completo || user?.username || 'Tú',
+                  avatar_url: user?.profile?.avatar_url || null,
+                }
+              }
+
               return (
                 <div
                   key={project.id}
@@ -463,199 +258,17 @@ export default function MyProjects() {
                     <span /><span />
                   </div>
                   <span className="my-projects__card-tag">{getCallTag(project.categoria, index)}</span>
-                  <ProjectCard project={{
-                    id: project.id,
-                    title: project.titulo,
-                    category: project.categoria,
-                    categoryId: project.categoria.toLowerCase().replace(/ /g, ''),
-                    author: user?.profile?.nombre_usuario || 'Tú',
-                    university: project.universidad,
-                    likes: project.likes_count || 0,
-                    favorites: project.likes_count || 0,
-                    views: project.visitas_count || 0,
-                    comments: project.comments_count || 0,
-                    description: project.resumen,
-                  }} variant="expanded" />
+                  <ProjectCard 
+                    project={projectData} 
+                    variant="expanded" 
+                    onLikeChange={(newLikes) => handleLikeChange(project.id, newLikes)}
+                  />
                 </div>
               )
             })}
           </div>
         )}
       </div>
-
-      {formOpen && (
-        <div className="my-projects__modal">
-          <div className="my-projects__modal-content container">
-            <div className="my-projects__modal-header">
-              <div>
-                <h2>Subir nuevo proyecto</h2>
-                <p>Llena los datos del proyecto y publícalo en tu portafolio.</p>
-              </div>
-              <button className="my-projects__close-btn" onClick={() => { setFormOpen(false); resetProjectForm() }} aria-label="Cerrar"><X size={20} /></button>
-            </div>
-
-            {error && <div className="alert alert-error">{error}</div>}
-            {message && <div className="alert alert-success">{message}</div>}
-
-            <form className="my-projects__form" onSubmit={handleSubmit}>
-              <div className="my-projects__form-section">
-                <h3 className="my-projects__form-section-title"><GitBranch size={14} /> Información del proyecto</h3>
-                <div className="my-projects__form-grid">
-                  <label>
-                    Título del proyecto
-                    <input value={formData.titulo} onChange={(e) => setFormData({ ...formData, titulo: e.target.value })} />
-                    {fieldErrors.titulo && (
-                      <span className="my-projects__field-error">{fieldErrors.titulo}</span>
-                    )}
-                  </label>
-                  <label>
-                    Categoría
-                    <select value={formData.categoria} onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}>
-                      <option value="">Selecciona una categoría</option>
-                      {CATEGORIES.filter((cat) => cat !== 'Todas').map((cat) => <option key={cat} value={cat}>{cat}</option>)}
-                    </select>
-                    {fieldErrors.categoria && (
-                      <span className="my-projects__field-error">{fieldErrors.categoria}</span>
-                    )}
-                  </label>
-                  <label className="my-projects__fullwidth">
-                    Resumen del proyecto
-                    <textarea value={formData.resumen} onChange={(e) => setFormData({ ...formData, resumen: e.target.value })} rows={5} />
-                    {fieldErrors.resumen && (
-                      <span className="my-projects__field-error">{fieldErrors.resumen}</span>
-                    )}
-                  </label>
-                </div>
-              </div>
-
-              <div className="my-projects__form-section">
-                <h3 className="my-projects__form-section-title"><GraduationCap size={14} /> Procedencia académica</h3>
-                <div className="my-projects__form-grid my-projects__form-grid--trio">
-                  <label>
-                    Universidad
-                    <input value={formData.universidad} onChange={(e) => setFormData({ ...formData, universidad: e.target.value })} />
-                    {fieldErrors.universidad && (
-                      <span className="my-projects__field-error">{fieldErrors.universidad}</span>
-                    )}
-                  </label>
-                  <label>
-                    Facultad
-                    <input value={formData.facultad} onChange={(e) => setFormData({ ...formData, facultad: e.target.value })} />
-                    {fieldErrors.facultad && (
-                      <span className="my-projects__field-error">{fieldErrors.facultad}</span>
-                    )}
-                  </label>
-                  <label>
-                    Carrera
-                    <input value={formData.carrera} onChange={(e) => setFormData({ ...formData, carrera: e.target.value })} />
-                    {fieldErrors.carrera && (
-                      <span className="my-projects__field-error">{fieldErrors.carrera}</span>
-                    )}
-                  </label>
-                </div>
-              </div>
-
-              <div className="my-projects__form-section">
-                <h3 className="my-projects__form-section-title"><FileText size={14} /> Archivos del proyecto</h3>
-                <div
-                  className={`my-projects__dropzone ${dropzoneFull ? 'is-disabled' : ''}`}
-                  onDrop={dropzoneFull ? undefined : handleDrop}
-                  onDragOver={dropzoneFull ? undefined : handleDragOver}
-                >
-                  <div className="my-projects__dropzone-icon"><CloudUpload size={22} /></div>
-                  <p>
-                    {dropzoneFull
-                      ? `Alcanzaste el máximo de ${MAX_FILES} archivos.`
-                      : 'Arrastra y suelta tus archivos aquí, o haz clic para seleccionar.'}
-                  </p>
-                  <div className="my-projects__dropzone-formats">
-                    {['PDF', 'DOCX', 'PPTX', 'XLSX', 'ZIP', 'PNG', 'JPG'].map((f) => (
-                      <span key={f} className="my-projects__format-chip">{f}</span>
-                    ))}
-                  </div>
-                  <p className="my-projects__dropzone-hint">
-                    Máximo {MAX_FILES} archivos · {MAX_FILE_SIZE_MB}MB por archivo · {files.length}/{MAX_FILES} agregados
-                  </p>
-                  {!dropzoneFull && (
-                    <input
-                      type="file"
-                      multiple
-                      className="my-projects__file-input"
-                      onChange={handleFileInput}
-                      accept=".pdf,.doc,.docx,.txt,.zip,.rar,.7z,.ppt,.pptx,.xlsx,.csv,.png,.jpg,.jpeg,.gif,.webp"
-                    />
-                  )}
-                </div>
-
-                {fieldErrors.archivos && (
-                  <div className="my-projects__dropzone-error" style={{ marginTop: '0.5rem' }}>
-                    <AlertCircle size={15} /> {fieldErrors.archivos}
-                  </div>
-                )}
-
-                {dropzoneError && (
-                  <div className="my-projects__dropzone-error">
-                    <AlertCircle size={15} /> {dropzoneError}
-                  </div>
-                )}
-
-                {files.length > 0 && (
-                  <ul className="my-projects__file-list">
-                    {files.map((f) => (
-                      <li
-                        key={f.id}
-                        className={`my-projects__file-item ${f.status === 'error' ? 'my-projects__file-item--error' : ''} ${f.status === 'done' ? 'my-projects__file-item--done' : ''}`}
-                      >
-                        <div className="my-projects__file-item-icon">{getFileIcon(f.name)}</div>
-                        <div className="my-projects__file-item-info">
-                          <span className="my-projects__file-item-name">{f.name}</span>
-                          <p className={`my-projects__file-item-meta ${f.status === 'error' ? 'is-error' : ''}`}>
-                            {f.status === 'error' ? f.error : formatFileSize(f.size)}
-                          </p>
-                        </div>
-                        <span className={`my-projects__file-item-status is-${f.status}`} aria-label={f.status}>
-                          {f.status === 'uploading' && <Loader2 size={16} />}
-                          {f.status === 'done' && <CheckCircle2 size={16} />}
-                          {f.status === 'error' && <AlertCircle size={16} />}
-                        </span>
-                        <button
-                          type="button"
-                          className="my-projects__file-item-remove"
-                          onClick={() => removeFile(f.id)}
-                          aria-label={`Quitar ${f.name}`}
-                        >
-                          <X size={15} />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              <div className="my-projects__form-section">
-                <h3 className="my-projects__form-section-title"><Link2 size={14} /> Enlaces y palabras clave</h3>
-                <div className="my-projects__form-grid">
-                  <label>
-                    Repositorio GitHub
-                    <input value={formData.github_url} onChange={(e) => setFormData({ ...formData, github_url: e.target.value })} placeholder="https://github.com/..." />
-                  </label>
-                  <label>
-                    Palabras clave (separadas por comas)
-                    <input value={formData.palabras_clave} onChange={(e) => setFormData({ ...formData, palabras_clave: e.target.value })} placeholder="IA, React, Python" />
-                  </label>
-                </div>
-              </div>
-
-              <div className="my-projects__modal-actions">
-                <button type="button" className="btn btn-outline" onClick={() => { setFormOpen(false); resetProjectForm() }}>Cancelar</button>
-                <button type="submit" className="btn btn-primary" disabled={isUploadingAnyFile || !hasCompletedFile}>
-                  {isUploadingAnyFile ? 'Subiendo archivos...' : 'Publicar proyecto'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

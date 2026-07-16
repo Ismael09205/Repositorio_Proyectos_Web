@@ -63,8 +63,8 @@ const obtenerConversacionesPorUsuario = async (usuarioId) => {
         .from('conversaciones')
         .select(`
             *,
-            perfil_a:profiles!usuario_a(id, nombre_completo),
-            perfil_b:profiles!usuario_b(id, nombre_completo)
+            perfil_a:profiles!usuario_a(id, nombre_completo, avatar_url),
+            perfil_b:profiles!usuario_b(id, nombre_completo, avatar_url)
         `)
         .or(`usuario_a.eq.${usuarioId},usuario_b.eq.${usuarioId}`)
         .order('updated_at', { ascending: false });
@@ -91,14 +91,13 @@ const marcarComoLeidos = async (conversacion_id, usuarioId) => {
 const buscarUsuarios = async (query, miId) => {
     const { data, error } = await supabaseService
         .from('profiles')
-        .select('id, nombre_completo')
+        .select('id, nombre_completo, avatar_url') // <-- Agregado avatar_url aquí
         .neq('id', miId)
         .ilike('nombre_completo', `%${query}%`)
         .limit(10);
 
     if (error) throw error;
     
-    // 👇 AGREGA ESTA LÍNEA PARA ESPIAR A SUPABASE 👇
     console.log(`Buscando "${query}"... Supabase encontró:`, data); 
 
     return data || [];

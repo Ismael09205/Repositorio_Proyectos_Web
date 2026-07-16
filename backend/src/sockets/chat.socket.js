@@ -1,22 +1,30 @@
 const chatService = require('../services/chat.service');
 
+// Un Set en memoria para guardar los IDs de los usuarios que tienen una sesión de socket activa
+const usuariosConectados = new Set();
+
 // Registra todos los eventos del chat en tiempo real para cada conexión WebSocket
 const registrarChatSocket = (io) => {
     io.on('connection', (socket) => {
-        console.log(`Usuario conectado al chat: ${socket.user.id}`);
+        const userId = socket.user.id;
+        console.log(`Usuario conectado al chat: ${userId}`);
+
+        // 1. Añadimos el usuario al registro global de conectados
+        usuariosConectados.add(userId);
+
+        // 2. Emitimos la lista actualizada de usuarios conectados a TODO el mundo
+        io.emit('usuarios_online', Array.from(usuariosConectados));
 
         // El usuario se une a su sala personal para recibir notificaciones dirigidas a él
-        socket.join(`usuario:${socket.user.id}`);
+        socket.join(`usuario:${userId}`);
 
         // ─── EVENTO: unirse a una conversación ───────────────────────────────
-        // El frontend emite esto cuando el usuario abre un chat específico
-        // Payload esperado: { conversacion_id }
         socket.on('unirse_conversacion', async ({ conversacion_id }) => {
             try {
                 socket.join(`conv:${conversacion_id}`);
 
                 // Marcamos los mensajes como leídos al abrir la conversación
-                await chatService.marcarComoLeidos(conversacion_id, socket.user.id);
+                await chatService.marcarComoLeidos(conversacion_id, userId);
 
                 // Enviamos el historial de mensajes al usuario que acaba de unirse
                 const mensajes = await chatService.obtenerMensajes(conversacion_id);
@@ -27,8 +35,6 @@ const registrarChatSocket = (io) => {
         });
 
         // ─── EVENTO: enviar mensaje ───────────────────────────────────────────
-        // El frontend emite esto cuando el usuario envía un mensaje
-        // Payload esperado: { conversacion_id, receptor_id, contenido }
         socket.on('enviar_mensaje', async ({ conversacion_id, receptor_id, contenido }) => {
             try {
                 if (!contenido || !String(contenido).trim()) {
@@ -42,7 +48,7 @@ const registrarChatSocket = (io) => {
                 // Guardamos el mensaje en Supabase
                 const mensaje = await chatService.guardarMensaje({
                     conversacion_id,
-                    emisor_id: socket.user.id,
+                    emisor_id: userId,
                     contenido: String(contenido).trim(),
                 });
 
@@ -61,15 +67,19 @@ const registrarChatSocket = (io) => {
         });
 
         // ─── EVENTO: salir de una conversación ───────────────────────────────
-        // El frontend emite esto cuando el usuario cierra el chat
-        // Payload esperado: { conversacion_id }
         socket.on('salir_conversacion', ({ conversacion_id }) => {
             socket.leave(`conv:${conversacion_id}`);
         });
 
         // ─── EVENTO: desconexión ──────────────────────────────────────────────
         socket.on('disconnect', () => {
-            console.log(`Usuario desconectado del chat: ${socket.user.id}`);
+            console.log(`Usuario desconectado del chat: ${userId}`);
+
+            // 1. Removemos al usuario del Set de conectados
+            usuariosConectados.delete(userId);
+
+            // 2. Notificamos la lista actualizada para que en el frontend se apague su puntito verde de inmediato
+            io.emit('usuarios_online', Array.from(usuariosConectados));
         });
     });
 };

@@ -21,6 +21,9 @@ export default function Chat() {
     const [cargando, setCargando] = useState(true)
     const [enviando, setEnviando] = useState(false)
     const [vistaMovil, setVistaMovil] = useState('lista')
+    
+    // Estado para guardar la lista de IDs de usuarios conectados actualmente
+    const [usuariosOnline, setUsuariosOnline] = useState([])
 
     const mensajesEndRef = useRef(null)
     const inputRef = useRef(null)
@@ -66,6 +69,11 @@ export default function Chat() {
             setCargando(false)
         })
 
+        // Escuchar los usuarios conectados que envíe el servidor Socket.io
+        nuevoSocket.on('usuarios_online', (idsOnline) => {
+            setUsuariosOnline(idsOnline || [])
+        })
+
         nuevoSocket.on('error_chat', ({ mensaje }) => {
             console.error('Error del chat:', mensaje)
         })
@@ -78,24 +86,31 @@ export default function Chat() {
     }, [token])
 
     useEffect(() => {
-        if (!token) return
+    if (loading || !token) return;
 
-        const obtenerConversaciones = async () => {
-            try {
-                const res = await fetch(`${BACKEND_URL}/api/chat/conversaciones`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                })
-                const data = await res.json()
-                setConversaciones(data.conversaciones || [])
-            } catch (error) {
-                console.error('Error obteniendo conversaciones:', error)
-            } finally {
-                setCargando(false)
+    const obtenerConversaciones = async () => {
+        try {
+            const res = await fetch(`${BACKEND_URL}/api/chat/conversaciones`, {
+                headers: { Authorization: `Bearer ${token}` },
+            })
+            
+            if (res.status === 401) {
+                console.warn("Token inválido o expirado.");
+                return;
             }
-        }
 
-        obtenerConversaciones()
-    }, [token])
+            const data = await res.json()
+            console.log("Conversaciones recibidas del backend:", data.conversaciones)
+            setConversaciones(data.conversaciones || [])
+        } catch (error) {
+            console.error('Error obteniendo conversaciones:', error)
+        } finally {
+            setCargando(false)
+        }
+    }
+
+    obtenerConversaciones()
+}, [token, loading])
 
     useEffect(() => {
         mensajesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -116,7 +131,7 @@ export default function Chat() {
             socket.emit('unirse_conversacion', { conversacion_id: conversacion.id })
         }
 
-        inputRef.current?.focus()
+        setTimeout(() => inputRef.current?.focus(), 100)
     }
 
     const volverALista = () => {
@@ -173,7 +188,6 @@ export default function Chat() {
 
     const miId = user?.auth?.id || user?.auth?.user?.id
 
-    // Función arreglada para manejar la búsqueda correctamente
     const manejarBusqueda = async (e) => {
         const texto = e.target.value;
         setBusqueda(texto);
@@ -184,7 +198,6 @@ export default function Chat() {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const data = await res.json();
-                console.log("Respuesta del backend en React:", data);
                 setUsuariosEncontrados(data.usuarios || []);
             } catch (error) {
                 console.error("Error buscando usuarios:", error);
@@ -216,6 +229,26 @@ export default function Chat() {
         }
     };
 
+    // ────────────────────────────────────────────────────────
+    // SOLUCIÓN A LOS DUPLICADOS: Filtrar conversaciones únicas por ID de usuario
+    // ────────────────────────────────────────────────────────
+    const conversacionesUnicas = (() => {
+        const guardados = new Set()
+        return conversaciones.filter(conv => {
+            const otro = obtenerOtroParticipante(conv)
+            if (!otro || !otro.id) return true // Mantenemos chats raros por si acaso
+            if (guardados.has(otro.id)) {
+                return false // Ignora si ya listamos a este usuario
+            }
+            guardados.add(otro.id)
+            return true
+        })
+    })()
+
+    // Variable para verificar si el usuario activo en la ventana está online
+    const elOtroActivo = conversacionActiva ? obtenerOtroParticipante(conversacionActiva) : null
+    const estaEnLineaActivo = elOtroActivo && (usuariosOnline.includes(elOtroActivo.id) || usuariosOnline.includes(obtenerReceptorId(conversacionActiva)))
+
     return (
         <div className="chat-page">
             <aside className={`chat-sidebar ${vistaMovil === 'chat' ? 'chat-sidebar--oculto' : ''}`}>
@@ -234,29 +267,38 @@ export default function Chat() {
                     />
                 </div>
 
-                {/* HTML arreglado para mostrar los resultados de búsqueda */}
                 <div className="chat-sidebar__lista">
                     {busqueda.trim().length > 0 ? (
                         usuariosEncontrados.length > 0 ? (
-                            usuariosEncontrados.map(user => (
-                                <button
-                                    key={user.id}
-                                    className="chat-conv-item"
-                                    onClick={() => iniciarNuevaConversacion(user.id)}
-                                >
-                                    <div className="chat-conv-item__avatar">
-                                        {obtenerInicialesNombre(user.nombre_completo || user.nombre_usuario)}
-                                    </div>
-                                    <div className="chat-conv-item__info">
-                                        <span className="chat-conv-item__nombre">
-                                            {user.nombre_completo || user.nombre_usuario || 'Usuario'}
-                                        </span>
-                                        <span className="chat-conv-item__preview">
-                                            @{user.nombre_usuario}
-                                        </span>
-                                    </div>
-                                </button>
-                            ))
+                            usuariosEncontrados.map(u => {
+                                const isOnline = usuariosOnline.includes(u.id);
+                                return (
+                                    <button
+                                        key={u.id}
+                                        className="chat-conv-item"
+                                        onClick={() => iniciarNuevaConversacion(u.id)}
+                                    >
+                                        <div className="chat-conv-item__avatar-wrapper">
+                                            {u.avatar_url ? (
+                                                <img src={u.avatar_url} alt={u.nombre_completo} className="chat-conv-item__avatar-img" />
+                                            ) : (
+                                                <div className="chat-conv-item__avatar-initials">
+                                                    {obtenerInicialesNombre(u.nombre_completo || u.nombre_usuario)}
+                                                </div>
+                                            )}
+                                            {isOnline && <span className="chat-online-badge" />}
+                                        </div>
+                                        <div className="chat-conv-item__info">
+                                            <span className="chat-conv-item__nombre">
+                                                {u.nombre_completo || u.nombre_usuario || 'Usuario'}
+                                            </span>
+                                            <span className="chat-conv-item__preview">
+                                                @{u.nombre_usuario}
+                                            </span>
+                                        </div>
+                                    </button>
+                                );
+                            })
                         ) : (
                             <div className="chat-sidebar__vacio">
                                 <Search size={32} />
@@ -264,27 +306,37 @@ export default function Chat() {
                             </div>
                         )
                     ) : (
-                        cargando && conversaciones.length === 0 ? (
+                        cargando && conversacionesUnicas.length === 0 ? (
                             <div className="chat-sidebar__vacio">
                                 <Loader size={20} className="chat-loading-icon" />
                             </div>
-                        ) : conversaciones.length === 0 ? (
+                        ) : conversacionesUnicas.length === 0 ? (
                             <div className="chat-sidebar__vacio">
                                 <MessageCircle size={32} />
                                 <p>Aún no tienes conversaciones</p>
                             </div>
                         ) : (
-                            conversaciones.map(conv => {
+                            conversacionesUnicas.map(conv => {
                                 const otro = obtenerOtroParticipante(conv)
                                 const activa = conversacionActiva?.id === conv.id
+                                const receptorId = obtenerReceptorId(conv)
+                                const isOnline = otro && (usuariosOnline.includes(otro.id) || usuariosOnline.includes(receptorId))
+
                                 return (
                                     <button
                                         key={conv.id}
                                         className={`chat-conv-item ${activa ? 'chat-conv-item--activa' : ''}`}
                                         onClick={() => abrirConversacion(conv)}
                                     >
-                                        <div className="chat-conv-item__avatar">
-                                            {obtenerInicialesNombre(otro?.nombre_completo || otro?.nombre_usuario)}
+                                        <div className="chat-conv-item__avatar-wrapper">
+                                            {otro?.avatar_url ? (
+                                                <img src={otro.avatar_url} alt={otro.nombre_completo} className="chat-conv-item__avatar-img" />
+                                            ) : (
+                                                <div className="chat-conv-item__avatar-initials">
+                                                    {obtenerInicialesNombre(otro?.nombre_completo || otro?.nombre_usuario)}
+                                                </div>
+                                            )}
+                                            {isOnline && <span className="chat-online-badge" />}
                                         </div>
                                         <div className="chat-conv-item__info">
                                             <span className="chat-conv-item__nombre">
@@ -308,9 +360,11 @@ export default function Chat() {
             <main className={`chat-ventana ${vistaMovil === 'lista' ? 'chat-ventana--oculta' : ''}`}>
                 {!conversacionActiva ? (
                     <div className="chat-ventana__vacio">
-                        <MessageCircle size={48} />
+                        <div className="chat-ventana__vacio-icon">
+                            <MessageCircle size={56} />
+                        </div>
                         <h3>Selecciona una conversación</h3>
-                        <p>Elige un chat de la lista para empezar a hablar</p>
+                        <p>Elige un chat de la lista para empezar a hablar en IdeAgora</p>
                     </div>
                 ) : (
                     <>
@@ -318,19 +372,25 @@ export default function Chat() {
                             <button className="chat-ventana__back-btn" onClick={volverALista}>
                                 <ArrowLeft size={18} />
                             </button>
-                            <div className="chat-ventana__header-avatar">
-                                {obtenerInicialesNombre(
-                                    obtenerOtroParticipante(conversacionActiva)?.nombre_completo ||
-                                    obtenerOtroParticipante(conversacionActiva)?.nombre_usuario
+                            <div className="chat-ventana__header-avatar-wrapper">
+                                {elOtroActivo?.avatar_url ? (
+                                    <img src={elOtroActivo.avatar_url} alt="Profile" className="chat-ventana__header-avatar-img" />
+                                ) : (
+                                    <div className="chat-ventana__header-avatar-initials">
+                                        {obtenerInicialesNombre(
+                                            elOtroActivo?.nombre_completo || elOtroActivo?.nombre_usuario
+                                        )}
+                                    </div>
                                 )}
+                                {estaEnLineaActivo && <span className="chat-online-badge chat-online-badge--header" />}
                             </div>
                             <div className="chat-ventana__header-info">
                                 <span className="chat-ventana__header-nombre">
-                                    {obtenerOtroParticipante(conversacionActiva)?.nombre_completo ||
-                                        obtenerOtroParticipante(conversacionActiva)?.nombre_usuario ||
-                                        'Usuario'}
+                                    {elOtroActivo?.nombre_completo || elOtroActivo?.nombre_usuario || 'Usuario'}
                                 </span>
-                                <span className="chat-ventana__header-estado">En línea</span>
+                                <span className={`chat-ventana__header-estado ${estaEnLineaActivo ? 'chat-ventana__header-estado--online' : 'chat-ventana__header-estado--offline'}`}>
+                                    {estaEnLineaActivo ? 'En línea' : 'Desconectado'}
+                                </span>
                             </div>
                         </div>
 
@@ -341,7 +401,9 @@ export default function Chat() {
                                 </div>
                             ) : mensajes.length === 0 ? (
                                 <div className="chat-ventana__sin-mensajes">
-                                    <p>Sé el primero en escribir 👋</p>
+                                    <div className="chat-ventana__saludo-burbuja">
+                                        <p>Sé el primero en escribir 👋</p>
+                                    </div>
                                 </div>
                             ) : (
                                 mensajes.map((msg) => {
@@ -387,4 +449,3 @@ export default function Chat() {
         </div>
     )
 }
-

@@ -46,7 +46,27 @@ const updateProfile = async (req, res) => {
     }
 }
 
+// Subir/actualizar el avatar del usuario logueado (Estudiante o Administrador)
+const uploadAvatar = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No se recibió ningún archivo.' });
+        }
+
+        const updatedProfile = await userService.uploadAvatarById(req.user.id, req.file);
+
+        return res.status(200).json({
+            ...updatedProfile,
+            email: req.user.email
+        });
+    } catch (error) {
+        console.error('uploadAvatar error:', error);
+        return res.status(400).json({ error: error.message || 'Error al subir el avatar.' });
+    }
+}
+
 module.exports = {
     getProfile,
-    updateProfile
+    updateProfile,
+    uploadAvatar
 };

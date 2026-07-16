@@ -1,61 +1,503 @@
+:root {
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --text-dark: #0f172a;
+  --text-muted: #64748b;
+  --border-light: #e2e8f0;
+  --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.03);
+  --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.06);
+  --radius-lg: 20px;
+  --radius-md: 12px;
+}
+
 .profile-page {
-  padding: 60px 24px;
+  background-color: var(--bg-main);
+  min-height: 100vh;
+  padding: 40px 24px;
   display: flex;
   justify-content: center;
+  align-items: flex-start;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-.profile-card {
-  width: min(800px, 100%);
-  background: #fff;
-  border-radius: 24px;
-  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
-  padding: 32px;
+.profile-container {
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.profile-card h1 {
-  font-family: var(--font-display);
+/* --- 1. ESTILO DEL BANNER / HEADER CARD --- */
+.profile-header-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm); /* Sombra más sutil */
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+}
+
+.profile-banner-bg {
+  display: none;
+}
+
+.profile-header-content {
+  padding: 32px; /* Un padding uniforme y limpio por todo el contorno */
+  display: flex;
+  align-items: center; /* Alinea verticalmente el avatar con el texto y botones */
+  gap: 24px;
+  position: relative;
+  margin-top: 0; /* Eliminado el margen negativo */
+}
+
+/* Avatar Frame */
+.profile-avatar-container {
+  position: relative;
+}
+
+.profile-avatar-frame {
+  width: 100px; /* Un tamaño ligeramente más compacto y elegante */
+  height: 100px;
+  border-radius: 20px; /* Bordes redondeados modernos, no tan exagerados */
+  border: 1px solid var(--border-light); /* Borde sutil en lugar del grueso borde blanco */
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #fff;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.profile-avatar-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-avatar-frame.editable {
+  cursor: pointer;
+}
+
+.profile-avatar-frame.editable:hover {
+  transform: scale(1.03);
+}
+
+.avatar-edit-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+  transition: opacity 0.2s ease;
+}
+
+.uploading-text {
+  font-size: 0.75rem;
+  color: #fff;
+}
+
+/* Texto e Info del Banner */
+.profile-title-section {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* Centrado vertical para que se vea simétrico */
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.profile-title-text h1 {
+  margin: 0 0 6px 0;
   font-size: 2rem;
-  margin-bottom: 24px;
+  font-weight: 800;
+  color: var(--text-dark);
+  letter-spacing: -0.025em;
 }
 
-.profile-grid {
-  display: grid;
-  gap: 18px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-bottom: 24px;
-}
-
-.profile-grid div {
-  background: #f8fafc;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 18px;
-}
-
-.profile-grid strong {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--text-secondary);
+.profile-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #f1f5f9;
+  color: var(--text-muted);
+  font-weight: 600;
   font-size: 0.85rem;
+  padding: 4px 12px;
+  border-radius: 99px;
+  border: 1px solid var(--border-light);
 }
 
-.profile-grid p {
-  color: var(--text-primary);
+.avatar-error-msg {
+  color: #ef4444;
+  font-size: 0.75rem;
+  margin: 6px 0 0 0;
+}
+
+/* Contenedor de Acciones */
+.profile-actions-wrapper {
+  display: flex;
+  gap: 8px;
+}
+
+/* --- Botones Genéricos --- */
+.btn-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.btn-secondary:hover {
+  background: #e2e8f0;
+}
+
+.btn-danger {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+.btn-danger:hover {
+  background: #fee2e2;
+}
+
+.btn-danger-outline {
+  border: 1px solid #fee2e2;
+  background: transparent;
+  color: #ef4444;
+}
+
+.btn-danger-outline:hover {
+  background: #fef2f2;
+}
+
+.btn-success {
+  background: #10b981;
+  color: #fff;
+}
+
+.btn-success:hover {
+  background: #059669;
+}
+
+/* --- 2. GRID DE CONTENIDO --- */
+.profile-content-grid {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 24px;
+}
+
+.profile-info-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
+  margin-bottom: 24px;
+}
+
+.profile-info-card:last-child {
+  margin-bottom: 0;
+}
+
+.profile-info-card h3 {
+  margin: 0 0 20px 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  border-bottom: 1px solid var(--border-light);
+  padding-bottom: 12px;
+}
+
+.card-title-icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Elementos de Información */
+.info-item {
+  margin-bottom: 18px;
+}
+
+.info-item:last-child {
+  margin-bottom: 0;
+}
+
+.info-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.info-value {
   font-size: 0.95rem;
+  color: var(--text-dark);
+  margin: 0;
+  font-weight: 500;
+}
+
+.email-value {
+  word-break: break-all;
+  color: #4f46e5;
+}
+
+.empty-text {
+  font-style: italic;
+  color: #94a3b8;
+  font-size: 0.875rem;
   margin: 0;
 }
 
-.profile-error {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 16px;
-  background: #fee2e2;
-  border: 1px solid #fecaca;
-  color: #b91c1c;
-  border-radius: 16px;
+.bio-text {
+  font-size: 0.925rem;
+  line-height: 1.6;
+  color: #334155;
+  margin: 0;
 }
 
-@media (max-width: 768px) {
-  .profile-card { padding: 24px; }
-  .profile-grid { grid-template-columns: 1fr; }
+.social-links-section {
+  border-top: 1px dashed var(--border-light);
+  margin-top: 18px;
+  padding-top: 18px;
+}
+
+.social-link {
+  font-size: 0.9rem;
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.15s ease;
+}
+
+.social-link:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
+
+/* Grid Interno en Detalles Académicos */
+.academic-grid-form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px 16px;
+}
+
+.full-width-row {
+  grid-column: span 2;
+}
+
+/* Inputs en modo Edición */
+.profile-input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid #cbd5e1;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
+}
+
+.profile-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.profile-textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid #cbd5e1;
+  font-size: 0.9rem;
+  resize: none;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.profile-textarea:focus {
+  border-color: var(--primary);
+}
+
+/* --- 3. ESTILOS DE TAGS (INTERESES) --- */
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.tag-pill {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1e40af;
+  background: #e0f2fe;
+  padding: 6px 14px;
+  border-radius: 99px;
+  border: 1px solid #bae6fd;
+}
+
+.tag-pill-editable {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1e40af;
+  background: #dbeafe;
+  padding: 4px 12px;
+  border-radius: 99px;
+  border: 1px solid #bfdbfe;
+}
+
+.tag-remove-btn {
+  border: none;
+  background: transparent;
+  color: #2563eb;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tag-remove-btn:hover {
+  color: #1d4ed8;
+}
+
+.interest-editor-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* --- TOAST DE ÉXITO --- */
+.success-toast {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  background: #10b981;
+  color: #fff;
+  padding: 14px 24px;
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* --- LOADING CARD --- */
+.profile-loading-card {
+  background: var(--bg-card);
+  padding: 40px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--border-light);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* --- ANIMACIONES --- */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* --- RESPONSIVE (MEDIA QUERIES) --- */
+@media (max-width: 900px) {
+  .profile-content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .profile-page {
+    padding: 16px 12px;
+  }
+  
+  .profile-header-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 0 16px 24px 16px;
+  }
+  
+  .profile-title-section {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .profile-actions-wrapper {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .academic-grid-form {
+    grid-template-columns: 1fr;
+  }
+  
+  .full-width-row {
+    grid-column: span 1;
+  }
+
+  .btn-text {
+    display: none; /* En pantallas miniatura solo muestra íconos de administración para ahorrar espacio */
+  }
 }

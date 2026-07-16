@@ -14,6 +14,8 @@ import ProjectDetail from './pages/ProjectDetail/ProjectDetail.jsx'
 import Chat from './pages/Chat/Chat.jsx'
 import MainLayout from './layouts/MainLayout.jsx'
 import Done from './pages/Done/Done.jsx'
+import ProjectUni from './pages/ProjectUni/ProjectUni.jsx'
+import UploadProject from './pages/UploadProject/UploadProject.jsx'
 
 function App() {
   return (
@@ -72,6 +74,10 @@ function App() {
         <Route path="/categorias" element={<Navigate to="/explorar" replace />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/done" element={<Done />} />
+        <Route path="/universidad/:id" element={<ProjectUni />} />
+        <Route path="/mis-proyectos" element={<MyProjects />} />
+        <Route path="/subir-proyecto" element={<UploadProject />} />
+        <Route path="/editar-proyecto/:id" element={<UploadProject />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

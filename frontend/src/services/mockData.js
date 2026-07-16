@@ -1,158 +1,167 @@
-export const CATEGORIES = [
-  { id: 'ia', label: 'Inteligencia Artificial', color: 'var(--tag-ai)', textColor: 'var(--tag-ai-text)' },
-  { id: 'web', label: 'Desarrollo Web', color: 'var(--tag-tech)', textColor: 'var(--tag-tech-text)' },
-  { id: 'data', label: 'Ciencia de Datos', color: 'var(--tag-data)', textColor: 'var(--tag-data-text)' },
-  { id: 'env', label: 'Medio Ambiente', color: 'var(--tag-env)', textColor: 'var(--tag-env-text)' },
-  { id: 'tcnp', label: 'TCNP', color: '#fce7f3', textColor: '#be185d' },
-  { id: 'iot', label: 'IoT', color: '#e0f2fe', textColor: '#0369a1' },
-  { id: 'robotica', label: 'Robótica', color: '#fef3c7', textColor: '#b45309' },
-  { id: 'blockchain', label: 'Blockchain', color: '#f0fdf4', textColor: '#15803d' },
+// mockData.js (o donde tengas alojado este archivo)
+import EPN from '../assets/universidades/EPN.png'
+import ESPE from '../assets/universidades/ESPE.png'
+import ESPOL from '../assets/universidades/ESPOL.png'
+import PUCE from '../assets/universidades/PUCE.png'
+import UCE from '../assets/universidades/UCE.svg'
+import UDLA from '../assets/universidades/UDLA.png'
+import UIDE from '../assets/universidades/UIDE.avif'
+import USFQ from '../assets/universidades/USFQ.png'
+import UTA from '../assets/universidades/UTA.png'
+import UTE from '../assets/universidades/UTE.png'
+
+export const UNIVERSIDADES = [
+  {
+    id: 'epn',
+    name: 'Escuela Politécnica Nacional',
+    image: EPN,
+    color: '#000a94',
+    textColor: '#ffffff',
+    description: 'La EPN es una institución pública de Quito...'
+  },
+  {
+    id: 'espe',
+    name: 'Universidad de las Fuerzas Armadas ESPE',
+    image: ESPE,
+    color: '#047a04',
+    textColor: '#FFFFFF',
+    description: 'Institución de educación superior militar...'
+  },
+  {
+    id: 'espol',
+    name: 'Escuela Superior Politécnica del Litoral',
+    image: ESPOL,
+    color: '#23374b',
+    textColor: '#FFFFFF',
+    description: 'Institución pública del litoral ecuatoriano...'
+  },
+  {
+    id: 'puce',
+    name: 'Pontificia Universidad Católica del Ecuador',
+    image: PUCE,
+    color: '#218ae6',
+    textColor: '#FFFFFF',
+    description: 'Una de las universidades privadas más tradicionales...'
+  },
+  {
+    id: 'uce',
+    name: 'Universidad Central del Ecuador',
+    image: UCE,
+    color: '#d12346',
+    textColor: '#FFFFFF',
+    description: 'La universidad más antigua del país...'
+  },
+  {
+    id: 'udla',
+    name: 'Universidad de las Américas',
+    image: UDLA,
+    color: '#72282b',
+    textColor: '#FFFFFF',
+    description: 'Institución privada con moderna infraestructura...'
+  },
+  {
+    id: 'uide',
+    name: 'Universidad Internacional del Ecuador',
+    image: UIDE,
+    color: '#8f1242',
+    textColor: '#FFFFFF',
+    description: 'Ofrece una formación orientada al liderazgo global...'
+  },
+  {
+    id: 'usfq',
+    name: 'Universidad San Francisco de Quito',
+    image: USFQ,
+    color: '#e96519',
+    textColor: '#FFFFFF',
+    description: 'Líder en artes liberales...'
+  },
+  {
+    id: 'uta',
+    name: 'Universidad Técnica de Ambato',
+    image: UTA,
+    color: '#b41717',
+    textColor: '#FFFFFF',
+    description: 'Institución clave de la región Sierra-Centro...'
+  },
+  {
+    id: 'ute',
+    name: 'Universidad UTE',
+    image: UTE,
+    color: '#00a7bd',
+    textColor: '#FFFFFF',
+    description: 'Institución privada destacada en medicina...'
+  }
 ]
 
 export const POPULAR_TAGS = ['Inteligencia Artificial', 'TCNP', 'Medio Ambiente', 'Machine Learning', 'IoT', 'Blockchain']
 
-export const MOCK_PROJECTS = [
-  {
-    id: 1,
-    title: 'Entrenamiento mediante algoritmos de machine learning y deep learning.',
-    category: 'Inteligencia Artificial',
-    categoryId: 'ia',
-    author: 'Carlos M.',
-    authorId: 1,
-    university: 'EPN',
-    image: null,
-    likes: 13,
-    views: 15,
-    comments: 7,
-    featured: true,
-    createdAt: '2026-01-15',
-    description: 'Proyecto de investigación enfocado en el desarrollo de modelos de ML para predicción de datos universitarios.',
-    tags: ['Python', 'TensorFlow', 'Deep Learning'],
-  },
-  {
-    id: 2,
-    title: 'Sistema de monitoreo ambiental con sensores IoT en tiempo real',
-    category: 'Medio Ambiente',
-    categoryId: 'env',
-    author: 'María P.',
-    authorId: 2,
-    university: 'ESPE',
-    image: null,
-    likes: 28,
-    views: 45,
-    comments: 12,
-    featured: true,
-    createdAt: '2026-02-03',
-    description: 'Red de sensores IoT para monitoreo de calidad del aire en zonas urbanas.',
-    tags: ['Arduino', 'IoT', 'React'],
-  },
-  {
-    id: 3,
-    title: 'Plataforma de detección de enfermedades en cultivos usando visión artificial',
-    category: 'Inteligencia Artificial',
-    categoryId: 'ia',
-    author: 'Diego S.',
-    authorId: 3,
-    university: 'UCE',
-    image: null,
-    likes: 41,
-    views: 88,
-    comments: 19,
-    featured: true,
-    createdAt: '2026-01-28',
-    description: 'Uso de redes neuronales convolucionales para identificar enfermedades en plantas agrícolas.',
-    tags: ['PyTorch', 'OpenCV', 'FastAPI'],
-  },
-  {
-    id: 4,
-    title: 'Chatbot universitario para orientación académica con NLP',
-    category: 'Inteligencia Artificial',
-    categoryId: 'ia',
-    author: 'Sofía L.',
-    authorId: 4,
-    university: 'PUCE',
-    image: null,
-    likes: 22,
-    views: 56,
-    comments: 8,
-    featured: true,
-    createdAt: '2026-03-01',
-    description: 'Asistente conversacional con procesamiento de lenguaje natural para guiar a estudiantes.',
-    tags: ['NLP', 'Python', 'Rasa'],
-  },
-  {
-    id: 5,
-    title: 'Análisis de tráfico vehicular con drones y Computer Vision',
-    category: 'Ciencia de Datos',
-    categoryId: 'data',
-    author: 'Andrés T.',
-    authorId: 5,
-    university: 'UDLA',
-    image: null,
-    likes: 35,
-    views: 72,
-    comments: 14,
-    featured: false,
-    createdAt: '2026-02-14',
-    description: 'Sistema de visión artificial montado en drones para análisis de flujo vehicular urbano.',
-    tags: ['YOLO', 'Python', 'Drone'],
-  },
-  {
-    id: 6,
-    title: 'Red blockchain para validación de certificados académicos',
-    category: 'TCNP',
-    categoryId: 'tcnp',
-    author: 'Valeria R.',
-    authorId: 6,
-    university: 'UTE',
-    image: null,
-    likes: 18,
-    views: 39,
-    comments: 6,
-    featured: false,
-    createdAt: '2026-03-10',
-    description: 'Plataforma descentralizada para emisión y verificación de títulos y certificados universitarios.',
-    tags: ['Ethereum', 'Solidity', 'Web3'],
-  },
-  {
-    id: 7,
-    title: 'App móvil para gestión de residuos sólidos urbanos',
-    category: 'Medio Ambiente',
-    categoryId: 'env',
-    author: 'Roberto F.',
-    authorId: 7,
-    university: 'UIDE',
-    image: null,
-    likes: 29,
-    views: 61,
-    comments: 11,
-    featured: false,
-    createdAt: '2026-01-20',
-    description: 'Aplicación móvil que conecta ciudadanos con operadores de recolección de residuos.',
-    tags: ['React Native', 'Firebase', 'Maps API'],
-  },
-  {
-    id: 8,
-    title: 'Brazo robótico asistido por IA para personas con discapacidad',
-    category: 'Robótica',
-    categoryId: 'robotica',
-    author: 'Camila V.',
-    authorId: 8,
-    university: 'EPN',
-    image: null,
-    likes: 67,
-    views: 134,
-    comments: 31,
-    featured: false,
-    createdAt: '2026-02-28',
-    description: 'Prótesis robótica inteligente controlada por señales electromiográficas.',
-    tags: ['Arduino', 'Python', 'EMG'],
-  },
-]
+// Normaliza texto: minúsculas y sin tildes, para comparar sin importar acentos
+const normalizar = (str) => str
+  .toLowerCase()
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .trim()
 
-export const getCategoryStyle = (categoryId) => {
-  const cat = CATEGORIES.find(c => c.id === categoryId)
-  return cat
-    ? { background: cat.color, color: cat.textColor }
-    : { background: 'var(--bg-subtle)', color: 'var(--text-secondary)' }
+// Genera el acrónimo de un nombre completo (ignora conectores como "de", "del")
+const generarAcronimo = (nombre) => {
+  const conectores = ['de', 'del', 'las', 'los', 'la', 'el']
+  return nombre
+    .split(' ')
+    .filter((palabra) => palabra.length > 0 && !conectores.includes(palabra.toLowerCase()))
+    .map((palabra) => palabra[0])
+    .join('')
+    .toLowerCase()
+}
+
+// Función central de coincidencia: soporta que el proyecto guarde "EPN", "epn",
+// "Escuela Politécnica Nacional" o cualquier variación, contra el registro de universidades
+export const matchesUniversity = (projectUniversidad, uni) => {
+  if (!projectUniversidad || !uni) return false
+
+  const project = normalizar(projectUniversidad)
+  const fullName = normalizar(uni.name)
+  const id = uni.id.toLowerCase()
+  const acronimo = generarAcronimo(uni.name)
+
+  if (project === id) return true
+  if (project === fullName) return true
+  if (project === acronimo) return true
+  if (fullName.includes(project) && project.length >= 4) return true
+  if (project.includes(fullName)) return true
+
+  return false
+}
+
+// Nueva función de estilos basada en Universidades (ahora usa matchesUniversity)
+export const getUniversityStyle = (universityNameOrId) => {
+  if (!universityNameOrId) return { backgroundColor: '#e2e8f0', color: '#475569' };
+
+  const uni = UNIVERSIDADES.find((u) => matchesUniversity(universityNameOrId, u));
+
+  if (uni) {
+    return {
+      backgroundColor: uni.color,
+      color: uni.textColor
+    };
+  }
+
+  return {
+    backgroundColor: '#64748b',
+    color: '#ffffff'
+  };
+};
+
+// src/services/mockData.js (o la ruta donde lo tengas)
+export const CATEGORIES_CONFIG = {
+  'Medicina y Salud': { code: 'MED', color: '#0284c7', bg: '#e0f2fe' },
+  'Derecho y Leyes': { code: 'DER', color: '#b45309', bg: '#fef3c7' },
+  'Política y Gobierno': { code: 'POL', color: '#7c3aed', bg: '#f3e8ff' },
+  'Ciencias Sociales': { code: 'CSO', color: '#db2777', bg: '#fce7f3' },
+  'Administración y Negocios': { code: 'ADM', color: '#059669', bg: '#d1fae5' },
+  'Ingeniería y Construcción': { code: 'ING', color: '#ea580c', bg: '#ffedd5' },
+  'Artes y Diseño': { code: 'ART', color: '#e11d48', bg: '#ffe4e6' },
+  'Educación': { code: 'EDU', color: '#2563eb', bg: '#dbeafe' },
+  'Ciencias Exactas': { code: 'CEX', color: '#0891b2', bg: '#ecfeff' },
+  'Medio Ambiente y Agro': { code: 'ECO', color: '#15803d', bg: '#dcfce7' },
+  'Sistemas y Software': { code: 'SIS', color: '#0f172a', bg: '#f1f5f9' },
 }

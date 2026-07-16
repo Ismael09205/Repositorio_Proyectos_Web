@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import API_BASE_URL from '../../services/apiConfig.js'
 import { useAuth } from '../../context/AuthContext';
-import './Profile.css'; // ¡IMPORTANTE! Agregada la importación de tus estilos reales
+import { uploadFileToCloudinary } from '../../services/cloudinaryService.js';
+import { updateProfile as updateProfileRequest } from '../../services/authService.js';
+import './Profile.css'; 
 import {
   User,
   GraduationCap,
@@ -14,7 +16,11 @@ import {
   X,
   CheckCircle,
   Shield,
-  Users
+  Users,
+  Pencil,
+  MapPin,
+  Mail,
+  BookOpen
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -32,6 +38,11 @@ export default function Profile() {
   const [interestInput, setInterestInput] = useState('');
   const [updateLoading, setUpdateLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+
+  // Estados para el avatar
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarError, setAvatarError] = useState(null);
+  const avatarInputRef = useRef(null);
 
   useEffect(() => {
     const run = async () => {
@@ -62,16 +73,25 @@ export default function Profile() {
         });
         setInterestInput('');
 
-        // Check if user is admin
-        try {
-          const adminCheck = await axios.get(`${API_BASE_URL}/api/authLogs/statistics`, {
-            headers: { Authorization: `Bearer ${authToken}` }
-          });
-          if (adminCheck.status === 200) {
-            setIsAdmin(true);
+        // Evitar el error 403 en consola si el rol en el token/perfil no es 'admin'
+        // NOTA: Si tu backend devuelve el rol en profileData, lo ideal es verificarlo directamente:
+        const userRole = profileData.rol || profileData.role; 
+        
+        if (userRole === 'admin') {
+          setIsAdmin(true);
+        } else {
+          // Si no tienes el rol directamente en la respuesta del perfil, hacemos la consulta silenciosa 
+          // pero solo si realmente es necesario. Si falla, simplemente marcamos como false sin alarmar.
+          try {
+            const adminCheck = await axios.get(`${API_BASE_URL}/api/authLogs/statistics`, {
+              headers: { Authorization: `Bearer ${authToken}` }
+            });
+            if (adminCheck.status === 200) {
+              setIsAdmin(true);
+            }
+          } catch (adminErr) {
+            setIsAdmin(false);
           }
-        } catch (adminErr) {
-          setIsAdmin(false);
         }
       } catch (err) {
         setError(err.response?.data?.error || 'Error al conectar con IdeAgora.');
@@ -83,11 +103,10 @@ export default function Profile() {
     run();
   }, [token]);
 
-  // 2. Enviar las actualizaciones del formulario al Backend (Método PUT)
+  // Enviar las actualizaciones del formulario al Backend
   async function handleSaveChanges(e) {
     e.preventDefault();
 
-    // Validación manual del nombre completo
     const nombreCompleto = isAdmin ? formData.name : formData.nombre_completo;
     
     if (!nombreCompleto || nombreCompleto.trim() === '') {
@@ -108,7 +127,6 @@ export default function Profile() {
 
       const response = await axios.put(`${API_BASE_URL}/api/users/profile`, formData, {
         headers: { Authorization: `Bearer ${authToken}` }
-
       });
 
       setProfile(response.data);
@@ -124,7 +142,7 @@ export default function Profile() {
     }
   }
 
-  // 3. Destruir la sesión activa en el cliente
+  // Cerrar la sesión
   async function handleLogout() {
     const confirmar = window.confirm("¿Seguro que deseas cerrar sesión en IdeAgora?");
     if (confirmar) {
@@ -165,11 +183,50 @@ export default function Profile() {
     return name.split(" ").map(word => word[0]).slice(0, 2).join("").toUpperCase();
   };
 
+  const handleAvatarClick = () => {
+    if (!isEditing || avatarUploading) return;
+    avatarInputRef.current?.click();
+  };
+
+  const handleAvatarFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const tiposPermitidos = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!tiposPermitidos.includes(file.type)) {
+      setAvatarError('Solo se permiten imágenes JPG, PNG o WEBP.');
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      setAvatarError('La imagen no puede pesar más de 3MB.');
+      return;
+    }
+
+    setAvatarError(null);
+    setAvatarUploading(true);
+
+    try {
+      const authToken = token || localStorage.getItem('pc_token');
+      const resultado = await uploadFileToCloudinary(file);
+      const perfilActualizado = await updateProfileRequest(authToken, { avatar_url: resultado.url });
+
+      setProfile(perfilActualizado);
+      setFormData(prev => ({ ...prev, avatar_url: perfilActualizado.avatar_url }));
+    } catch (err) {
+      console.error('Error subiendo avatar:', err);
+      setAvatarError('No se pudo actualizar tu foto. Intenta de nuevo.');
+    } finally {
+      setAvatarUploading(false);
+      e.target.value = '';
+    }
+  };
+
   if (loading) {
     return (
       <div className="profile-page">
-        <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
-          <p>Cargando tus datos...</p>
+        <div className="profile-loading-card">
+          <div className="spinner"></div>
+          <p>Cargando tu espacio en IdeAgora...</p>
         </div>
       </div>
     );
@@ -179,7 +236,7 @@ export default function Profile() {
     return (
       <div className="profile-page">
         <div className="profile-error">
-          <div style={{ display: 'flex', itemsCenter: 'center', gap: '8px', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
             <AlertCircle size={20} />
             <strong>Acceso Denegado</strong>
           </div>
@@ -189,295 +246,369 @@ export default function Profile() {
     );
   }
 
+  const userDisplayName = isAdmin ? profile.name : profile.nombre_completo;
+
   return (
     <div className="profile-page">
-      <div className="profile-card">
-
+      <div className="profile-container">
+        
         {/* Notificación de Éxito Temporal */}
         {successMessage && (
-          <div style={{
-            position: 'fixed', top: '20px', right: '20px', zIndex: 9999,
-            background: '#10b981', color: '#fff', padding: '12px 24px',
-            borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
-            display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold'
-          }}>
+          <div className="success-toast">
             <CheckCircle size={18} /> {successMessage}
           </div>
         )}
 
-        {/* ENCABEZADO PRINCIPAL */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {/* Iniciales dinámicas */}
-            <div style={{
-              width: '72px', height: '72px', borderRadius: '16px',
-              background: 'linear-gradient(135deg, #334155, #0f172a)', color: '#fff',
-              display: 'flex', alignItems: 'center', justifyContext: 'center',
-              fontSize: '1.5rem', fontWeight: 'bold', justifyContent: 'center', userSelect: 'none'
-            }}>
-              {generateInitials(profile.nombre_completo)}
-            </div>
-            <div>
-              <h1 style={{ margin: 0, fontSize: '1.75rem' }}>{isAdmin ? profile.name : profile.nombre_completo}</h1>
-              <p style={{ color: '#64748b', margin: '4px 0 0 0', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem' }}>
-                {isAdmin ? (
-                  <><Shield size={16} style={{ color: '#dc2626' }} /> Administrador</>
+        {/* 1. CABECERA TIPO BANNER SOCIAL */}
+        <div className="profile-header-card">
+          <div className="profile-banner-bg"></div>
+          
+          <div className="profile-header-content">
+            <div className="profile-avatar-container">
+              <div
+                onClick={handleAvatarClick}
+                className={`profile-avatar-frame ${isEditing ? 'editable' : ''}`}
+                style={{
+                  background: profile.avatar_url ? 'transparent' : 'linear-gradient(135deg, #4f46e5, #0f172a)',
+                }}
+              >
+                {profile.avatar_url ? (
+                  <img src={profile.avatar_url} alt="Avatar" />
                 ) : (
-                  <><GraduationCap size={16} style={{ color: '#2563eb' }} /> {profile.carrera || 'Estudiante'}</>
+                  generateInitials(userDisplayName)
                 )}
-              </p>
-            </div>
-          </div>
 
-          {/* BOTONES DE ACCIONES */}
-           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {!isEditing ? (
-              <>
-                {isAdmin && (
+                {isEditing && (
+                  <div className="avatar-edit-overlay">
+                    {avatarUploading ? (
+                      <span className="uploading-text">Subiendo...</span>
+                    ) : (
+                      <Pencil size={18} color="#fff" />
+                    )}
+                  </div>
+                )}
+              </div>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleAvatarFileChange}
+                style={{ display: 'none' }}
+              />
+            </div>
+
+            <div className="profile-title-section">
+              <div className="profile-title-text">
+                <h1>{userDisplayName}</h1>
+                <span className="profile-role-badge">
+                  {isAdmin ? (
+                    <><Shield size={14} /> Administrador</>
+                  ) : (
+                    <><GraduationCap size={14} /> {profile.carrera || 'Estudiante'}</>
+                  )}
+                </span>
+                {avatarError && <p className="avatar-error-msg">{avatarError}</p>}
+              </div>
+
+              {/* ACCIONES */}
+              <div className="profile-actions-wrapper">
+                {!isEditing ? (
                   <>
+                    {isAdmin && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => navigate('/user-management')}
+                          className="btn-action btn-secondary"
+                        >
+                          <Users size={14} /> <span className="btn-text">Gestionar</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => navigate('/authLogs')}
+                          className="btn-action btn-danger-outline"
+                        >
+                          <Shield size={14} /> <span className="btn-text">Logs</span>
+                        </button>
+                      </>
+                    )}
                     <button
                       type="button"
-                      onClick={() => navigate('/user-management')}
-                      style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '12px', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                      onClick={() => setIsEditing(true)}
+                      className="btn-action btn-primary"
                     >
-                      <Users size={14} /> Gestionar Usuarios
+                      <Edit2 size={14} /> Editar Perfil
                     </button>
                     <button
                       type="button"
-                      onClick={() => navigate('/authLogs')}
-                      style={{ background: '#dc2626', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '12px', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                      onClick={handleLogout}
+                      className="btn-action btn-danger"
                     >
-                      <Shield size={14} /> Visualizar Logs
+                      <LogOut size={14} /> Salir
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="submit"
+                      onClick={handleSaveChanges}
+                      disabled={updateLoading}
+                      className="btn-action btn-success"
+                      style={{ opacity: updateLoading ? 0.6 : 1 }}
+                    >
+                      <Save size={14} /> {updateLoading ? "Guardando..." : "Guardar"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setIsEditing(false); setFormData(profile); }}
+                      className="btn-action btn-secondary"
+                    >
+                      <X size={14} /> Cancelar
                     </button>
                   </>
                 )}
-                <button
-                  type="button"
-                  onClick={() => setIsEditing(true)}
-                  style={{ background: '#0f172a', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '12px', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  <Edit2 size={14} /> Editar Perfil
-                </button>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  style={{ background: '#fef2f2', color: '#dc2626', border: 'none', padding: '10px 16px', borderRadius: '12px', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  <LogOut size={14} /> Cerrar Sesión
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  type="submit"
-                  onClick={handleSaveChanges}
-                  disabled={updateLoading}
-                  style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '12px', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', opacity: updateLoading ? 0.6 : 1 }}
-                >
-                  <Save size={14} /> {updateLoading ? "Guardando..." : "Guardar"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setIsEditing(false); setFormData(profile); }}
-                  style={{ background: '#f1f5f9', color: '#475569', border: 'none', padding: '10px 16px', borderRadius: '12px', fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  <X size={14} /> Cancelar
-                </button>
-              </>
-            )}
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* GRID DE INFORMACIÓN CON TUS ESTILOS CSS */}
-        <div className="profile-grid">
+        {/* 2. DISEÑO DE DOS COLUMNAS */}
+        <div className="profile-content-grid">
+          
+          {/* COLUMNA IZQUIERDA */}
+          <div className="profile-left-column">
+            
+            <div className="profile-info-card">
+              <h3>Información Básica</h3>
+              
+              <div className="info-item">
+                <span className="info-label">Nombre Completo</span>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    name={isAdmin ? "name" : "nombre_completo"}
+                    value={isAdmin ? (formData.name || '') : (formData.nombre_completo || '')}
+                    onChange={handleInputChange}
+                    className="profile-input"
+                  />
+                ) : (
+                  <p className="info-value">{userDisplayName}</p>
+                )}
+              </div>
 
-          <div>
-            <strong>Nombre Completo</strong>
-            {isEditing ? (
-              <input
-                type="text"
-                name={isAdmin ? "name" : "nombre_completo"}
-                value={isAdmin ? (formData.name || '') : (formData.nombre_completo || '')}
-                onChange={handleInputChange}
-                placeholder="Ingresa tu nombre completo"
-                style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
-              />
-            ) : (
-              <p>{isAdmin ? profile.name : profile.nombre_completo}</p>
+              <div className="info-item">
+                <span className="info-label"><Mail size={12} /> Correo Institucional</span>
+                <p className="info-value email-value">{profile.email}</p>
+              </div>
+
+              {/* Links de Redes con SVGs puros sin usar componentes de Lucide rotos */}
+              {!isAdmin && (
+                <div className="social-links-section">
+                  <div className="info-item">
+                    <span className="info-label">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px', verticalAlign: 'middle' }}><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path><path d="M9 18c-4.51 2-5-2-7-2"></path></svg>
+                      GitHub
+                    </span>
+                    {isEditing ? (
+                      <input 
+                        type="url" 
+                        name="github_url" 
+                        value={formData.github_url || ''} 
+                        onChange={handleInputChange} 
+                        placeholder="https://github.com/usuario"
+                        className="profile-input" 
+                      />
+                    ) : (
+                      profile.github_url ? (
+                        <a href={profile.github_url} target="_blank" rel="noreferrer" className="social-link">
+                          Ver GitHub
+                        </a>
+                      ) : <p className="info-value empty-text">No enlazado</p>
+                    )}
+                  </div>
+
+                  <div className="info-item">
+                    <span className="info-label">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px', verticalAlign: 'middle' }}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect width="4" height="12" x="2" y="9"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+                      LinkedIn
+                    </span>
+                    {isEditing ? (
+                      <input 
+                        type="url" 
+                        name="linkedin_url" 
+                        value={formData.linkedin_url || ''} 
+                        onChange={handleInputChange} 
+                        placeholder="https://linkedin.com/in/usuario"
+                        className="profile-input" 
+                      />
+                    ) : (
+                      profile.linkedin_url ? (
+                        <a href={profile.linkedin_url} target="_blank" rel="noreferrer" className="social-link">
+                          Ver LinkedIn
+                        </a>
+                      ) : <p className="info-value empty-text">No enlazado</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {!isAdmin && (
+              <div className="profile-info-card">
+                <h3 className="card-title-icon"><User size={16} /> Sobre mí</h3>
+                {isEditing ? (
+                  <textarea 
+                    name="biografia" 
+                    value={formData.biografia || ''} 
+                    onChange={handleInputChange} 
+                    rows="4" 
+                    placeholder="Cuéntale a la comunidad sobre ti..." 
+                    className="profile-textarea"
+                  />
+                ) : (
+                  <p className="bio-text">{profile.biografia || "No se ha añadido una biografía aún."}</p>
+                )}
+              </div>
             )}
           </div>
 
-          {!isAdmin ? (
-            <>
-              <div>
-                <strong>Universidad</strong>
-                {isEditing ? (
-                  <input type="text" name="universidad" value={formData.universidad || ''} onChange={handleInputChange} style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }} />
-                ) : (
-                  <p>{profile.universidad}</p>
-                )}
-              </div>
+          {/* COLUMNA DERECHA */}
+          <div className="profile-right-column">
+            
+            <div className="profile-info-card">
+              <h3>{isAdmin ? "Rol e Identificación" : "Detalles Académicos"}</h3>
+              
+              <div className="academic-grid-form">
+                {!isAdmin ? (
+                  <>
+                    <div className="info-item">
+                      <span className="info-label"><BookOpen size={12} /> Universidad</span>
+                      {isEditing ? (
+                        <input type="text" name="universidad" value={formData.universidad || ''} onChange={handleInputChange} className="profile-input" />
+                      ) : (
+                        <p className="info-value">{profile.universidad}</p>
+                      )}
+                    </div>
 
-              <div>
-                <strong>Facultad</strong>
-                {isEditing ? (
-                  <input type="text" name="facultad" value={formData.facultad || ''} onChange={handleInputChange} style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }} />
-                ) : (
-                  <p>{profile.facultad || 'No asignada'}</p>
-                )}
-              </div>
+                    <div className="info-item">
+                      <span className="info-label">Facultad</span>
+                      {isEditing ? (
+                        <input type="text" name="facultad" value={formData.facultad || ''} onChange={handleInputChange} className="profile-input" />
+                      ) : (
+                        <p className="info-value">{profile.facultad || 'No asignada'}</p>
+                      )}
+                    </div>
 
-              <div>
-                <strong>Carrera Actual</strong>
-                {isEditing ? (
-                  <input type="text" name="carrera" value={formData.carrera || ''} onChange={handleInputChange} style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }} />
-                ) : (
-                  <p>{profile.carrera}</p>
-                )}
-              </div>
+                    <div className="info-item">
+                      <span className="info-label">Carrera Actual</span>
+                      {isEditing ? (
+                        <input type="text" name="carrera" value={formData.carrera || ''} onChange={handleInputChange} className="profile-input" />
+                      ) : (
+                        <p className="info-value">{profile.carrera}</p>
+                      )}
+                    </div>
 
-              <div>
-                <strong>Nivel / Semestre</strong>
-                {isEditing ? (
-                  <input type="text" name="semestre" value={formData.semestre || ''} onChange={handleInputChange} placeholder="Ej: 6to Semestre" style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }} />
-                ) : (
-                  <p>{profile.semestre || 'No especificado'}</p>
-                )}
-              </div>
+                    <div className="info-item">
+                      <span className="info-label">Nivel / Semestre</span>
+                      {isEditing ? (
+                        <input type="text" name="semestre" value={formData.semestre || ''} onChange={handleInputChange} placeholder="Ej: 6to Semestre" className="profile-input" />
+                      ) : (
+                        <p className="info-value">{profile.semestre || 'No especificado'}</p>
+                      )}
+                    </div>
 
-              <div>
-                <strong>Ciudad de Residencia</strong>
-                {isEditing ? (
-                  <input type="text" name="ciudad" value={formData.ciudad || ''} onChange={handleInputChange} style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }} />
+                    <div className="info-item full-width-row">
+                      <span className="info-label"><MapPin size={12} /> Ciudad de Residencia</span>
+                      {isEditing ? (
+                        <input type="text" name="ciudad" value={formData.ciudad || ''} onChange={handleInputChange} className="profile-input" />
+                      ) : (
+                        <p className="info-value">{profile.ciudad || 'Quito, Ecuador'}</p>
+                      )}
+                    </div>
+                  </>
                 ) : (
-                  <p>{profile.ciudad || 'Quito, Ecuador'}</p>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              <div>
-                <strong>Cargo</strong>
-                {isEditing ? (
-                  <input type="text" name="cargo" value={formData.cargo || ''} onChange={handleInputChange} placeholder="Ej: Director, Coordinador" style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }} />
-                ) : (
-                  <p>{profile.cargo || 'No especificado'}</p>
-                )}
-              </div>
+                  <>
+                    <div className="info-item">
+                      <span className="info-label">Cargo Administrativo</span>
+                      {isEditing ? (
+                        <input type="text" name="cargo" value={formData.cargo || ''} onChange={handleInputChange} placeholder="Ej: Director" className="profile-input" />
+                      ) : (
+                        <p className="info-value">{profile.cargo || 'No especificado'}</p>
+                      )}
+                    </div>
 
-              <div>
-                <strong>Especialidad</strong>
-                {isEditing ? (
-                  <input type="text" name="especialidad" value={formData.especialidad || ''} onChange={handleInputChange} placeholder="Ej: Gestión Académica" style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }} />
-                ) : (
-                  <p>{profile.especialidad || 'No especificada'}</p>
+                    <div className="info-item">
+                      <span className="info-label">Especialidad</span>
+                      {isEditing ? (
+                        <input type="text" name="especialidad" value={formData.especialidad || ''} onChange={handleInputChange} placeholder="Ej: Gestión" className="profile-input" />
+                      ) : (
+                        <p className="info-value">{profile.especialidad || 'No especificada'}</p>
+                      )}
+                    </div>
+
+                    <div className="info-item full-width-row">
+                      <span className="info-label">Sector / Departamento</span>
+                      {isEditing ? (
+                        <input type="text" name="sector" value={formData.sector || ''} onChange={handleInputChange} placeholder="Ej: TI" className="profile-input" />
+                      ) : (
+                        <p className="info-value">{profile.sector || 'No especificado'}</p>
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
+            </div>
 
-              <div>
-                <strong>Sector</strong>
+            {!isAdmin && (
+              <div className="profile-info-card">
+                <h3 className="card-title-icon"><Compass size={16} /> Áreas de Interés Técnico</h3>
                 {isEditing ? (
-                  <input type="text" name="sector" value={formData.sector || ''} onChange={handleInputChange} placeholder="Ej: Departamento de TI" style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }} />
+                  <div className="interest-editor-box">
+                    <input
+                      type="text"
+                      value={interestInput}
+                      onChange={handleInterestInputChange}
+                      onKeyDown={handleInterestInputKeyDown}
+                      placeholder="Escribe un interés y presiona Enter"
+                      className="profile-input"
+                    />
+                    {Array.isArray(formData.intereses) && formData.intereses.length > 0 && (
+                      <div className="tags-container">
+                        {formData.intereses.map((interes, idx) => (
+                          <span key={idx} className="tag-pill-editable">
+                            {interes}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveInterest(interes)}
+                              className="tag-remove-btn"
+                              aria-label={`Eliminar interés ${interes}`}
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 ) : (
-                  <p>{profile.sector || 'No especificado'}</p>
-                )}
-              </div>
-            </>
-          )}
-
-          <div style={{ gridColumn: 'span 2' }}>
-            <strong>Correo Institucional</strong>
-            <p style={{ color: '#475569', fontStyle: 'italic' }}>{profile.email}</p>
-          </div>
-          
-          {!isAdmin && (
-            <>
-            {/* SOBRE MÍ */}
-              <div style={{ gridColumn: 'span 2' }}>
-                <strong style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><User size={14} /> Sobre mí / Biografía</strong>
-                {isEditing ? (
-                  <textarea name="biografia" value={formData.biografia || ''} onChange={handleInputChange} rows="4" placeholder="Cuéntale a la comunidad sobre ti..." style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', resize: 'none' }} />
-                ) : (
-                  <p style={{ lineHeight: '1.5' }}>{profile.biografia || "No se ha añadido una biografía aún."}</p>
-                )}
-              </div>
-
-          {/* INTERESES */}
-          <div style={{ gridColumn: 'span 2' }}>
-            <strong style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Compass size={14} /> Áreas de Interés Técnico</strong>
-            {isEditing ? (
-              <>
-                <input
-                  type="text"
-                  value={interestInput}
-                  onChange={handleInterestInputChange}
-                  onKeyDown={handleInterestInputKeyDown}
-                  placeholder="Escribe un interés y presiona Enter"
-                  style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
-                />
-                {Array.isArray(formData.intereses) && formData.intereses.length > 0 && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
-                    {formData.intereses.map((interes, idx) => (
-                      <span key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', fontWeight: '600', color: '#1e40af', background: '#dbeafe', padding: '4px 10px', borderRadius: '999px' }}>
-                        {interes}
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveInterest(interes)}
-                          style={{
-                            border: 'none',
-                            background: 'transparent',
-                            color: '#1e40af',
-                            cursor: 'pointer',
-                            fontSize: '0.9rem',
-                            lineHeight: 1,
-                            padding: 0,
-                          }}
-                          aria-label={`Eliminar interés ${interes}`}
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
+                  <div className="tags-container">
+                    {profile.intereses && profile.intereses.length > 0 ? (
+                      profile.intereses.map((interes, idx) => (
+                        <span key={idx} className="tag-pill">
+                          {interes}
+                        </span>
+                      ))
+                    ) : (
+                      <p className="empty-text">No se han ingresado áreas de interés técnico aún.</p>
+                    )}
                   </div>
                 )}
-              </>
-            ) : (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '6px' }}>
-                {profile.intereses && profile.intereses.length > 0 ? (
-                  profile.intereses.map((interes, idx) => (
-                    <span key={idx} style={{ fontSize: '0.8rem', fontWeight: '600', color: '#1e40af', background: '#dbeafe', padding: '4px 10px', borderRadius: '8px' }}>
-                      {interes}
-                    </span>
-                  ))
-                ) : (
-                  <p style={{ fontStyle: 'italic', color: '#94a3b8' }}>No se han ingresado intereses aún.</p>
-                )}
               </div>
             )}
           </div>
 
-          {/* ENLACES EXTERNOS */}
-          <div>
-            <strong>Perfil de GitHub</strong>
-            {isEditing ? (
-              <input type="url" name="github_url" value={formData.github_url || ''} onChange={handleInputChange} placeholder="https://github.com/usuario" style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }} />
-            ) : (
-              profile.github_url ? <a href={profile.github_url} target="_blank" rel="noreferrer" style={{ fontSize: '0.9rem', color: '#2563eb', textDecoration: 'none', fontWeight: '500' }}>Ver GitHub</a> : <p>No enlazado</p>
-            )}
-          </div>
-
-          <div>
-            <strong>Perfil de LinkedIn</strong>
-            {isEditing ? (
-              <input type="url" name="linkedin_url" value={formData.linkedin_url || ''} onChange={handleInputChange} placeholder="https://linkedin.com/in/usuario" style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }} />
-            ) : (
-              profile.linkedin_url ? <a href={profile.linkedin_url} target="_blank" rel="noreferrer" style={{ fontSize: '0.9rem', color: '#2563eb', textDecoration: 'none', fontWeight: '500' }}>Ver LinkedIn</a> : <p>No enlazado</p>
-            )}
-          </div>
-            </>
-          )}
         </div>
-        
+
       </div>
     </div>
   );

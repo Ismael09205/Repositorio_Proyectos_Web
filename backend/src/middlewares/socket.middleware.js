@@ -15,7 +15,7 @@ const socketAuthMiddleware = async (socket, next) => {
         const { data, error } = await supabaseAnon.auth.getUser(token);
 
         if (error || !data || !data.user) {
-            return next(new Error('El token de autenticación es inválido o ha expirado'));
+            return next(new Error('Su sesion ha expirado'));
         }
 
         // Inyectamos el usuario verificado en el socket para usarlo en los eventos

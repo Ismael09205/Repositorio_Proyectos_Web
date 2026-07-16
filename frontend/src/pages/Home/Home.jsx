@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { ArrowRight, Flame, Clock, Star } from 'lucide-react'
+import { ArrowRight, Flame, Clock, Star, ChevronLeft, ChevronRight } from 'lucide-react'
 import Hero from '../../components/Hero/Hero'
 import ProjectCard from '../../components/ProjectCard/ProjectCard'
 import { fetchAllProjects } from '../../services/projectService'
-import { CATEGORIES } from '../../services/mockData'
+import { UNIVERSIDADES, matchesUniversity } from '../../services/mockData'
 import { ChatFlotante } from '../../components/ChatFlotante/ChatFlotante';
+// 1. IMPORTA TU CONTEXTO DE AUTENTICACIÓN (Ajusta la ruta según la estructura de tu proyecto)
+import { useAuth } from '../../context/AuthContext' 
 import toast from 'react-hot-toast'
 import './Home.css'
 
@@ -22,7 +24,12 @@ export default function Home() {
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // Load projects from API
+  // 2. EXTRAE EL USUARIO ACTIVO DE TU CONTEXTO DE AUTENTICACIÓN
+  const { user } = useAuth() 
+
+  const projectsScrollRef = useRef(null)
+  const unisScrollRef = useRef(null)
+
   useEffect(() => {
     loadProjects()
   }, [])
@@ -41,21 +48,32 @@ export default function Home() {
     }
   }
 
-  const featured = projects.slice(0, 6)
-  const recent = [...projects].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)).slice(0, 6)
-  const top = [...projects].sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0)).slice(0, 6)
+  const handleScroll = (ref, direction) => {
+    if (ref.current) {
+      const { scrollLeft, clientWidth } = ref.current;
+      const scrollTo = direction === 'left' 
+        ? scrollLeft - clientWidth * 0.75 
+        : scrollLeft + clientWidth * 0.75;
+      
+      ref.current.scrollTo({
+        left: scrollTo,
+        behavior: 'smooth'
+      });
+    }
+  };
 
-  /*UseEffect para manejar los parámetros de búsqueda y alertas de cancelación y exito de donaciones*/
+  const featured = projects.slice(0, 10)
+  const recent = [...projects].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)).slice(0, 10)
+  const top = [...projects].sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0)).slice(0, 10)
+
   useEffect(() => {
     const status = searchParams.get('status');
-    
     if (status === 'success') {
       setAlertMessage({
         type: 'success',
         title: '¡Donación Exitosa!',
         text: 'Muchas gracias por apoyar a IdeAgora. Tu contribución nos ayuda a seguir creciendo.'
       });
-      // Limpiamos la URL para que no vuelva a salir la alerta si recargan la página
       setSearchParams({});
     } else if (status === 'cancel') {
       setAlertMessage({
@@ -72,9 +90,7 @@ export default function Home() {
     : top
 
   return (
-    
     <div className="home page-enter">
-      {/* 3. VENTANITA FLOTANTE (ALERTA DE STRIPE) */}
       {alertMessage && (
         <div className="stripe-alert-overlay">
           <div className={`stripe-alert-card ${alertMessage.type}`}>
@@ -86,124 +102,195 @@ export default function Home() {
           </div>
         </div>
       )}
+      
       <Hero />
 
       {/* Featured projects */}
-      <section className="home__section container">
-        <div className="home__section-header">
-          <div>
-            <h2 className="section-title">Proyectos destacados</h2>
-            <p className="home__section-sub">
-              Explora algunos de los proyectos más recientes y destacados de nuestra comunidad.
-            </p>
+      <section className="home__section">
+        <div className="container">
+          <div className="home__section-header">
+            <div>
+              <h2 className="section-title">Proyectos destacados</h2>
+              <p className="home__section-sub">
+                Explora algunos de los proyectos más recientes y destacados de nuestra comunidad.
+              </p>
+            </div>
+            <div className="home__header-actions">
+              <div className="home__filters">
+                {FILTERS.map(({ id, label, icon: Icon }) => (
+                  <button
+                    key={id}
+                    className={`home__filter-btn${activeFilter === id ? ' home__filter-btn--active' : ''}`}
+                    onClick={() => setActiveFilter(id)}
+                  >
+                    <Icon size={14} />
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <Link to="/explorar" className="home__see-all">
+                Ver todos <ArrowRight size={15} />
+              </Link>
+            </div>
           </div>
-          <div className="home__filters">
-            {FILTERS.map(({ id, label, icon: Icon }) => (
-              <button
-                key={id}
-                className={`home__filter-btn${activeFilter === id ? ' home__filter-btn--active' : ''}`}
-                onClick={() => setActiveFilter(id)}
-              >
-                <Icon size={14} />
-                {label}
-              </button>
-            ))}
-          </div>
-          <Link to="/explorar" className="home__see-all">
-            Ver todos <ArrowRight size={15} />
-          </Link>
         </div>
         
-        <div className="home__projects-grid">
-          {loading ? (
-            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem' }}>
-              <p>Cargando proyectos...</p>
-            </div>
-          ) : displayProjects.length === 0 ? (
-            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem' }}>
-              <p>No hay proyectos disponibles</p>
-            </div>
-          ) : (
-            displayProjects.map(project => (
-              <ProjectCard key={project.id} project={project} />
-            ))
-          )}
+        <div className="home__slider-wrapper">
+          <button className="home__slider-arrow left" onClick={() => handleScroll(projectsScrollRef, 'left')}>
+            <ChevronLeft size={24} />
+          </button>
+
+          <div className="home__projects-slider" ref={projectsScrollRef}>
+            {loading ? (
+              <div className="home__slider-status-msg">
+                <p>Cargando proyectos...</p>
+              </div>
+            ) : displayProjects.length === 0 ? (
+              <div className="home__slider-status-msg">
+                <p>No hay proyectos disponibles</p>
+              </div>
+            ) : (
+              displayProjects.map(project => (
+                <div key={project.id} className="home__slider-item">
+                  <ProjectCard project={project} />
+                </div>
+              ))
+            )}
+          </div>
+
+          <button className="home__slider-arrow right" onClick={() => handleScroll(projectsScrollRef, 'right')}>
+            <ChevronRight size={24} />
+          </button>
         </div>
       </section>
 
-      {/* Categories section */}
+      {/* Universidades section */}
       <section className="home__cats-section">
         <div className="container">
           <div className="home__section-header">
             <div>
-              <h2 className="section-title">Explora por categoría</h2>
-              <p className="home__section-sub">Encuentra proyectos organizados por área de conocimiento.</p>
+              <h2 className="section-title">Explora por universidad</h2>
+              <p className="home__section-sub">Encuentra proyectos organizados por las principales universidades del país.</p>
             </div>
-            <Link to="/explorar" className="home__see-all">
-              Ver todas <ArrowRight size={15} />
-            </Link>
           </div>
+        </div>
 
-          <div className="home__cats-grid">
-            {CATEGORIES.map(cat => {
-              const count = projects.filter(p => 
-                p.categoria?.toLowerCase() === cat.label.toLowerCase()
-              ).length
+        <div className="home__slider-wrapper">
+          <button className="home__slider-arrow left" onClick={() => handleScroll(unisScrollRef, 'left')}>
+            <ChevronLeft size={24} />
+          </button>
+
+          {/* Reemplaza el bloque de mapeo de universidades por este */}
+          <div className="home__cats-slider" ref={unisScrollRef}>
+            {UNIVERSIDADES.slice(0, 10).map(uni => {
+              // Usamos tu función de coincidencia flexible para contar los proyectos reales
+              const count = projects.filter(p => matchesUniversity(p.universidad, uni)).length
+
               return (
-                <Link
-                  key={cat.id}
-                  to={`/explorar?categoria=${cat.id}`}
-                  className="home__cat-card"
-                  style={{ '--cat-bg': cat.color, '--cat-text': cat.textColor }}
-                >
-                  <div className="home__cat-icon">
-                    {cat.label.charAt(0)}
-                  </div>
-                  <span className="home__cat-label">{cat.label}</span>
-                  <span className="home__cat-count">
-                    {count} {count === 1 ? 'proyecto' : 'proyectos'}
-                  </span>
-                </Link>
+                <div key={uni.id} className="home__slider-item-uni">
+                  <Link
+                    to={`/universidad/${uni.id}`} // <--- Redirección exacta a tu ruta dinámica
+                    className="home__cat-card home__uni-card"
+                    style={{
+                      // Inyectamos tus colores exactos de mockData.js como propiedades de CSS
+                      '--uni-color': uni.color,
+                      '--uni-text-color': uni.textColor
+                    }}
+                  >
+                    <div className="home__uni-img-container">
+                      <img 
+                        src={uni.image} 
+                        alt={`Logo de ${uni.name}`} 
+                        className="home__uni-logo" 
+                        loading="lazy"
+                      />
+                    </div>
+                    <span className="home__cat-label">{uni.name}</span>
+                    <span className="home__cat-count">
+                      {count} {count === 1 ? 'proyecto' : 'proyectos'}
+                    </span>
+                  </Link>
+                </div>
               )
             })}
           </div>
-        </div>
-      </section>
-      {/* CTA Banner - Done*/}
-      <div className='banner__done'>
-            {/* CTA Banner */}
-      <section className="home__cta container">
-        <div className="home__cta-inner">
-          <div className="home__cta-text">
-            <h2 className="home__cta-title">¿Tienes un proyecto universitario?</h2>
-            <p className="home__cta-sub">
-              Compártelo con la comunidad y llega a miles de estudiantes e investigadores del Ecuador.
-            </p>
-          </div>
-          <div className="home__cta-actions">
-            <Link to="/register" className="btn btn-accent">Publicar proyecto</Link>
-            <Link to="/explorar" className="btn btn-outline home__cta-secondary">Explorar proyectos</Link>
-          </div>
+
+          <button className="home__slider-arrow right" onClick={() => handleScroll(unisScrollRef, 'right')}>
+            <ChevronRight size={24} />
+          </button>
         </div>
       </section>
 
-      {/* Donaciones*/}
-      <section className="home__done container">
-        <div className="home__done-inner">
-          <div className="info_donate">
-            <h2 className="home__done-title">¿Te gustó nuestra página?</h2>
-            <p className="home__done-sub">
-            Nos puede ayudar con una donación  
-            </p>
+      {/* CTA Banner & Donaciones */}
+      <div className='banner__done'>
+        <div className='banner__done-container'>
+            <section className="home__cta container">
+          <div className="home__cta-inner">
+            <div className="home__cta-text">
+              <h2 className="home__cta-title">¿Tienes un proyecto universitario?</h2>
+              <p className="home__cta-sub">
+                Compártelo con la comunidad y llega a miles de estudiantes e investigadores del Ecuador.
+              </p>
+            </div>
+            <div className="home__cta-actions">
+              {/* 3. LÓGICA DINÁMICA: Si existe el usuario va a publicar, si no va al registro/login */}
+              <Link 
+                to={user ? "/subir-proyecto" : "/register"} 
+                className="btn btn-accent"
+                onClick={() => {
+                  if (!user) {
+                    toast('Inicia sesión o regístrate para publicar tus proyectos')
+                  }
+                }}
+              >
+                Publicar proyecto
+              </Link>
+              <Link to="/explorar" className="btn btn-outline home__cta-secondary">Explorar proyectos</Link>
+            </div>
           </div>
-          <div className="home__done-actions">
-            <Link to="/done" className="btn btn-done">Donar</Link>
-            <Link to="/calificar" className="btn btn-calificar">Calificar</Link>
+        </section>
+
+        <section className="home__done container">
+          <div className="home__done-inner">
+            <div className="info_donate">
+              <h2 className="home__done-title">¿Te gustó nuestra página?</h2>
+              <p className="home__done-sub">
+                Nos puedes ayudar con una donación  
+              </p>
+            </div>
+            
+            <div className="home__done-actions">
+              {/* Si está logueado va a /done, si no, se le invita a registrarse */}
+              <Link 
+                to={user ? "/done" : "/register"} 
+                className="btn btn-done"
+                onClick={() => {
+                  if (!user) {
+                    toast('Inicia sesión o regístrate para donar. Agradecemos tu apoyo!!!', { icon: '😊' })
+                  }
+                }}
+              >
+                Donar
+              </Link>
+              
+              {/* Opcional: También puedes proteger el botón de Calificar si requiere cuenta */}
+              <Link 
+                to={user ? "/calificar" : "/register"} 
+                className="btn btn-calificar"
+                onClick={() => {
+                  if (!user) {
+                    toast('Inicia sesión o regístrate para calificar la plataforma')
+                  }
+                }}
+              >
+                Calificar
+              </Link>
+            </div>
           </div>
+        </section>
         </div>
-      </section>
       </div>  
-        <ChatFlotante />
+      <ChatFlotante />
     </div>
   )
 }
