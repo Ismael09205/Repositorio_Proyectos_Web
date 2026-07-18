@@ -1,0 +1,528 @@
+:root {
+  --yt-bg-card: #f8f9fa;
+  --yt-border: #e5e7eb;
+}
+
+/* Contenedor general sin desborde de pantalla */
+.yt-layout {
+  background-color: var(--bg-primary, #ffffff);
+  min-height: 100vh;
+  padding: 1.5rem 0 0 0;
+  overflow-x: hidden; /* Evita scrolls horizontales raros */
+}
+
+/* Contenedor principal acotado para reproductor, info y comentarios */
+.yt-layout__main-container {
+  max-width: 1250px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: 1.8fr 1.2fr; /* Columna izquierda grande y comentarios compactos */
+  gap: 1.5rem;
+}
+
+/* COLUMNA IZQUIERDA (Mantiene alineado verticalmente el reproductor y la info) */
+.yt-layout__left-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* REPRODUCTOR */
+.yt-player {
+  width: 100%;
+  background-color: #0f0f0f;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.yt-player__aspect-ratio {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9; /* Esto define la altura estándar */
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.yt-player__image,
+.yt-player__video,
+.yt-player__pdf {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border: none;
+}
+
+/* COLUMNA DERECHA (Contenedor de Comentarios que copia la altura exacta del reproductor) */
+.yt-layout__right-column {
+  position: relative;
+}
+
+.yt-comments-wrapper {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-sizing: border-box;
+  overflow-y: auto;
+  
+  /* Truco CSS: la altura se calcula para ser idéntica al reproductor 16/9 de la columna de al lado */
+  height: 0;
+  min-height: 100%;
+}
+
+/* Ajustes del carrusel */
+.yt-player__carousel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.yt-carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.yt-carousel-btn.prev { left: 1rem; }
+.yt-carousel-btn.next { right: 1rem; }
+
+.yt-carousel-indicators {
+  position: absolute;
+  bottom: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 10;
+}
+
+.indicator-dot {
+  width: 8px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.indicator-dot.active {
+  background: #ffffff;
+}
+
+/* INFO DEL PROYECTO (Mismo ancho del reproductor) */
+.yt-details-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.yt-info__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 0.25rem;
+  margin-bottom: 0.75rem;
+  color: #0f0f0f;
+  line-height: 1.3;
+}
+
+/* Fila de Acciones */
+.yt-actions-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.yt-author-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.yt-author-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #e2e8f0;
+}
+
+.yt-author-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary, #4f46e5);
+  color: white;
+  font-weight: bold;
+}
+
+.yt-author-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.author-name {
+  font-weight: 600;
+  color: #0f0f0f;
+  font-size: 0.95rem;
+}
+
+.author-sub {
+  font-size: 0.75rem;
+  color: #606060;
+}
+
+.btn-edit-project {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #0f0f0f;
+  color: #ffffff;
+  border: none;
+  padding: 0.45rem 0.9rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-left: 0.5rem;
+}
+
+/* Botones rápidos */
+.yt-buttons-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.yt-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: rgba(0, 0, 0, 0.05);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #0f0f0f;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.yt-btn:hover { background-color: rgba(0, 0, 0, 0.1); }
+.yt-btn--like.liked { background-color: #ff4757; color: white; }
+.yt-btn--download { background-color: var(--primary, #4f46e5); color: white; text-decoration: none; }
+
+/* Tarjeta Gris de Descripción */
+.yt-description-card {
+  background: var(--yt-bg-card);
+  border-radius: 12px;
+  padding: 1.25rem;
+  font-size: 0.9rem;
+}
+
+.yt-description-meta {
+  display: flex;
+  gap: 0.5rem;
+  color: #0f0f0f;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.yt-description-text {
+  color: #333333;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  margin-bottom: 1rem;
+}
+
+.yt-description-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.yt-tag { color: #0056b3; font-weight: 500; }
+.desc-divider { border: 0; border-top: 1px solid var(--yt-border); margin: 1rem 0; }
+
+.yt-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.yt-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #606060;
+  font-size: 0.85rem;
+}
+
+.yt-meta-item svg { color: var(--primary, #4f46e5); }
+.yt-meta-github { color: #0f0f0f; text-decoration: underline; font-weight: 500; }
+
+/* ==========================================================================
+   SECCIÓN "TE PUEDE INTERESAR" (OCUPA EL 100% DE LA PANTALLA ABAJO)
+   ========================================================================== */
+.yt-recommendations-fullwidth {
+  background-color: #f3f4f6; /* Un color ligeramente diferente para romper la monotonía */
+  border-top: 1px solid var(--yt-border);
+  padding: 3rem 0;
+  margin-top: 2rem;
+  width: 100%;
+}
+
+.yt-recommendations-container {
+  max-width: 1250px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.section-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #0f0f0f;
+}
+
+.recommendations-fullgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Pantallas de carga y spinners */
+.project-detail__loading-screen,
+.project-detail__error-screen {
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  color: #606060;
+}
+
+.project-detail__spinner {
+  width: 45px;
+  height: 45px;
+  border: 4px solid var(--yt-border);
+  border-top-color: var(--primary, #4f46e5);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ==========================================================================
+   RESPONSIVO
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .yt-layout__main-container {
+    grid-template-columns: 1fr; /* Pasa a ser una columna única en pantallas pequeñas */
+  }
+
+  .yt-comments-wrapper {
+    height: auto;
+    max-height: 400px; /* Evitamos scroll eterno en móviles */
+  }
+}
+
+@media (max-width: 640px) {
+  .hide-mobile { display: none; }
+  .yt-actions-row { flex-direction: column; align-items: flex-start; }
+  .yt-buttons-group { width: 100%; justify-content: space-between; }
+}
+
+/* Paleta IdeAgora */
+.yt-btn--download { background-color: #ea580c; color: white; }
+.yt-btn--download:hover { background-color: #c2410c; }
+.yt-btn--like.liked { background-color: #dc2626; color: white; }
+.yt-meta-item svg { color: #1e3a8a; }
+.yt-tag { color: #1e3a8a; }
+.author-name { color: #0f172a; }
+.btn-edit-project { background: #1e3a8a; }
+
+/* Botón eliminar proyecto */
+.btn-delete-project {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  width: 100%;
+}
+
+.btn-delete-project:hover {
+  background-color: #fee2e2;
+}
+
+.btn-delete-project:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Placeholder de documentos en el visor */
+.yt-player__placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #ffffff;
+  text-align: center;
+  padding: 2rem;
+}
+
+.yt-player__placeholder svg {
+  color: #ea580c;
+}
+
+/* Modal de descarga */
+.download-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.download-modal {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 420px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+}
+
+.download-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #eef0f4;
+}
+
+.download-modal__header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #0f172a;
+}
+
+.download-modal__close {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.download-modal__list {
+  overflow-y: auto;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.download-modal__item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  transition: background-color 0.15s;
+}
+
+.download-modal__item:hover {
+  background-color: #f8fafc;
+}
+
+.download-modal__item-icon {
+  color: #1e3a8a;
+  flex-shrink: 0;
+}
+
+.download-modal__item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.download-modal__item-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.download-modal__item-meta {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.download-modal__item-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #ea580c;
+  color: white;
+  flex-shrink: 0;
+  transition: background-color 0.15s;
+}
+
+.download-modal__item-btn:hover {
+  background-color: #c2410c;
+}
+
+.download-modal__empty {
+  text-align: center;
+  color: #94a3b8;
+  font-style: italic;
+  padding: 1.5rem;
+}

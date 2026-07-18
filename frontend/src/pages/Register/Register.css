@@ -1,0 +1,281 @@
+/* ==========================================================================
+   REGISTER — requiere auth.css cargado antes
+   (usa .auth-page, .auth-panel--left, --auth-blend-bg, etc.)
+   ========================================================================== */
+
+/* --- SELECTOR DE ROL MINIMALISTA (Esquina superior izquierda) --- */
+.auth-role-selector {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  display: flex;
+  gap: 8px;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 5px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.role-btn {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.role-btn:hover {
+  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+.role-btn--active {
+  background: #ffffff !important;
+  color: #111827 !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+.role-btn--active:hover {
+  transform: none;
+}
+
+/* --- LISTA DE BENEFICIOS (panel izquierdo del register) --- */
+.register__benefits {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 30px;
+  padding: 0;
+}
+
+.register__benefit {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+  animation: fadeIn 0.5s ease forwards;
+}
+
+.register__benefit-check {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- PASOS DE REGISTRO (STEPPER) --- */
+.register__steps {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 35px;
+  position: relative;
+  width: 100%;
+}
+
+.register__steps::before {
+  content: '';
+  position: absolute;
+  top: 16px;
+  left: 15px;
+  right: 15px;
+  height: 2px;
+  background: var(--border, #e2e8f0);
+  z-index: 0;
+}
+
+.register__step-line {
+  position: absolute;
+  top: 16px;
+  left: 15px;
+  height: 2px;
+  background: var(--primary, #3b82f6);
+  z-index: 1;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 0%;
+}
+
+.register__step-line--done {
+  width: calc(100% - 30px);
+}
+
+.register__step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 2;
+  position: relative;
+  background: var(--bg-surface, #ffffff);
+  border-radius: 15px;
+  padding: 0 10px;
+}
+
+.register__step:first-child {
+  padding-left: 0;
+}
+
+.register__step:last-child {
+  padding-right: 0;
+}
+
+.register__step-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-surface, #fff);
+  border: 2px solid var(--border, #e2e8f0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted, #94a3b8);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+
+.register__step--active .register__step-num {
+  background: var(--primary, #3b82f6);
+  border-color: var(--primary, #3b82f6);
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+}
+
+.register__step--done .register__step-num {
+  background: #10b981;
+  border-color: #10b981;
+  color: #fff;
+}
+
+.register__step span {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted, #94a3b8);
+  transition: color 0.3s ease;
+}
+
+.register__step--active span {
+  color: var(--text-main, #1e293b);
+}
+
+.register__step--done span {
+  color: #10b981;
+}
+
+/* --- BOTONES DE ACCIÓN (Atrás / Continuar / Crear cuenta) --- */
+.register__actions {
+  display: flex !important;
+  gap: 12px !important;
+  width: 100% !important;
+  margin-top: 24px;
+}
+
+.register__btn-back,
+.register__btn-submit {
+  flex: 1 !important;
+  padding: 13px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.register__btn-back {
+  background: var(--bg-subtle, #f1f5f9) !important;
+  color: var(--text-secondary, #64748b) !important;
+}
+
+.register__btn-back:hover {
+  background: #e2e8f0 !important;
+  color: #475569 !important;
+}
+
+.register__btn-submit {
+  background: var(--primary, #3b82f6) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.register__btn-submit:hover {
+  background: #2563eb !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25);
+}
+
+.register__btn-submit:active {
+  transform: translateY(0);
+}
+
+.register__btn-submit:disabled {
+  background: #94a3b8 !important;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN (register)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .auth-role-selector {
+    top: 16px;
+    left: 16px;
+    background: rgba(15, 23, 42, 0.1);
+    border-color: rgba(15, 23, 42, 0.15);
+  }
+  .role-btn {
+    color: #1e293b;
+  }
+  .role-btn--active {
+    color: #ffffff !important;
+    background: #111827 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .register__step span {
+    display: none;
+  }
+  .register__steps::before, .register__step-line {
+    top: 16px;
+    left: 10px;
+    right: 10px;
+  }
+  .register__step-line--done {
+    width: calc(100% - 20px);
+  }
+}

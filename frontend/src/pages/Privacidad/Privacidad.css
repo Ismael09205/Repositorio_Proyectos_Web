@@ -1,0 +1,135 @@
+/* ===== LEGAL PAGE (Políticas / Privacidad) ===== */
+.legal-page {
+  background: var(--bg);
+}
+
+.legal-hero {
+  background: var(--primary);
+  padding: 64px 0 48px;
+}
+
+.legal-hero__eyebrow {
+  background: rgba(249,115,22,.18);
+  color: var(--accent-light);
+  margin-bottom: 16px;
+}
+
+.legal-hero__title {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 3.5vw, 2.25rem);
+  font-weight: 700;
+  color: #fff;
+}
+
+.legal-hero__updated {
+  margin-top: 8px;
+  color: rgba(255,255,255,.7);
+  font-size: .875rem;
+}
+
+.legal-body {
+  padding: 56px 0 96px;
+}
+
+.legal-body__grid {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 56px;
+  align-items: start;
+}
+
+/* ---- Índice lateral ---- */
+.legal-index {
+  position: sticky;
+  top: calc(var(--nav-h) + 24px);
+  border-left: 2px solid var(--border);
+  padding-left: 18px;
+}
+
+.legal-index__label {
+  display: block;
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.legal-index ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.legal-index a {
+  font-size: .875rem;
+  color: var(--text-secondary);
+  transition: color var(--t-fast) var(--ease);
+}
+
+.legal-index a:hover {
+  color: var(--primary);
+}
+
+/* ---- Contenido ---- */
+.legal-content {
+  max-width: 680px;
+}
+
+.legal-content__section {
+  padding-bottom: 32px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--border);
+  scroll-margin-top: calc(var(--nav-h) + 20px);
+}
+
+.legal-content__section:last-of-type {
+  border-bottom: none;
+}
+
+.legal-content__section h2 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+}
+
+.legal-content__section p {
+  color: var(--text-secondary);
+  line-height: 1.75;
+  margin-bottom: 12px;
+}
+
+.legal-content__section p:last-child {
+  margin-bottom: 0;
+}
+
+.legal-content__contacto {
+  color: var(--text-secondary);
+  font-size: .9rem;
+}
+
+.legal-content__contacto a {
+  color: var(--primary);
+  font-weight: 600;
+}
+.legal-content__contacto a:hover {
+  color: var(--accent);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 800px) {
+  .legal-body__grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .legal-index {
+    position: static;
+    border-left: none;
+    border-bottom: 1px solid var(--border);
+    padding-left: 0;
+    padding-bottom: 20px;
+  }
+}
