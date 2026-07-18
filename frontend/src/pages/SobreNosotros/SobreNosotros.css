@@ -1,0 +1,239 @@
+/* ===== ABOUT PAGE ===== */
+.sobre-nosotros-page {
+  background: var(--bg);
+}
+
+/* ---- Hero ---- */
+.sobre-nosotros-hero {
+  background: linear-gradient(160deg, var(--primary) 0%, var(--primary-dark) 100%);
+  padding: 96px 0 88px;
+  position: relative;
+  overflow: hidden;
+}
+
+.sobre-nosotros-hero::after {
+  content: '';
+  position: absolute;
+  right: -120px;
+  top: -120px;
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(249,115,22,.25) 0%, rgba(249,115,22,0) 70%);
+}
+
+.sobre-nosotros-hero__inner {
+  max-width: 760px;
+  position: relative;
+  z-index: 1;
+}
+
+.sobre-nosotros-hero__eyebrow {
+  background: rgba(249,115,22,.15);
+  color: var(--accent-light);
+  margin-bottom: 20px;
+}
+
+.sobre-nosotros-hero__title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+  margin-bottom: 20px;
+}
+
+.sobre-nosotros-hero__subtitle {
+  color: rgba(255,255,255,.82);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  margin-bottom: 32px;
+}
+
+.sobre-nosotros-hero__actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.sobre-nosotros-hero__actions .btn-outline {
+  background: transparent;
+  border-color: rgba(255,255,255,.35);
+  color: #fff;
+}
+.sobre-nosotros-hero__actions .btn-outline:hover {
+  background: rgba(255,255,255,.1);
+  border-color: #fff;
+  color: #fff;
+}
+
+/* ---- Stats ---- */
+.sobre-nosotros-stats {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+}
+
+.sobre-nosotros-stats__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  padding: 40px 0;
+}
+
+.sobre-nosotros-stats__item {
+  text-align: center;
+  padding: 0 12px;
+  border-left: 1px solid var(--border);
+}
+.sobre-nosotros-stats__item:first-child {
+  border-left: none;
+}
+
+.sobre-nosotros-stats__numero {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.sobre-nosotros-stats__etiqueta {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-secondary);
+  font-size: .875rem;
+}
+
+/* ---- Mission ---- */
+.sobre-nosotros-mision {
+  padding: 88px 0;
+}
+
+.sobre-nosotros-mision__grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+.sobre-nosotros-mision__text p {
+  color: var(--text-secondary);
+  margin-top: 14px;
+  line-height: 1.75;
+}
+
+.sobre-nosotros-mision__card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 28px;
+  box-shadow: var(--shadow-card);
+  border-top: 3px solid var(--accent);
+}
+
+.sobre-nosotros-mision__card h3 {
+  font-family: var(--font-display);
+  color: var(--text-primary);
+  margin-bottom: 10px;
+}
+
+.sobre-nosotros-mision__card p {
+  color: var(--text-secondary);
+  line-height: 1.65;
+  font-size: .95rem;
+}
+
+/* ---- Values ---- */
+.sobre-nosotros-valores {
+  background: var(--bg-subtle);
+  padding: 88px 0;
+}
+
+.sobre-nosotros-valores__title {
+  margin-bottom: 36px;
+}
+
+.sobre-nosotros-valores__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.sobre-nosotros-valores__card {
+  background: var(--bg-card);
+  border-radius: var(--r-lg);
+  padding: 28px;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--t-base) var(--ease), box-shadow var(--t-base) var(--ease);
+}
+
+.sobre-nosotros-valores__card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.sobre-nosotros-valores__index {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--accent);
+  font-size: .875rem;
+  margin-bottom: 12px;
+}
+
+.sobre-nosotros-valores__card h3 {
+  font-family: var(--font-display);
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.sobre-nosotros-valores__card p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-size: .925rem;
+}
+
+/* ---- CTA ---- */
+.sobre-nosotros-cta {
+  padding: 72px 0;
+}
+
+.sobre-nosotros-cta__inner {
+  text-align: center;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.sobre-nosotros-cta__inner h2 {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+}
+
+.sobre-nosotros-cta__inner p {
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 860px) {
+  .sobre-nosotros-mision__grid {
+    grid-template-columns: 1fr;
+  }
+  .sobre-nosotros-valores__grid {
+    grid-template-columns: 1fr;
+  }
+  .sobre-nosotros-stats__grid {
+    grid-template-columns: 1fr;
+  }
+  .sobre-nosotros-stats__item {
+    border-left: none;
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+  }
+  .sobre-nosotros-stats__item:first-child {
+    border-top: none;
+    padding-top: 0;
+  }
+}

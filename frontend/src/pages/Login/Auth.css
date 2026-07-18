@@ -1,0 +1,509 @@
+/* ==========================================================================
+   VARIABLES DE FUSIÓN (mismo tono en fondo, velo y máscara -> sin "salto")
+   ========================================================================== */
+:root {
+  --auth-blend-bg: gradient rgb(234, 0, 255); /* lavanda casi blanco, con un poco de color */
+}
+
+/* ==========================================================================
+   CONFIGURACIÓN GENERAL Y LAYOUT
+   ========================================================================== */
+.auth-page {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: calc(100vh - var(--nav-h));
+  background: var(--auth-blend-bg);
+  margin-bottom: -100px;
+}
+
+/* ==========================================================================
+   PANEL IZQUIERDO (IMAGEN DE FONDO)
+   ========================================================================== */
+.auth-panel--left {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 48px;
+  background-color: transparent;
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  /* Desvanecido largo y con pasos intermedios: fade suave, no un corte duro */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    rgba(0,0,0,1) 40%,
+    rgba(0,0,0,0.85) 55%,
+    rgba(0,0,0,0.5) 72%,
+    rgba(0,0,0,0.18) 88%,
+    rgba(0,0,0,0) 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    rgba(0,0,0,1) 40%,
+    rgba(0,0,0,0.85) 55%,
+    rgba(0,0,0,0.5) 72%,
+    rgba(0,0,0,0.18) 88%,
+    rgba(0,0,0,0) 100%
+  );
+
+  z-index: 1;
+}
+
+/* Capa de contraste/velo: oscurece donde va el texto (para legibilidad),
+   se aclara hacia la derecha y se funde con --auth-blend-bg.
+   z-index: 1 (NO -1), si no queda detrás de la imagen y no se ve. */
+.auth-panel--left::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.55) 0%,
+    rgba(15, 23, 42, 0.3) 40%,
+    rgba(246, 244, 251, 0.35) 65%,
+    rgba(246, 244, 251, 0.85) 88%,
+    var(--auth-blend-bg) 100%
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+.auth-panel__content {
+  position: relative;
+  z-index: 2;
+  max-width: 360px;
+}
+
+/* --- LOGO Y TEXTOS PANEL IZQUIERDO --- */
+.auth-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  margin-bottom: 40px;
+}
+
+.auth-logo__icon {
+  width: 40px;
+  height: 40px;
+  background: var(--accent);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fdfdfd;
+}
+
+.auth-logo__text {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: #fff;
+}
+
+.auth-logo__text strong {
+  font-weight: 800;
+}
+
+.auth-panel__heading {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.25;
+  margin-bottom: 16px;
+}
+
+.auth-panel__sub {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.7;
+  margin-bottom: 40px;
+}
+
+/* --- ESTADÍSTICAS DEL LOGIN --- */
+.auth-panel__stats {
+  display: flex;
+  gap: 28px;
+}
+
+.auth-panel__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.auth-panel__stat-num {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.auth-panel__stat-lbl {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* ==========================================================================
+   PANEL DERECHO (FORMULARIO)
+   ========================================================================== */
+.auth-panel--right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 48px;
+  background: transparent;
+  overflow-y: auto;
+}
+
+.auth-form-wrap {
+  width: 100%;
+  max-width: 400px;
+}
+
+.auth-form-header {
+  margin-bottom: 24px;
+}
+
+.auth-form-title {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.auth-form-sub {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* --- ETIQUETA DINÁMICA DE ROL (ESTUDIANTE / ADMIN) --- */
+.auth-role-badge {
+  display: inline-block;
+  font-size: 0.82rem;
+  color: var(--text-secondary, #64748b);
+  background: var(--bg-subtle, #f1f5f9);
+  padding: 4px 14px;
+  border-radius: 999px;
+  margin-top: 10px;
+  margin-bottom: 6px;
+  border: 1px solid var(--border, #e2e8f0);
+  font-weight: 500;
+}
+
+.auth-role-badge strong {
+  color: var(--primary, #3b82f6);
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   ESTADOS DE ALERTA (ERROR Y ÉXITO)
+   ========================================================================== */
+.auth-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--r-md);
+  color: #dc2626;
+  font-size: 0.85rem;
+  margin-bottom: 20px;
+}
+
+.auth-success {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: var(--r-md);
+  color: #166534;
+  font-size: 0.85rem;
+  margin-bottom: 20px;
+}
+
+/* ==========================================================================
+   INPUTS Y CAMPOS DEL FORMULARIO
+   ========================================================================== */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.auth-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.auth-label-optional {
+  color: var(--text-muted, #94a3b8);
+  font-weight: 400;
+}
+
+.auth-forgot {
+  font-size: 0.78rem;
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.auth-forgot:hover {
+  text-decoration: underline;
+}
+
+.auth-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.auth-input-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 11px 14px 11px 40px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-md);
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  background: var(--bg);
+  transition: all var(--t-fast) var(--ease);
+  outline: none;
+}
+
+.auth-input:focus {
+  border-color: var(--primary);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(26,14,130,.08);
+}
+
+.auth-input::placeholder {
+  color: var(--text-muted);
+}
+
+.auth-input-toggle {
+  position: absolute;
+  right: 12px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  transition: color var(--t-fast) var(--ease);
+}
+
+.auth-input-toggle:hover {
+  color: var(--primary);
+}
+
+.auth-select {
+  padding-left: 14px !important;
+  appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-select:focus {
+  border-color: var(--primary, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.auth-checkbox-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.auth-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.auth-checkbox-label {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.auth-checkbox-label a {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   BOTONES DE ENVÍO Y REDES SOCIALES
+   ========================================================================== */
+.auth-submit {
+  width: 100%;
+  padding: 13px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-md);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--t-base) var(--ease);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  font-family: var(--font-display);
+}
+
+.auth-submit:hover:not(:disabled) {
+  background: var(--primary-light);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(26,14,130,.3);
+}
+
+.auth-submit:disabled {
+  opacity: .7;
+  cursor: not-allowed;
+}
+
+.auth-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* --- DIVIDER "O CONTINÚA CON" --- */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.auth-divider::before, .auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* --- BOTONES SOCIALES --- */
+.auth-social-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.auth-social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-md);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: #fff;
+  cursor: pointer;
+  transition: all var(--t-fast) var(--ease);
+}
+
+.auth-social-btn:hover {
+  border-color: var(--primary);
+  background: var(--bg-subtle);
+}
+
+/* ==========================================================================
+   ENLACES DE NAVEGACIÓN INFERIOR Y HINTS
+   ========================================================================== */
+.auth-switch {
+  margin-top: 24px;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.auth-switch-link {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.auth-switch-link:hover {
+  text-decoration: underline;
+}
+
+.auth-demo-hint {
+  margin-top: 16px;
+  padding: 10px 14px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: var(--r-md);
+  font-size: 0.78rem;
+  color: #92400e;
+  text-align: center;
+}
+
+.auth-demo-hint code {
+  background: rgba(0,0,0,.07);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN (MÓVILES Y TABLETS)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .auth-page {
+    grid-template-columns: 1fr;
+  }
+  .auth-panel--left {
+    display: none;
+  }
+  .auth-panel--right {
+    padding: 40px 24px;
+    min-height: calc(100vh - var(--nav-h));
+  }
+}
