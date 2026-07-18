@@ -1,9 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import { loginUser, registerUser } from '../services/authService.js'
-import { supabase } from '../supabaseClient'
 import { translateError } from '../utils/errorMessages.js'
+import { loginUser, registerUser, registerAdmin, fetchProfile } from '../services/authService.js'
 
-const AuthContext = createContext(null)
+export const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -13,77 +12,38 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const storedUser = localStorage.getItem('pc_user')
     const storedToken = localStorage.getItem('pc_token')
-    if (storedUser) {
-      try { setUser(JSON.parse(storedUser)) } catch {}
-    }
-    if (storedToken) setToken(storedToken)
-  setLoading(false)
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    (event, session) => {
-      if (session) {
-        // Token renovado — actualizamos todo
-        setToken(session.access_token)
-        setUser(session.user)
-        localStorage.setItem('pc_token', session.access_token)
-        localStorage.setItem('pc_user', JSON.stringify(session.user))
-      } else if (event === 'SIGNED_OUT') {
-        logout()
+    try {
+      if (storedUser && storedToken) {
+        setUser(JSON.parse(storedUser))
+        setToken(storedToken)
       }
+    } catch {
+      logout()
     }
-  )
 
-  return () => subscription.unsubscribe() // limpieza al desmontar
-}, [])
+    setLoading(false)
+  }, [])
 
-  const saveAuth = (userData, accessToken) => {
-    setUser(userData)
+  const saveAuth = (authUser, profile, accessToken) => {
+    const fallbackProfile = {
+      rol: authUser?.user_metadata?.rol || authUser?.user_metadata?.role || 'estudiante',
+      nombre_completo: authUser?.user_metadata?.nombre_completo || '',
+      nombre_usuario: authUser?.user_metadata?.nombre_usuario || '',
+      avatar_url: authUser?.user_metadata?.avatar_url || null,
+      email: authUser?.email || ''
+    };
+
+    const fullUser = { 
+      auth: authUser, 
+      profile: (profile && Object.keys(profile).length > 0) ? profile : fallbackProfile 
+    }
+
+    setUser(fullUser)
     setToken(accessToken)
-    localStorage.setItem('pc_user', JSON.stringify(userData))
+    localStorage.setItem('pc_user', JSON.stringify(fullUser))
     if (accessToken) {
       localStorage.setItem('pc_token', accessToken)
-      try {
-        // Intentamos establecer la sesión en el cliente Supabase para mantener consistencia
-        // (si el SDK acepta solo access_token, lo usará; si requiere refresh, puede ignorarlo)
-        supabase.auth.setSession({ access_token: accessToken, refresh_token: accessToken })
-      } catch (err) {
-        console.warn('No se pudo setear sesión en Supabase client:', err.message || err)
-      }
-    }
-  }
-
-  const login = async (email, password) => {
-    try {
-      const response = await loginUser(email, password)
-      // El servicio puede devolver `response` (axios) o `response.data` directamente.
-      const data = response?.data ?? response
-      const accessToken = data?.token ?? data?.session?.access_token ?? data?.access_token ?? null
-      const userData = data?.user ?? data?.session?.user ?? null
-      if (!userData) {
-        throw new Error(data?.error || 'Credenciales incorrectas')
-      }
-      saveAuth(userData, accessToken)
-      return userData
-    } catch (err) {
-      const errorMsg = err.response?.data?.error || err.message || 'No se pudo iniciar sesión'
-      throw new Error(translateError(errorMsg))
-    }
-  }
-
-  const register = async (data) => {
-    try {
-      const response = await registerUser(data)
-      const resData = response?.data ?? response
-      const accessToken = resData?.token ?? resData?.session?.access_token ?? resData?.access_token ?? null
-      const userData = resData?.user ?? resData?.session?.user ?? null
-      if (!userData) {
-        throw new Error(resData?.error || 'No se pudo registrar el usuario')
-      }
-      saveAuth(userData, accessToken)
-      return userData
-    } catch (err) {
-      const errorMsg = err.response?.data?.error || err.message || 'No se pudo registrar'
-      throw new Error(translateError(errorMsg))
     }
   }
 
@@ -92,6 +52,84 @@ export function AuthProvider({ children }) {
     setToken(null)
     localStorage.removeItem('pc_user')
     localStorage.removeItem('pc_token')
+  }
+
+  const login = async (email, password) => {
+    try {
+      const response = await loginUser(email, password)
+      const data = response?.data ?? response
+      const accessToken = data?.token ?? data?.session?.access_token ?? data?.access_token ?? null
+      const userData = data?.user ?? data?.session?.user ?? null
+
+      if (!userData) {
+        const backendError = data?.error || 'Credenciales incorrectas'
+        const backendInternal = data?.internal || null
+        console.error('Login failed:', backendInternal || backendError, data)
+        throw new Error(translateError(backendError))
+      }
+
+      if (!accessToken) {
+        console.error('Login sin token:', data)
+        throw new Error('No se recibió token de autenticación después del login.')
+      }
+
+      let profile = null
+      profile = await fetchProfile(accessToken)
+
+      saveAuth(userData, profile, accessToken)
+      return { auth: userData, profile }
+    } catch (err) {
+        const backendError = err.response?.data?.error || err.message || 'No se pudo iniciar sesión'
+        const backendInternal = err.response?.data?.internal || err.message
+        console.error('Login error details:', backendInternal, err.response?.data)
+        const e = new Error(translateError(backendError))
+        e.status = err.response?.status || null
+        throw e
+    }
+  }
+
+  const register = async (data) => {
+
+    try {
+      
+      const response = data?.isAdmin
+        ? await registerAdmin(data)
+        : await registerUser(data)
+        
+      const resData = response?.data ?? response
+      const accessToken = resData?.token ?? resData?.session?.access_token ?? resData?.access_token ?? null
+      const userData = resData?.user ?? resData?.session?.user ?? resData?.auth?.user ?? null
+
+      if (!userData) {
+        const backendError = resData?.error || 'No se pudo registrar el usuario'
+        const backendInternal = resData?.internal || null
+        console.error('Register failed:', backendInternal || backendError, resData)
+        throw new Error(translateError(backendError))
+      }
+
+      if (!accessToken) {
+        // No hay token porque requiere confirmación. 
+        // NO guardamos sesión (saveAuth), el usuario debe verificar su mail primero.
+        console.log('Registro exitoso, pero requiere confirmación de correo.');
+        return { user: userData, requireConfirmation: true }
+      }
+
+      // 4. Si sí hay token (ej: registro directo o si quitan la verificación después)
+      let profile = null
+      if (accessToken) {
+        profile = await fetchProfile(accessToken)
+      }
+
+      saveAuth(userData, profile, accessToken)
+      return {user: userData, requireConfirmation: false}
+    } catch (err) {
+      const backendError = err.response?.data?.error || err.message || 'No se pudo registrar'
+      const backendInternal = err.response?.data?.internal || err.message
+      console.error('Register error details:', backendInternal, err.response?.data)
+      const e = new Error(translateError(backendError))
+      e.status = err.response?.status || null
+      throw e
+    }
   }
 
   return (

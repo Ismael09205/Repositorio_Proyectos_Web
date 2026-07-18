@@ -2,61 +2,105 @@ const { supabaseAnon, supabaseService } = require('../config/supabase');
 
 
 // Funcion para registrar un nuevo usuario donde se recibe el email, password y metadata
-const registerUser = async (email, password, metadata = {}) => {
+const registerUser = async (email, password, metadata = {}, isAdmin = false) => {
+    const normalizedMetadata = {
+        nombre_completo: String(metadata.nombre_completo || '').trim(),
+        username: String(metadata.nombre_usuario || metadata.username || '').trim(),
+        universidad: String(metadata.universidad || '').trim(),
+        facultad: String(metadata.facultad || '').trim(),
+        carrera: String(metadata.carrera || '').trim(),
+        semestre: metadata.semestre ?? null,
+        biografia: String(metadata.biografia || '').trim(),
+        ciudad: String(metadata.ciudad || '').trim(),
+        intereses: metadata.intereses ?? null,
+        github_url: String(metadata.github_url || '').trim(),
+        linkedin_url: String(metadata.linkedin_url || '').trim(),
+    };
+
+    if (!normalizedMetadata.nombre_completo) {
+        throw new Error('El nombre completo es requerido para el registro.');
+    }
+    if (!normalizedMetadata.username) {
+        throw new Error('El nombre de usuario es requerido para el registro.');
+    }
+
+    normalizedMetadata.role = isAdmin ? 'admin' : 'student';
+    
     // 1) Registramos el usuario en Auth y guardamos la respuesta
-    const { data, error } = await supabaseAnon.auth.signUp({ 
-        email, 
+    const { data, error } = await supabaseAnon.auth.signUp({
+        email,
         password,
         options: {
-            data: metadata
-        }
+            data: normalizedMetadata,
+        },
     });
 
     if (error) {
-        throw new Error(error.message);
+        const authError = new Error(error.message);
+        authError.code = error.code;
+        authError.status = error.status;
+        throw authError;
     }
+
 
     // 2) Intentamos crear explícitamente el perfil en la tabla `profiles`
     // Usamos el client con service role para poder escribir en la tabla
     try {
         const userId = data?.user?.id;
 
-        // Construimos el objeto de perfil con los campos esperados
-        const profile = {
+        if (isAdmin) {
+            // Mapeo exacto según el SQL de 'public.administrators'
+            const adminProfile = {
+                id: userId,
+                name: metadata.nombre_completo || metadata.name || '',
+                username: metadata.username || metadata.nombre_usuario || '', 
+                email: email.trim().toLowerCase(),
+                cargo: metadata.cargo || null,
+                especialidad: metadata.especialidad || null,
+                sector: metadata.sector || null,
+                created_at: new Date().toISOString()
+            };
+
+            try {
+                const { data: adminData, error: adminError } = await supabaseService
+                    .from('administrators')
+                    .upsert(adminProfile, { onConflict: 'id' })
+                    .select()
+                    .maybeSingle();
+
+                if (adminError) throw adminError;
+                return { auth: data, profile: adminData };
+            } catch (dbError) {
+                // Si salta por la FK (correo no verificado), ignoramos el crash y dejamos que el trigger actúe después
+                console.log('Perfil de administrador pendiente de confirmación de correo.');
+                return { auth: data, profile: null, status: 'awaiting_confirmation' };
+            }
+
+        } else {
+
+            const profile = {
             id: userId,
-            nombre_completo: metadata.nombre_completo || metadata.name || '',
-            universidad: metadata.university || metadata.universidad || '',
-            facultad: metadata.facultad || '',
-            carrera: metadata.career || metadata.carrera || '',
-            semestre: metadata.semestre || null,
-            biografia: metadata.biografia || '',
-            ciudad: metadata.ciudad || '',
-            intereses: metadata.intereses || null,
-            github_url: metadata.github_url || '',
-            linkedin_url: metadata.linkedin_url || '',
-            created_at: new Date().toISOString()
+            ...normalizedMetadata,
+            created_at: new Date().toISOString(),
         };
+            const { data: profileData, error: profileError } = await supabaseService
+                .from('profiles')
+                .upsert(profile, { onConflict: 'id' })
+                .select()
+                .single();
 
-        const { data: profileData, error: profileError } = await supabaseService
-            .from('profiles')
-            .insert(profile)
-            .select()
-            .single();
-
-        if (profileError) {
-            // No hacemos que el fallo del insert rompa el registro en Auth,
-            // pero sí informamos para depuración
-            console.error('Error creando perfil en DB:', profileError.message || profileError);
+            if (profileError) throw profileError;
+            return { auth: data, profile: profileData };
         }
 
-        // Devolvemos tanto la respuesta de Auth como el perfil creado (si existe)
-        return { auth: data, profile: profileData };
-    } catch (err) {
-        console.error('Error en post-registro al crear perfil:', err.message || err);
-        // Aunque haya fallo en la creación del perfil, devolvemos la respuesta de auth
-        return { auth: data };
+
+    } catch (dbError) {
+        // Evita el crash si la base de datos rechaza la inserción antes de verificar el correo
+        console.log('Perfil de estudiante pendiente de confirmación de correo.');
+        return { auth: data, profile: null, status: 'awaiting_confirmation' };
     }
-}
+};
+   
 // Funcion para iniciar sesion de un usuario que ya esta previamente registrado
 const loginUser = async (email, password) => {
     const { data, error } = await supabaseAnon.auth.signInWithPassword({ email, password });

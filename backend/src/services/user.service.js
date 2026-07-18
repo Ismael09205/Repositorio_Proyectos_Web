@@ -1,87 +1,112 @@
 const { supabaseService } = require('../config/supabase');
 
-
-async function getProfileById(userId, userMetadata = {}) {
-  const { data, error } = await supabaseService
+async function getProfileById(userId) {
+  // 1. Buscamos primero en perfiles de estudiantes
+  const { data: studentData, error: studentError } = await supabaseService
     .from('profiles')
     .select('*')
     .eq('id', userId)
     .maybeSingle();
 
-  if (error) throw error;
-
-
-  if (!data) {
-    const initialProfile = {
-      id: userId,
-      nombre_completo: userMetadata?.nombre_completo || '',
-      universidad: userMetadata?.university || userMetadata?.universidad || '',
-      carrera: userMetadata?.career || userMetadata?.carrera || '',
-      facultad: userMetadata?.facultad || '',
-      semestre: userMetadata?.semestre || '',
-      biografia: userMetadata?.biografia || '',
-      ciudad: userMetadata?.ciudad || '',
-      intereses: [],
-      github_url: userMetadata?.github_url || '',
-      linkedin_url: userMetadata?.linkedin_url || '',
-    };
-
-    const { data: upsertData, error: upsertError } = await supabaseService
-      .from('profiles')
-      .upsert(initialProfile, { onConflict: 'id' })
-      .select('*');
-
-    if (upsertError) throw upsertError;
-
-    return upsertData?.[0] ?? initialProfile;
+  if (studentError) throw studentError;
+  if (studentData) {
+    return studentData; // Ya incluye el campo 'rol': 'estudiante' nativo de la BD
   }
 
-  return data;
+  // 2. Si no es estudiante, buscamos en administradores
+  const { data: adminData, error: adminError } = await supabaseService
+    .from('administrators')
+    .select('*')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (adminError) throw adminError;
+  if (adminData) {
+    return adminData; // Ya incluye el campo 'rol': 'administrador' nativo de la BD
+  }
+
+  // 3. Si no existe en ninguna de las dos tablas
+  throw new Error('El perfil no existe en el sistema.');
 }
 
 async function updateProfileById(userId, profileData) {
-  const intereses = Array.isArray(profileData?.intereses)
-    ? profileData.intereses
-    : typeof profileData?.intereses === 'string'
+
+  //Check if user is admin or student
+  const { data: adminCheck } = await supabaseService
+    .from('administrators')
+    .select('id')
+    .eq('id', userId)
+    .maybeSingle();
+
+  const isAdmin = !!adminCheck;
+
+    if (isAdmin) {
+    // Update administrator profile
+    const currentProfile = await getProfileById(userId);
+
+    const payload = {
+      id: userId,
+      name: profileData?.name ?? currentProfile.name,
+      username: profileData?.username ?? currentProfile.username,
+      cargo: profileData?.cargo ?? currentProfile.cargo,
+      especialidad: profileData?.especialidad ?? currentProfile.especialidad,
+      sector: profileData?.sector ?? currentProfile.sector,
+      avatar_url: profileData?.avatar_url ?? currentProfile.avatar_url,
+    };
+
+    const { data, error } = await supabaseService
+      .from('administrators')
+      .update(payload)
+      .eq('id', userId)
+      .select('*')
+      .single();
+
+    if (error) throw error;
+    return data;
+    
+  }else {
+
+  // 1. Traemos el perfil actual para no perder los datos que no se envíen en el body
+  const currentProfile = await getProfileById(userId);
+
+  // 2. Procesamos los intereses si es que vienen en la petición
+  let intereses = currentProfile.intereses; 
+  if (profileData?.intereses !== undefined) {
+    intereses = Array.isArray(profileData.intereses)
       ? profileData.intereses
-          .split(',')
-          .map(t => t.trim())
-          .filter(Boolean)
-      : [];
-
-
-  const universidad = profileData?.universidad ?? profileData?.university ?? '';
-  const carrera = profileData?.carrera ?? profileData?.career ?? '';
-
-  const payload = {
-    id: userId,
-    nombre_completo: profileData?.nombre_completo ?? '',
-    universidad,
-    facultad: profileData?.facultad ?? '',
-    carrera,
-    semestre: profileData?.semestre ?? '',
-    biografia: profileData?.biografia ?? '',
-    ciudad: profileData?.ciudad ?? '',
-    intereses: intereses,
-    github_url: profileData?.github_url ?? '',
-    linkedin_url: profileData?.linkedin_url ?? '',
-  };
-
-  
-  const { data, error } = await supabaseService
-    .from('profiles')
-    .upsert(payload, { onConflict: 'id' })
-    .select('*');
-
-  if (error) throw error;
-
-  if (!data || data.length === 0) {
-    throw new Error('No se pudo persistir el perfil en Supabase.');
+      : typeof profileData.intereses === 'string'
+        ? profileData.intereses.split(',').map(t => t.trim()).filter(Boolean)
+        : [];
   }
 
-  return data[0];
-}
+  // 3. Fusionamos los datos viejos con los nuevos de forma segura
+  const payload = {
+    id: userId,
+    nombre_completo: profileData?.nombre_completo ?? currentProfile.nombre_completo,
+    universidad: profileData?.universidad ?? profileData?.university ?? currentProfile.universidad,
+    facultad: profileData?.facultad ?? currentProfile.facultad,
+    carrera: profileData?.carrera ?? profileData?.career ?? currentProfile.carrera,
+    semestre: profileData?.semestre ?? currentProfile.semestre,
+    biografia: profileData?.biografia ?? currentProfile.biografia,
+    ciudad: profileData?.ciudad ?? currentProfile.ciudad,
+    intereses: intereses,
+    github_url: profileData?.github_url ?? currentProfile.github_url,
+    linkedin_url: profileData?.linkedin_url ?? currentProfile.linkedin_url,
+    avatar_url: profileData?.avatar_url ?? currentProfile.avatar_url,
+  };
 
+  // 4. Guardamos los cambios
+  const { data, error } = await supabaseService
+    .from('profiles')
+    .update(payload) // Usamos update en vez de upsert ya que el registro existe sí o sí
+    .eq('id', userId)
+    .select('*')
+    .single();
+
+  if (error) throw error;
+  return data;
+  }
+};
 
 module.exports = {
   getProfileById,

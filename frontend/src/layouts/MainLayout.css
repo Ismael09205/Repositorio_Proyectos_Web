@@ -6,4 +6,6 @@
 
 .layout__main {
   flex: 1;
+  margin-top: 0;
+  padding-top: 0;
 }

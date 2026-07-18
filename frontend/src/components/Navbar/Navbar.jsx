@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { Search, Menu, X, ChevronDown, Bell, BookOpen, LogOut, User, Settings } from 'lucide-react'
+import { Search, Menu, X, ChevronDown, Bell, BookOpen, LogOut, User, Settings, MessageCircle } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import logoPoli from '../../assets/logo.png'
 import './Navbar.css'
@@ -16,10 +16,37 @@ export default function Navbar() {
   const dropRef = useRef(null)
   const searchRef = useRef(null)
 
-  // Extraemos el nombre real mapeando la metadata de Supabase o las propiedades del contexto
-  const displayNombre = user?.user_metadata?.nombre_completo || user?.name || "Estudiante";
-  const displayEmail = user?.email || "";
+  // Extraemos el nombre real usando primero el username, luego el nombre completo y finalmente un fallback
+  const displayNombre =
+    user?.profile?.nombre_usuario ||
+    user?.profile?.nombre_completo ||
+    user?.auth?.user_metadata?.nombre_usuario ||
+    user?.auth?.user_metadata?.nombre_completo ||
+    user?.auth?.user?.email ||
+    "Usuario";
 
+  const displayEmail =
+    user?.profile?.email ||
+    user?.auth?.email ||
+    user?.auth?.user?.email ||
+    "";
+
+  // Extraemos la foto de perfil (si existe) del perfil o del metadata
+  const displayAvatar = 
+    user?.profile?.avatar_url || 
+    user?.auth?.user_metadata?.avatar_url || 
+    user?.profile?.avatar || 
+    null;
+
+  const userRol = 
+    user?.profile?.rol || 
+    user?.profile?.role || 
+    user?.auth?.user_metadata?.rol || 
+    user?.auth?.user_metadata?.role ||
+    user?.rol || 
+    user?.role;
+
+  const isAdmin = userRol === 'admin' || displayEmail.toLowerCase().includes('admin');
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12)
     window.addEventListener('scroll', onScroll)
@@ -56,11 +83,8 @@ export default function Navbar() {
       <div className="navbar__inner container">
         {/* Logo */}
         <Link to="/" className="navbar__logo">
-          
-          
-          
-          <img src={logoPoli} alt="Logo PoliConnect" className="logo-image" />
-          <span className="navbar__logo-text">poli<strong>connect</strong></span>
+          <img src={logoPoli} alt="Logo IdeaAgora" className="logo-image" />
+          <span className="navbar__logo-text">Ide<strong>Agora</strong></span>
         </Link>
 
         {/* Nav links (desktop) */}
@@ -71,9 +95,17 @@ export default function Navbar() {
           <NavLink to="/explorar" className={({isActive}) => isActive ? 'navbar__link navbar__link--active' : 'navbar__link'}>
             Explorar
           </NavLink>
-          <NavLink to="/categorias" className={({isActive}) => isActive ? 'navbar__link navbar__link--active' : 'navbar__link'}>
-            Categorías
+          <NavLink to="/sobre-nosotros" className={({isActive}) => isActive ? 'navbar__link navbar__link--active' : 'navbar__link'}>
+            Sobre nosotros
           </NavLink>
+          
+          {/* Solo se muestra si el usuario está autenticado Y NO es administrador */}
+          {user && !isAdmin && (
+            <NavLink to="/chat" className={({isActive}) => isActive ? 'navbar__link navbar__link--active' : 'navbar__link'}>
+              <MessageCircle size={15} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+              Socializar
+            </NavLink>
+          )}
         </nav>
 
         {/* Right actions */}
@@ -98,7 +130,11 @@ export default function Navbar() {
               <div className="navbar__user-menu" ref={dropRef}>
                 <button className="navbar__avatar-btn" onClick={() => setDropOpen(d => !d)}>
                   <div className="navbar__avatar">
-                    {generateInitials(displayNombre)}
+                    {displayAvatar ? (
+                      <img src={displayAvatar} alt="Profile" className="navbar__avatar-img" />
+                    ) : (
+                      generateInitials(displayNombre)
+                    )}
                   </div>
                   <span className="navbar__username">
                     {displayNombre.split(' ')[0]}
@@ -110,7 +146,11 @@ export default function Navbar() {
                   <div className="navbar__dropdown">
                     <div className="navbar__dropdown-header">
                       <div className="navbar__avatar navbar__avatar--lg">
-                        {generateInitials(displayNombre)}
+                        {displayAvatar ? (
+                          <img src={displayAvatar} alt="Profile Large" className="navbar__avatar-img" />
+                        ) : (
+                          generateInitials(displayNombre)
+                        )}
                       </div>
                       <div>
                         <p className="navbar__dd-name">{displayNombre}</p>
@@ -118,12 +158,23 @@ export default function Navbar() {
                       </div>
                     </div>
                     <div className="navbar__dropdown-divider" />
+                    
                     <Link to="/perfil" className="navbar__dd-item" onClick={() => setDropOpen(false)}>
                       <User size={15} /> Mi perfil
                     </Link>
-                    <Link to="/explorar" className="navbar__dd-item" onClick={() => setDropOpen(false)}>
-                      <BookOpen size={15} /> Mis proyectos
-                    </Link>
+
+                    {/* Estas rutas se ocultan si el usuario es Admin */}
+                    {!isAdmin && (
+                      <>
+                        <Link to="/mis-proyectos" className="navbar__dd-item" onClick={() => setDropOpen(false)}>
+                          <BookOpen size={15} /> Mis proyectos
+                        </Link>
+                        <Link to="/chat" className="navbar__dd-item" onClick={() => setDropOpen(false)}>
+                          <MessageCircle size={15} /> Mis chats
+                        </Link>
+                      </>
+                    )}
+
                     <Link to="/perfil" className="navbar__dd-item" onClick={() => setDropOpen(false)}>
                       <Settings size={15} /> Configuración
                     </Link>
@@ -177,7 +228,7 @@ export default function Navbar() {
       {menuOpen && (
         <div className="navbar__mobile-menu">
           <nav className="container">
-            {['/', '/explorar', '/categorias'].map((path, i) => (
+            {['/', '/explorar', '/categorias', '/sobre-nosotros'].map((path, i) => (
               <NavLink
                 key={i}
                 to={path}
@@ -185,7 +236,7 @@ export default function Navbar() {
                 onClick={() => setMenuOpen(false)}
                 end={path === '/'}
               >
-                {['Inicio', 'Explorar', 'Categorías'][i]}
+                {['Inicio', 'Explorar', 'Categorías', 'Sobre nosotros'][i]}
               </NavLink>
             ))}
             {!user && (

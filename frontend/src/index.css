@@ -140,6 +140,29 @@ input, textarea, select {
   transform: translateY(-1px);
 }
 
+.btn-done {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(251,146,60,.3);
+}
+
+.btn-done:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.btn-calificar{
+  border: 1.5px solid var(--border);
+  color: var(--text-secondary);
+  background: #fff;
+}
+
+.btn-calificar:hover{
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--bg-subtle);
+}
+
 .btn-outline {
   border: 1.5px solid var(--border);
   color: var(--text-secondary);
@@ -181,6 +204,90 @@ input, textarea, select {
 /* ===== PAGE TRANSITIONS ===== */
 .page-enter {
   animation: fadeUp .35s var(--ease) both;
+}
+
+/* ===== TOAST PROGRESS BAR ===== */
+[data-sonner-toast] {
+  position: relative;
+  overflow: hidden;
+}
+
+[data-sonner-toast]::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  background: currentColor;
+  transform-origin: left;
+  animation: toastProgress var(--toast-duration, 4000ms) linear forwards;
+}
+
+[data-sonner-toast][data-type="success"]::after {
+  background: #10b981;
+}
+
+[data-sonner-toast][data-type="error"]::after {
+  background: #ef4444;
+}
+
+[data-sonner-toast][data-type="info"]::after {
+  background: #3b82f6;
+}
+
+[data-sonner-toast][data-type="warning"]::after {
+  background: #f59e0b;
+}
+
+@keyframes toastProgress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* React Hot Toast Progress Bar */
+.react-hot-toast {
+  position: relative;
+  overflow: hidden !important;
+}
+
+.react-hot-toast::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  transform-origin: left;
+  animation: toastProgress var(--toast-duration, 4000ms) linear forwards;
+}
+
+/* Success toast - green bar */
+.react-hot-toast[data-type="success"]::after,
+.react-hot-toast.success::after {
+  background: #10b981;
+}
+
+/* Error toast - red bar */
+.react-hot-toast[data-type="error"]::after,
+.react-hot-toast.error::after {
+  background: #ef4444;
+}
+
+/* Info/default toast - blue bar */
+.react-hot-toast[data-type="info"]::after,
+.react-hot-toast.info::after {
+  background: #3b82f6;
+}
+
+/* Warning toast - orange bar */
+.react-hot-toast[data-type="warning"]::after,
+.react-hot-toast.warning::after {
+  background: #f59e0b;
 }
 
 @keyframes fadeUp {

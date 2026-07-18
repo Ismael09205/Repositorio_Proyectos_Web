@@ -1,38 +1,39 @@
 const userService = require('../services/user.service');
 
-// Función para obtener el perfil del usuario autenticado, 
-// se asume que el middleware de autenticación ya ha verificado 
-// el token y ha agregado la información del usuario al objeto de la petición (req.user)
+// Obtener el perfil del usuario (Estudiante o Administrador)
 const getProfile = async (req, res) => {
     try {
-        // Consultamos al servicio para traer los datos extendidos de la tabla 'profiles'
-        const profile = await userService.getProfileById(req.user.id, req.user.user_metadata);
+        // El servicio ya busca automáticamente en cascada y trae el rol correcto
+        const profile = await userService.getProfileById(req.user.id);
 
-        // Devolvemos los datos del perfil combinados con el email oficial de la autenticación
         return res.status(200).json({
             ...profile,
-            email: req.user.email
+            email: req.user.email // Mantenemos el correo que viene de Supabase Auth
         });
+
     } catch (error) {
-        console.error('getProfile error:', error);
-        // Si no encuentra el perfil o hay un fallo, manejamos el estado de error
-        return res.status(404).json({ error: error.message || 'No se encontró el perfil del estudiante en PoliConnect.' });
+        console.error('>>>> [DEBUG GETPROFILE] ERROR CRÍTICO CAPTURADO:', error);
+        return res.status(500).json({ error: error.message || 'Error interno del servidor.' });
     }
 }
 
-// Función para actualizar los datos de la ficha extendida del estudiante
+// Actualizar los datos del perfil de forma segura según el rol
 const updateProfile = async (req, res) => {
     try {
         if (!req.body || typeof req.body !== 'object') {
             return res.status(400).json({ error: 'Datos de perfil requeridos.' });
         }
 
-        // Validacion minima para que el perfil sea coherente
-        if (!req.body.nombre_completo || !String(req.body.nombre_completo).trim()) {
-            return res.status(400).json({ error: 'El nombre completo es requerido.' });
+        // Validaciones dinámicas en el body según el campo que mande el frontend
+        if (req.body.nombre_completo !== undefined && (!req.body.nombre_completo || !String(req.body.nombre_completo).trim())) {
+             return res.status(400).json({ error: 'El nombre completo es requerido.' });
         }
 
-        // Enviamos al servicio el ID del usuario autenticado y el cuerpo con los nuevos cambios
+        if (req.body.name !== undefined && (!req.body.name || !String(req.body.name).trim())) {
+             return res.status(400).json({ error: 'El nombre completo es requerido.' });
+        }
+
+        // Pasamos el ID y el body al servicio, que ya sabe discriminar por rol
         const updatedProfile = await userService.updateProfileById(req.user.id, req.body);
 
         return res.status(200).json({
@@ -45,8 +46,27 @@ const updateProfile = async (req, res) => {
     }
 }
 
-// Exportamos de forma limpia los controladores para usarlos en tus rutas de usuario
+// Subir/actualizar el avatar del usuario logueado (Estudiante o Administrador)
+const uploadAvatar = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No se recibió ningún archivo.' });
+        }
+
+        const updatedProfile = await userService.uploadAvatarById(req.user.id, req.file);
+
+        return res.status(200).json({
+            ...updatedProfile,
+            email: req.user.email
+        });
+    } catch (error) {
+        console.error('uploadAvatar error:', error);
+        return res.status(400).json({ error: error.message || 'Error al subir el avatar.' });
+    }
+}
+
 module.exports = {
     getProfile,
-    updateProfile
+    updateProfile,
+    uploadAvatar
 };
