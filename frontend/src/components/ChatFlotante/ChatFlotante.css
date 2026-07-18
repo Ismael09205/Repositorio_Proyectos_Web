@@ -3,12 +3,13 @@
    ========================================================================== */
 .chat-flotante-container {
   position: fixed !important;
-  bottom: 65px !important; /* <--- Cambia este valor (ej. 120px o 200px) para subirlo */
+  bottom: 45px !important; /* <--- Cambia este valor (ej. 120px o 200px) para subirlo */
   right: 10px !important;
   z-index: 999999 !important;
   font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   display: flex;
-  flex-direction: column;
+  gap: 10px;
+  justify-content: space-between;
   align-items: flex-end;
 }
 
@@ -48,11 +49,11 @@
    VENTANA DEL CHAT (EFECTO GLASSMORPHISM)
    ========================================================================== */
 .ventana-chat-ia {
-  position: absolute;
-  bottom: 80px;
+  position: relative;
+  bottom: 20px;
   right: 0;
-  width: 370px;
-  height: 520px;
+  width: 300px;
+  height: 400px;
   
   /* Fondo translúcido con desenfoque de fondo */
   background: rgba(255, 255, 255, 0.85);
@@ -86,8 +87,8 @@
    CABECERA DEL CHAT
    ========================================================================== */
 .chat-ia-header {
-  background: linear-gradient(135deg, #0070f3, #0051bb);
-  color: white;
+  background: linear-gradient(135deg, #f3c600, #ff701d);
+  color: rgb(255, 253, 253);
   padding: 18px 20px;
   font-weight: 600;
   font-size: 15px;
@@ -133,12 +134,12 @@
   color: #1f2937;
   align-self: flex-start;
   border-bottom-left-radius: 4px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 123, 0, 0.178);
 }
 
 /* Mensaje del Usuario */
 .burbuja-msg.usuario {
-  background: linear-gradient(135deg, #0070f3, #0051bb);
+  background: linear-gradient(135deg, #ff8e25, #ffe134);
   color: white;
   align-self: flex-end;
   border-bottom-right-radius: 4px;
@@ -176,13 +177,13 @@
 
 .chat-ia-input-form input:focus {
   background-color: white;
-  border-color: #0070f3;
+  border-color: #f36100;
   box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.15);
 }
 
 /* Botón de Enviar (Flecha) */
 .chat-ia-input-form button {
-  background: linear-gradient(135deg, #0070f3, #0051bb);
+  background: linear-gradient(135deg, #f31c00, #f0703d);
   color: white;
   border: none;
   border-radius: 50%;
@@ -197,6 +198,13 @@
   transition: all 0.2s ease;
 }
 
+.chat-ia-input-form img{
+  display: flex;
+  width: 25px;
+  transform: scaleX(-1);
+  padding-left: 1px 0 4px;
+  margin-left: 2px;
+}
 .chat-ia-input-form button:hover:not(:disabled) {
   transform: scale(1.05);
   box-shadow: 0 6px 16px rgba(0, 112, 243, 0.35);

@@ -495,9 +495,15 @@
 }
 
 .explore__projects--list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 16px;
+}
+
+
+.explore__projects--list project-card__img-real {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain; /* Evita que la imagen se estire al usar transform */
 }
 
 /* Loader Estilo Scopus */

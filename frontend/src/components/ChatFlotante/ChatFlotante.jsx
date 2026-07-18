@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom"; // 1. Importa esto
 import { consultarAsistenteIA } from "../../services/iaService.js"; 
+import enviar from "../../assets/enviar.svg";
 import "./ChatFlotante.css";
 
 export const ChatFlotante = () => {
@@ -8,7 +9,7 @@ export const ChatFlotante = () => {
   const [input, setInput] = useState('');
   const [cargando, setCargando] = useState(false);
   const [mensajes, setMensajes] = useState([
-    { id: 1, remitente: 'ia', texto: '¡Hola! Soy tu asistente de repositorio. ¿Qué tesis o documentación técnica buscas hoy?' }
+    { id: 1, remitente: 'ia', texto: '¡Hola! Soy IdeAbot. ¿En que te puedo ayudar?' }
   ]);
 
   const toggleChat = () => setActivo(!activo);
@@ -38,7 +39,7 @@ export const ChatFlotante = () => {
       {/* Ventana del Chat */}
       {activo && (
         <div className="ventana-chat-ia">
-          <div className="chat-ia-header">Asistente Politécnico (IA)</div>
+          <div className="chat-ia-header">IdeAbot</div>
           
           <div className="chat-ia-mensajes">
             {mensajes.map((m) => (
@@ -46,7 +47,7 @@ export const ChatFlotante = () => {
                 <p>{m.texto}</p>
               </div>
             ))}
-            {cargando && <div className="burbuja-msg ia cargando">Buscando tesis...</div>}
+            {cargando && <div className="burbuja-msg ia cargando">...</div>}
           </div>
 
           <form onSubmit={manejarEnvio} className="chat-ia-input-form">
@@ -54,10 +55,12 @@ export const ChatFlotante = () => {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Pregúntame sobre un proyecto..."
+              placeholder="Pregúntame..."
               disabled={cargando}
             />
-            <button type="submit" disabled={cargando}>➡️</button>
+            <button type="submit" disabled={cargando}>
+              <img src={enviar} class = "icon-enviar" alt="icono-enviar" />
+            </button>
           </form>
         </div>
       )}
@@ -67,6 +70,6 @@ export const ChatFlotante = () => {
         +
       </button>
     </div>,
-    document.body // <-- Esto lo manda a la raíz del HTML, libre de toda restricción
+    document.body
   );
 };
