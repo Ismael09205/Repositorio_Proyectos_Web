@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { Send, Search, MessageCircle, ArrowLeft, Loader } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { io } from 'socket.io-client'
+import API_BASE_URL from '../../services/apiConfig.js'
 import './Chat.css'
 
-const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+const BACKEND_URL = API_BASE_URL
 
 export default function Chat() {
     const { user, token, loading } = useAuth()
