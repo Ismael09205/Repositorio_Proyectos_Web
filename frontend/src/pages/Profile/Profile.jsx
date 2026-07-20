@@ -4,7 +4,9 @@ import API_BASE_URL from '../../services/apiConfig.js'
 import { useAuth } from '../../context/AuthContext';
 import { uploadFileToCloudinary } from '../../services/cloudinaryService.js';
 import { updateProfile as updateProfileRequest } from '../../services/authService.js';
-import './Profile.css'; 
+import { fetchMiInsignia } from '../../services/adminService.js';
+import InsigniaBadge from '../../components/InsigniaBadge/InsigniaBadge.jsx';
+import './Profile.css';
 import {
   User,
   GraduationCap,
@@ -38,6 +40,9 @@ export default function Profile() {
   const [interestInput, setInterestInput] = useState('');
   const [updateLoading, setUpdateLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+
+  // Estado para la insignia del estudiante
+  const [insigniaDatos, setInsigniaDatos] = useState(null);
 
   // Estados para el avatar
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -91,6 +96,17 @@ export default function Profile() {
             }
           } catch (adminErr) {
             setIsAdmin(false);
+          }
+        }
+
+        // Cargamos la insignia solo si es estudiante (rol != 'administrador')
+        if (userRole !== 'administrador' && userRole !== 'admin') {
+          try {
+            const datosInsignia = await fetchMiInsignia(authToken);
+            setInsigniaDatos(datosInsignia);
+          } catch {
+            // Si falla la carga de insignia no bloqueamos el perfil
+            setInsigniaDatos(null);
           }
         }
       } catch (err) {
@@ -467,6 +483,80 @@ export default function Profile() {
                   />
                 ) : (
                   <p className="bio-text">{profile.biografia || "No se ha añadido una biografía aún."}</p>
+                )}
+              </div>
+            )}
+
+            {/* Tarjeta de insignia — solo para estudiantes */}
+            {!isAdmin && (
+              <div className="profile-info-card profile-insignia-card">
+                <h3 className="card-title-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight:6,verticalAlign:'middle'}}>
+                    <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
+                  </svg>
+                  Mi Insignia
+                </h3>
+
+                {insigniaDatos ? (
+                  <div className="profile-insignia-contenido">
+                    {/* Imagen de la insignia */}
+                    <InsigniaBadge
+                      insignia={insigniaDatos.insignia}
+                      totalProyectos={insigniaDatos.totalProyectos}
+                      tipo={insigniaDatos.insigniaManual ? 'manual' : 'auto'}
+                      tamanio="lg"
+                    />
+
+                    {/* Barra de progreso hacia el siguiente nivel */}
+                    {insigniaDatos.niveles && (() => {
+                      // Buscamos el siguiente nivel al actual
+                      const nivelesOrdenados = [...insigniaDatos.niveles].sort((a, b) => a.minProyectos - b.minProyectos);
+                      const nivelActual = insigniaDatos.insignia;
+                      const sigNivel = nivelesOrdenados.find(
+                        (n) => n.minProyectos > (nivelActual?.minProyectos || 0)
+                      );
+
+                      if (!sigNivel) {
+                        return (
+                          <p className="profile-insignia-max">
+                            Nivel maximo alcanzado
+                          </p>
+                        );
+                      }
+
+                      const inicio = nivelActual?.minProyectos || 0;
+                      const progreso = Math.min(
+                        ((insigniaDatos.totalProyectos - inicio) / (sigNivel.minProyectos - inicio)) * 100,
+                        100
+                      );
+
+                      return (
+                        <div className="profile-insignia-progreso">
+                          <p className="profile-insignia-prox">
+                            Siguiente: <strong>{sigNivel.nombre}</strong> ({sigNivel.minProyectos} proyectos)
+                          </p>
+                          <div className="profile-prog-barra-bg">
+                            <div
+                              className="profile-prog-barra-fill"
+                              style={{
+                                width: `${progreso}%`,
+                                background: sigNivel.color,
+                              }}
+                            />
+                          </div>
+                          <p className="profile-prog-texto">
+                            {insigniaDatos.totalProyectos} / {sigNivel.minProyectos} proyectos
+                          </p>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                ) : (
+                  /* Estado sin insignia aun */
+                  <div className="profile-insignia-vacia">
+                    <InsigniaBadge insignia={null} totalProyectos={0} tamanio="md" />
+                    <p>Sube tu primer proyecto para ganar una insignia</p>
+                  </div>
                 )}
               </div>
             )}

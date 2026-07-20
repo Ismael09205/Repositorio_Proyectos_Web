@@ -10,4 +10,7 @@ router.get("/profile", authMiddleware, userController.getProfile);
 // Ruta para actualizar los datos del perfil (Protegida)
 router.put("/profile", authMiddleware, userController.updateProfile);
 
+// Ruta para obtener la insignia del usuario logueado
+router.get("/insignia", authMiddleware, userController.getMiInsignia);
+
 module.exports = router;

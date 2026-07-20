@@ -219,6 +219,17 @@ const deleteProject = async (req, res) => {
   }
 };
 
+const adminDeleteProject = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await projectService.adminDeleteProject(id);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('adminDeleteProject error:', error);
+    return res.status(400).json({ error: error.message || 'Error eliminando el proyecto.' });
+  }
+};
+
 const updateProject = async (req, res) => {
   try {
     const projectId = req.params.id;
@@ -256,5 +267,6 @@ module.exports = {
   addComment,
   toggleCommentLike,
   deleteProject,
+  adminDeleteProject,
   updateProject,
 };

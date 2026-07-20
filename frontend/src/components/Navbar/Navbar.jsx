@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { Search, Menu, X, ChevronDown, Bell, BookOpen, LogOut, User, Settings, MessageCircle } from 'lucide-react'
+import { Search, Menu, X, ChevronDown, Bell, BookOpen, LogOut, User, Settings, MessageCircle, BarChart2, Award } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import logoPoli from '../../assets/logo.png'
 import './Navbar.css'
@@ -178,6 +178,22 @@ export default function Navbar() {
                     <Link to="/perfil" className="navbar__dd-item" onClick={() => setDropOpen(false)}>
                       <Settings size={15} /> Configuración
                     </Link>
+
+                    {/* Links exclusivos para administrador */}
+                    {isAdmin && (
+                      <>
+                        <div className="navbar__dropdown-divider" />
+                        <Link to="/admin-dashboard" className="navbar__dd-item" onClick={() => setDropOpen(false)}>
+                          <BarChart2 size={15} /> Dashboard Admin
+                        </Link>
+                        <Link to="/insignias" className="navbar__dd-item" onClick={() => setDropOpen(false)}>
+                          <Award size={15} /> Insignias
+                        </Link>
+                        <Link to="/user-management" className="navbar__dd-item" onClick={() => setDropOpen(false)}>
+                          <User size={15} /> Gestion Usuarios
+                        </Link>
+                      </>
+                    )}
                     <div className="navbar__dropdown-divider" />
                     <button className="navbar__dd-item navbar__dd-item--danger" onClick={handleLogout}>
                       <LogOut size={15} /> Cerrar sesión

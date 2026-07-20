@@ -1,0 +1,418 @@
+/* ---- Página principal ---- */
+.admp-page {
+  min-height: 100vh;
+  padding: 24px 20px 48px;
+  background: #f7f8fa;
+  max-width: 1160px;
+  margin: 0 auto;
+}
+
+/* ---- Encabezado ---- */
+.admp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.admp-title-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admp-header-icon { color: #3b82f6; }
+
+.admp-title-section h1 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1f2328;
+  margin: 0;
+}
+
+.admp-title-section p {
+  font-size: 13px;
+  color: #57606a;
+  margin: 3px 0 0;
+}
+
+.admp-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admp-btn-back {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: #1f2328;
+  color: #fff;
+  transition: background 0.15s;
+}
+.admp-btn-back:hover { background: #3b82f6; }
+
+.admp-btn-refresh {
+  display: flex;
+  align-items: center;
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #3b82f6;
+  transition: background 0.15s;
+}
+.admp-btn-refresh:hover { background: #dbeafe; }
+
+/* ---- Mensaje éxito ---- */
+.admp-exito {
+  background: #ecfdf5;
+  border: 1px solid #6ee7b7;
+  color: #065f46;
+  font-size: 13px;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+}
+
+/* ---- Filtros ---- */
+.admp-filtros {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.admp-busqueda-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+
+.admp-busqueda-icono {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.admp-busqueda {
+  width: 100%;
+  padding: 8px 10px 8px 32px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 13px;
+  background: #fff;
+  color: #1f2328;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+.admp-busqueda:focus { border-color: #3b82f6; }
+
+.admp-select {
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 12px;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+  outline: none;
+}
+.admp-select:focus { border-color: #3b82f6; }
+
+.admp-contador {
+  font-size: 12px;
+  color: #9ca3af;
+  white-space: nowrap;
+}
+
+/* ---- Loading / Error / Vacío ---- */
+.admp-loading,
+.admp-error,
+.admp-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 240px;
+  color: #57606a;
+  font-size: 14px;
+}
+
+.admp-spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: admp-spin 0.7s linear infinite;
+}
+
+@keyframes admp-spin { to { transform: rotate(360deg); } }
+
+/* ---- Tabla ---- */
+.admp-tabla-wrap {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  overflow-x: auto;
+}
+
+.admp-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.admp-tabla thead tr {
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admp-tabla th {
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.admp-th-num       { text-align: right; }
+.admp-th-acciones  { text-align: center; }
+
+.admp-fila {
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.1s;
+}
+.admp-fila:last-child { border-bottom: none; }
+.admp-fila:hover { background: #f9fafb; }
+
+.admp-tabla td {
+  padding: 11px 14px;
+  vertical-align: middle;
+  color: #374151;
+}
+
+.admp-td-titulo {
+  max-width: 260px;
+}
+
+.admp-titulo {
+  display: block;
+  font-weight: 600;
+  color: #1f2328;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admp-resumen {
+  display: block;
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admp-td-autor { max-width: 160px; }
+
+.admp-univ {
+  display: block;
+  font-size: 10px;
+  color: #9ca3af;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admp-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  background: #eff6ff;
+  color: #3b82f6;
+  white-space: nowrap;
+}
+
+.admp-td-fecha {
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.admp-td-num {
+  text-align: right;
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.admp-td-acciones {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.admp-btn-ver,
+.admp-btn-eliminar-fila {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+  background: #fff;
+  color: #6b7280;
+  margin: 0 2px;
+}
+
+.admp-btn-ver:hover {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #3b82f6;
+}
+
+.admp-btn-eliminar-fila:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #ef4444;
+}
+
+/* ---- Modal de confirmación ---- */
+.admp-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+}
+
+.admp-modal {
+  background: #fff;
+  border-radius: 14px;
+  padding: 28px 28px 24px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+}
+
+.admp-modal-icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #fef2f2;
+  color: #ef4444;
+  margin: 0 auto 16px;
+}
+
+.admp-modal-titulo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1f2328;
+  margin: 0 0 8px;
+}
+
+.admp-modal-desc {
+  font-size: 13px;
+  color: #57606a;
+  margin: 0 0 6px;
+}
+
+.admp-modal-nombre {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1f2328;
+  margin: 0 0 10px;
+  word-break: break-word;
+}
+
+.admp-modal-aviso {
+  font-size: 12px;
+  color: #ef4444;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 7px;
+  padding: 8px 12px;
+  margin: 0 0 20px;
+}
+
+.admp-modal-acciones {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.admp-btn-cancelar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+  color: #374151;
+  transition: background 0.13s;
+}
+.admp-btn-cancelar:hover:not(:disabled) { background: #e5e7eb; }
+
+.admp-btn-eliminar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: #ef4444;
+  color: #fff;
+  transition: background 0.13s;
+}
+.admp-btn-eliminar:hover:not(:disabled) { background: #dc2626; }
+.admp-btn-eliminar:disabled,
+.admp-btn-cancelar:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ---- Responsive ---- */
+@media (max-width: 700px) {
+  .admp-filtros       { flex-direction: column; align-items: stretch; }
+  .admp-busqueda-wrap { min-width: unset; }
+  .admp-tabla th, .admp-tabla td { padding: 8px 10px; }
+}

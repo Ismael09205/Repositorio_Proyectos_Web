@@ -9,6 +9,8 @@ const projectRoutes = require('./routes/project.routes');
 const iaRoutes = require('./routes/ia.routes');
 const chatRoutes = require('./routes/chat.routes');
 const paymentRoutes = require('./routes/payment.routes');
+const insigniasRoutes = require('./routes/insignias.routes');
+const adminProjectsRoutes = require('./routes/adminProjects.routes');
 
 const app = express();
 
@@ -24,5 +26,7 @@ app.use("/api/admin/users", adminUsersRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/ia", iaRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/admin/insignias', insigniasRoutes);
+app.use('/api/admin/projects', adminProjectsRoutes);
 
 module.exports = app;

@@ -1,4 +1,5 @@
 const userService = require('../services/user.service');
+const insigniasService = require('../services/insignias.service');
 
 // Obtener el perfil del usuario (Estudiante o Administrador)
 const getProfile = async (req, res) => {
@@ -65,8 +66,20 @@ const uploadAvatar = async (req, res) => {
     }
 }
 
+/* Devuelve la insignia del usuario autenticado (solo estudiantes) */
+const getMiInsignia = async (req, res) => {
+    try {
+        const datos = await insigniasService.obtenerInsigniaUsuario(req.user.id);
+        return res.status(200).json(datos);
+    } catch (error) {
+        console.error('getMiInsignia error:', error);
+        return res.status(500).json({ error: 'Error al obtener la insignia.' });
+    }
+};
+
 module.exports = {
     getProfile,
     updateProfile,
-    uploadAvatar
+    uploadAvatar,
+    getMiInsignia
 };

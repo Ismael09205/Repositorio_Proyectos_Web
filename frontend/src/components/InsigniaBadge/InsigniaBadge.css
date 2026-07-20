@@ -1,0 +1,86 @@
+/* Contenedor principal del badge */
+.igb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+/* Tamanios */
+.igb--sm .igb-imagen-wrap { width: 56px;  height: 56px; }
+.igb--md .igb-imagen-wrap { width: 80px;  height: 80px; }
+.igb--lg .igb-imagen-wrap { width: 110px; height: 110px; }
+
+/* Marco circular de la imagen */
+.igb-imagen-wrap {
+  border-radius: 50%;
+  border: 3px solid;
+  padding: 4px;
+  background: #fff;
+  position: relative;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease;
+}
+
+.igb-imagen-wrap:hover {
+  transform: scale(1.06);
+}
+
+/* La imagen SVG */
+.igb-imagen {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 50%;
+  display: block;
+}
+
+/* Punto indicador de asignacion manual */
+.igb-dot-manual {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 12px;
+  height: 12px;
+  background: #f59e0b;
+  border: 2px solid #fff;
+  border-radius: 50%;
+}
+
+/* Textos */
+.igb-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.igb-nombre {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.igb--sm .igb-nombre { font-size: 11px; }
+.igb--lg .igb-nombre { font-size: 15px; }
+
+.igb-proyectos {
+  font-size: 11px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.igb--sm .igb-proyectos { font-size: 10px; }
+
+/* Etiqueta "Admin asignado" */
+.igb-etiqueta-manual {
+  font-size: 10px;
+  font-weight: 600;
+  background: #fef3c7;
+  color: #d97706;
+  padding: 2px 7px;
+  border-radius: 999px;
+  margin-top: 2px;
+}

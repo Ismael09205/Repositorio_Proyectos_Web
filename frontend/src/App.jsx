@@ -20,6 +20,10 @@ import SobreNosotros from './pages/SobreNosotros/SobreNosotros';
 import Politicas from './pages/Politicas/Politicas';
 import Privacidad from './pages/Privacidad/Privacidad';
 import Contactos from './pages/Contactos/Contactos';
+/* Rutas exclusivas para administrador */
+import InsigniaManagement from './pages/InsigniaManagement/InsigniaManagement.jsx';
+import AdminDashboard from './pages/AdminDashboard/AdminDashboard.jsx';
+import AdminProjects from './pages/AdminProjects/AdminProjects.jsx';
 
 function App() {
   return (
@@ -82,6 +86,10 @@ function App() {
         <Route path="/mis-proyectos" element={<MyProjects />} />
         <Route path="/subir-proyecto" element={<UploadProject />} />
         <Route path="/editar-proyecto/:id" element={<UploadProject />} />
+        {/* Solo admin */}
+        <Route path="/insignias" element={<InsigniaManagement />} />
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
+        <Route path="/admin-proyectos" element={<AdminProjects />} />
         <Route path="/sobre-nosotros" element={<SobreNosotros />} />
         <Route path="/politicas" element={<Politicas />} />
         <Route path="/privacidad" element={<Privacidad />} />

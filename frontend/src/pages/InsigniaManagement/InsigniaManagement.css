@@ -1,0 +1,530 @@
+/* ---- Contenedor principal ---- */
+.ins-page {
+  min-height: 100vh;
+  padding: 28px 24px 60px;
+  background: #f7f8fa;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ---- Loading / Error ---- */
+.ins-loading,
+.ins-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 400px;
+  color: #57606a;
+}
+
+.ins-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #8b5cf6;
+  border-radius: 50%;
+  animation: ins-spin 0.7s linear infinite;
+}
+
+@keyframes ins-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---- Toast ---- */
+.ins-toast {
+  position: fixed;
+  top: 80px;
+  right: 24px;
+  background: #10b981;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(16,185,129,0.3);
+  z-index: 9999;
+  animation: ins-slideIn 0.3s ease;
+}
+
+@keyframes ins-slideIn {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ---- Encabezado ---- */
+.ins-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.ins-title-section {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ins-header-icon {
+  color: #8b5cf6;
+}
+
+.ins-title-section h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1f2328;
+  margin: 0;
+}
+
+.ins-title-section p {
+  color: #57606a;
+  font-size: 14px;
+  margin: 4px 0 0;
+}
+
+.ins-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ---- Botones ---- */
+.ins-btn-back,
+.ins-btn-secondary {
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: background 0.18s, transform 0.12s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ins-btn-back {
+  background: #1f2328;
+  color: #fff;
+}
+
+.ins-btn-back:hover { background: #3b82f6; }
+
+.ins-btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+}
+
+.ins-btn-secondary:hover { background: #e5e7eb; }
+
+/* ---- Tarjetas de niveles ---- */
+.ins-niveles {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.ins-nivel-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 2px solid;
+  border-radius: 12px;
+  padding: 14px 18px;
+  flex: 1;
+  min-width: 140px;
+  transition: transform 0.15s;
+}
+
+.ins-nivel-card:hover { transform: translateY(-2px); }
+
+/* Imagen SVG en la tarjeta de nivel */
+.ins-nivel-img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.ins-nivel-nombre {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 2px;
+}
+
+.ins-nivel-info {
+  font-size: 11px;
+  color: #9ca3af;
+  margin: 0 0 2px;
+}
+
+.ins-nivel-usuarios {
+  font-size: 11px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ---- Busqueda ---- */
+.ins-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin-bottom: 20px;
+  color: #6b7280;
+}
+
+.ins-search input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 14px;
+  color: #1f2328;
+  background: transparent;
+}
+
+/* ---- Tabla ---- */
+.ins-table-container {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  overflow-x: auto;
+}
+
+.ins-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.ins-table thead tr {
+  background: #f7f8fa;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.ins-table th {
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ins-table td {
+  padding: 13px 14px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: middle;
+}
+
+.ins-table tbody tr:hover {
+  background: #fafafa;
+}
+
+.ins-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.ins-td-muted {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.ins-empty {
+  text-align: center;
+  color: #9ca3af;
+  padding: 40px;
+}
+
+/* ---- Celda de usuario ---- */
+.ins-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ins-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.ins-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ---- Badges ---- */
+.ins-badge-count {
+  background: #f3f4f6;
+  color: #374151;
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Imagen SVG dentro del badge de la tabla */
+.ins-badge-img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.ins-badge-insignia {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid;
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ins-badge-efectiva {
+  font-weight: 700;
+}
+
+.ins-badge-none {
+  color: #9ca3af;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.ins-tipo-badge {
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ins-tipo-manual {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.ins-tipo-auto {
+  background: #eff6ff;
+  color: #3b82f6;
+}
+
+/* ---- Botones de accion en tabla ---- */
+.ins-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ins-btn-asignar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: #8b5cf6;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.ins-btn-asignar:hover { background: #7c3aed; }
+
+.ins-btn-remover {
+  display: flex;
+  align-items: center;
+  padding: 6px 9px;
+  background: #fee2e2;
+  color: #ef4444;
+  border: none;
+  border-radius: 7px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.ins-btn-remover:hover { background: #fecaca; }
+
+/* ---- Modal ---- */
+.ins-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.ins-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  animation: ins-modalIn 0.22s ease;
+}
+
+@keyframes ins-modalIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.ins-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.ins-modal-header h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  color: #1f2328;
+}
+
+.ins-modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.ins-modal-close:hover { background: #f3f4f6; }
+
+.ins-modal-body {
+  padding: 20px 24px;
+}
+
+.ins-modal-nombre {
+  font-size: 15px;
+  color: #1f2328;
+  margin: 0 0 6px;
+}
+
+.ins-modal-info {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0 0 20px;
+}
+
+/* Opciones de nivel en el modal */
+.ins-modal-niveles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.ins-nivel-opcion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 14px 12px;
+  border: 2px solid;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: #fff;
+}
+
+.ins-nivel-opcion:hover {
+  transform: translateY(-1px);
+}
+
+/* Imagen SVG en la opcion del modal */
+.ins-opcion-img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
+.ins-opcion-nombre {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ins-opcion-req {
+  font-size: 10px;
+  color: #9ca3af;
+}
+
+.ins-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.ins-btn-cancelar,
+.ins-btn-confirmar {
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s;
+}
+
+.ins-btn-cancelar {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.ins-btn-cancelar:hover { background: #e5e7eb; }
+
+.ins-btn-confirmar {
+  background: #8b5cf6;
+  color: #fff;
+}
+
+.ins-btn-confirmar:hover:not(:disabled) { background: #7c3aed; }
+.ins-btn-confirmar:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ---- Responsivo ---- */
+@media (max-width: 768px) {
+  .ins-page { padding: 16px 12px 40px; }
+  .ins-header { flex-direction: column; align-items: flex-start; }
+  .ins-modal-niveles { grid-template-columns: 1fr; }
+  .ins-niveles { gap: 8px; }
+  .ins-nivel-card { min-width: 120px; padding: 10px 12px; }
+}

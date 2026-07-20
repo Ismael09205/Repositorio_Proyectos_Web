@@ -423,6 +423,36 @@ const deleteProject = async (projectId, userId) => {
   return { success: true, message: 'Proyecto eliminado correctamente.' };
 };
 
+// Elimina cualquier proyecto como administrador (sin restricción de autoría)
+const adminDeleteProject = async (projectId) => {
+  const { data: project, error: fetchError } = await supabaseService
+    .from('proyectos')
+    .select('id')
+    .eq('id', projectId)
+    .single();
+
+  if (fetchError || !project) {
+    throw new Error('Proyecto no encontrado.');
+  }
+
+  const { data: comentariosDelProyecto } = await supabaseService
+    .from('comentarios')
+    .select('id')
+    .eq('proyecto_id', projectId);
+
+  const comentarioIds = (comentariosDelProyecto || []).map((c) => c.id);
+  if (comentarioIds.length) {
+    await supabaseService.from('comentario_likes').delete().in('comentario_id', comentarioIds);
+  }
+  await supabaseService.from('comentarios').delete().eq('proyecto_id', projectId);
+  await supabaseService.from('likes').delete().eq('proyecto_id', projectId);
+
+  const { error } = await supabaseService.from('proyectos').delete().eq('id', projectId);
+  if (error) throw error;
+
+  return { success: true, message: 'Proyecto eliminado por el administrador.' };
+};
+
 const updateProject = async (projectId, userId, updateData) => {
   // 1. Buscamos el proyecto en Supabase para validar autoría
   const { data: project, error: fetchError } = await supabaseService
@@ -498,5 +528,6 @@ module.exports = {
   addComment,
   toggleCommentLike,
   deleteProject,
+  adminDeleteProject,
   updateProject,
 };
